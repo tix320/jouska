@@ -11,6 +11,7 @@
     </parent>
 
     <artifactId>jouska-client</artifactId>
+    <packaging>jar</packaging>
 
     <dependencies>
         <dependency>

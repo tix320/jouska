@@ -1,10 +1,6 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
-import javafx.scene.Scene;
+public interface Controller<T> {
 
-public interface Controller {
-
-    Scene getOwnScene();
-
-    void initialize();
+    void initialize(T data);
 }

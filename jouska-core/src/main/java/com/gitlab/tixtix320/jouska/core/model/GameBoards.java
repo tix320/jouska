@@ -1,7 +1,4 @@
-package com.gitlab.tixtix320.jouska.server.game;
-
-import com.gitlab.tixtix320.jouska.core.model.CellInfo;
-import com.gitlab.tixtix320.jouska.core.model.GameBoard;
+package com.gitlab.tixtix320.jouska.core.model;
 
 public final class GameBoards {
 
@@ -11,7 +8,7 @@ public final class GameBoards {
         CellInfo[][] cellInfos = new CellInfo[height][width];
         for (int i = 0; i < cellInfos.length; i++) {
             for (int j = 0; j < cellInfos[i].length; j++) {
-                cellInfos[i][j] = new CellInfo(-1, -1);
+                cellInfos[i][j] = new CellInfo(0, 0);
             }
         }
 

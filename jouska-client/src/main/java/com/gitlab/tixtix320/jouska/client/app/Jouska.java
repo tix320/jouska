@@ -1,8 +1,13 @@
 package com.gitlab.tixtix320.jouska.client.app;
 
-import javafx.stage.Stage;
 import com.gitlab.tixtix320.jouska.client.ui.Controller;
-import com.gitlab.tixtix320.jouska.client.ui.MenuController;
+import javafx.fxml.FXMLLoader;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
+import javafx.stage.Stage;
+
+import java.io.IOException;
+import java.net.URL;
 
 public final class Jouska {
 
@@ -11,20 +16,37 @@ public final class Jouska {
     public static void initialize(Stage stage) {
         if (Jouska.stage == null) {
             Jouska.stage = stage;
-            stage.setWidth(1280);
-            stage.setHeight(720);
-            stage.setTitle("Petrichor");
-            stage.sizeToScene();
+            stage.setTitle("Jouska");
             stage.setResizable(false);
+            stage.sizeToScene();
+            switchScene("menu");
             stage.show();
-            switchController(new MenuController());
+
         } else {
             throw new IllegalStateException("Application already initialized");
         }
     }
 
-    public static void switchController(Controller controller) {
-        stage.setScene(controller.getOwnScene());
-        controller.initialize();
+    public static void switchScene(String name) {
+        switchScene(name, null);
+    }
+
+    public static void switchScene(String name, Object data) {
+        Parent root;
+        try {
+            FXMLLoader loader = new FXMLLoader(Jouska.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", name)));
+            root = loader.load();
+            Controller<Object> controller = loader.getController();
+            controller.initialize(data);
+        } catch (IOException e) {
+            throw new IllegalArgumentException(String.format("Scene %s not found", name), e);
+        }
+
+        Scene scene = new Scene(root);
+        URL cssResource = Jouska.class.getResource(String.format("/ui/{name}/style.css".replace("{name}", name), name));
+        if (cssResource != null) {
+            scene.getStylesheets().add(cssResource.toExternalForm());
+        }
+        stage.setScene(scene);
     }
 }

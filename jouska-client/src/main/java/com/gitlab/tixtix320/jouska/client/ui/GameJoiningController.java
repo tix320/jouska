@@ -1,82 +1,88 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
-import com.gitlab.tixtix320.jouska.client.app.Services;
-import javafx.beans.property.SimpleIntegerProperty;
+import com.gitlab.tixtix320.jouska.client.app.Jouska;
+import com.gitlab.tixtix320.jouska.core.model.GameInfo;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
-import javafx.scene.Scene;
-import javafx.scene.control.Button;
-import javafx.scene.control.TableColumn;
-import javafx.scene.control.TableRow;
-import javafx.scene.control.TableView;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.*;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.AnchorPane;
-import ui.model.GameInfo;
+
+import static com.gitlab.tixtix320.jouska.client.app.Services.GAME_SERVICE;
 
 public class GameJoiningController implements Controller {
 
-    private final Scene scene;
+    private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
-    private final AnchorPane root;
+    @FXML
+    private TableView<GameInfo> gamesTable;
 
-    private final Button refreshButton;
+    @FXML
+    private ProgressIndicator loadingIndicator;
 
-    private final TableView<GameInfo> gamesTable;
+    @FXML
+    private TableColumn<GameInfo, Long> idColumn;
 
-    public GameJoiningController() {
-        refreshButton = createRefreshButton();
-        gamesTable = createGamesTable();
-        root = new AnchorPane();
-        root.getChildren().addAll(refreshButton, gamesTable);
-        scene = new Scene(root, 300, 300);
+    @FXML
+    private TableColumn<GameInfo, String> nameColumn;
+
+    @FXML
+    private TableColumn<GameInfo, String> playersColumn;
+
+    @FXML
+    private Button refreshButton;
+
+    @Override
+    public void initialize(Object data) {
+        refreshButton.disableProperty().bind(loading);
+        gamesTable.disableProperty().bind(loading);
+        loadingIndicator.visibleProperty().bind(loading);
+        refreshButton.setGraphic(new ImageView("ui/game-joining/refresh.png"));
+        initGamesTable();
         fetchGameInfos();
     }
 
-    public Button createRefreshButton() {
-        Button button = new Button();
-        button.setGraphic(new ImageView("ui/game-joining/refresh.png"));
-        button.setOnMouseClicked(event -> {
-            fetchGameInfos();
-        });
-        return button;
+    @FXML
+    void refresh(ActionEvent event) {
+        fetchGameInfos();
     }
 
-    public TableView<GameInfo> createGamesTable() {
-        TableView<GameInfo> tableView = new TableView<>();
-        tableView.setRowFactory(param -> {
+    public void initGamesTable() {
+        idColumn.setCellValueFactory(cell -> new SimpleLongProperty(cell.getValue().getId()).asObject());
+        nameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
+        playersColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getPlayers() + "/" + cell.getValue().getPlayers()));
+
+        gamesTable.setRowFactory(param -> {
             TableRow<GameInfo> row = new TableRow<>();
             row.setOnMouseClicked(event -> {
                 if (event.getClickCount() == 2 && (!row.isEmpty())) {
                     GameInfo gameInfo = row.getItem();
-                    Meduzon.switchController(new WaitingController(gameInfo));
+                    long id = gameInfo.getId();
+                    loading.set(true);
+                    GAME_SERVICE.connect(id).subscribe(status -> {
+                        if (status.equals("connected")) {
+                            Jouska.switchScene("waiting");
+                        } else {
+                            // show popup error
+                        }
+                    });
                 }
             });
 
             return row;
         });
-        TableColumn<GameInfo, Integer> id = new TableColumn<>("Id");
-        TableColumn<GameInfo, String> name = new TableColumn<>("Name");
-        TableColumn<GameInfo, String> players = new TableColumn<>("Players");
-        id.setCellValueFactory(cell -> new SimpleIntegerProperty(cell.getValue().getId()).asObject());
-        name.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
-        players.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getPlayers() + "/" + cell.getValue().getPlayers()));
-        tableView.getColumns().add(id);
-        tableView.getColumns().add(name);
-        tableView.getColumns().add(players);
-        return tableView;
     }
 
     private void fetchGameInfos() {
-        Services.GAME_INFO_SERVICE.getGames().subscribe(gameInfos -> gamesTable.setItems(FXCollections.observableArrayList(gameInfos)));
+        loading.set(true);
+        GAME_SERVICE.getGames().subscribe(gameInfos -> {
+            gamesTable.setItems(FXCollections.observableArrayList(gameInfos));
+            loading.set(false);
+        });
     }
 
-    @Override
-    public Scene getOwnScene() {
-        return scene;
-    }
 
-    @Override
-    public void initialize() {
-
-    }
 }

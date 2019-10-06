@@ -7,6 +7,10 @@ public final class GameInfo {
     private final int players;
     private final int maxPlayers;
 
+    private GameInfo() {
+        this(-1, null, -1, -1);
+    }
+
     public GameInfo(long id, String name, int players, int maxPlayers) {
         this.id = id;
         this.name = name;

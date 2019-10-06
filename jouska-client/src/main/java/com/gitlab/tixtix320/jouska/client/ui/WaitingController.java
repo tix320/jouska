@@ -1,43 +1,36 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
-import com.gitlab.tixtix320.jouska.client.app.Services;
-import javafx.scene.Scene;
-import javafx.scene.control.ProgressIndicator;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.gitlab.tixtix320.jouska.client.app.Jouska;
+import com.gitlab.tixtix320.jouska.core.model.GameBoard;
+import javafx.application.Platform;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
-import ui.model.GameInfo;
 
-public class WaitingController implements Controller {
+import static com.gitlab.tixtix320.jouska.client.app.Services.CLONDER;
 
-    private final Scene scene;
+public class WaitingController implements Controller<Long> {
 
-    private final AnchorPane root;
+    @FXML
+    private AnchorPane root;
 
-    private final ProgressIndicator progressIndicator;
+    @FXML
+    private Label infoLabel;
 
-    private final GameInfo gameInfo;
-
-    public WaitingController(GameInfo gameInfo) {
-        this.gameInfo = gameInfo;
-        progressIndicator = new ProgressIndicator();
-        root = new AnchorPane();
-        root.getChildren().add(progressIndicator);
-        scene = new Scene(root);
-    }
+    @FXML
+    private Button cancelButton;
 
     @Override
-    public Scene getOwnScene() {
-        return scene;
+    public void initialize(Long gameId) {
+        CLONDER.registerTopicPublisher("game-board: " + gameId, new TypeReference<GameBoard>() {
+        }).asObservable().subscribe(gameBoard -> Platform.runLater(() -> Jouska.switchScene("game", gameBoard)));
     }
 
-    @Override
-    public void initialize() {
-        Services.GAME_INFO_SERVICE.connect(gameInfo.getId()).subscribe(connected -> {
-            if (connected) {
-                Meduzon.switchController(new GameController(gameInfo.getPlayers(), 7, 7));
-                System.out.println("connected");
-            } else {
-                Meduzon.switchController(new GameJoiningController());
-            }
-        });
+    @FXML
+    void cancel(ActionEvent event) {
+
     }
 }

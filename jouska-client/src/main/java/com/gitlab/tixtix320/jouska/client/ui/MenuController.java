@@ -1,53 +1,43 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
-import javafx.scene.Scene;
+import com.gitlab.tixtix320.jouska.client.app.Jouska;
+import javafx.event.ActionEvent;
+import javafx.fxml.FXML;
 import javafx.scene.control.Button;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.input.MouseEvent;
 
 public final class MenuController implements Controller {
 
-    private final Scene scene;
+    @FXML
+    private Button joinGameButton;
 
-    private final AnchorPane root;
-
-    private final Button gameJoiningButton;
-
-    private final Button gameCreationButtonButton;
-
-    public MenuController() {
-        gameJoiningButton = createGameJoiningButton();
-        gameCreationButtonButton = createGameCreationButton();
-        root = new AnchorPane();
-        root.getChildren().addAll(gameJoiningButton, gameCreationButtonButton);
-        scene = new Scene(root, 300, 150);
-    }
-
-    public Button createGameJoiningButton() {
-        Button button = new Button("Join game");
-        button.setPrefWidth(150);
-        button.setLayoutX(75);
-        button.setLayoutY(25);
-        button.setOnMouseClicked(event -> {
-            Meduzon.switchController(new GameJoiningController());
-        });
-        return button;
-    }
-
-    public Button createGameCreationButton() {
-        Button button = new Button("Create game");
-        button.setPrefWidth(150);
-        button.setLayoutX(75);
-        button.setLayoutY(75);
-        return button;
-    }
+    @FXML
+    private Button createGameButton;
 
     @Override
-    public Scene getOwnScene() {
-        return scene;
+    public void initialize(Object data) {
+
     }
 
-    @Override
-    public void initialize() {
+    @FXML
+    void mouseEntered(MouseEvent event) {
+        ((Button) event.getSource()).setScaleX(1.2);
+        ((Button) event.getSource()).setScaleY(1.2);
+    }
 
+    @FXML
+    void mouseExited(MouseEvent event) {
+        ((Button) event.getSource()).setScaleX(1);
+        ((Button) event.getSource()).setScaleY(1);
+    }
+
+    @FXML
+    void joinGame(ActionEvent event) {
+        Jouska.switchScene("game-joining");
+    }
+
+    @FXML
+    void createGame(ActionEvent event) {
+        Jouska.switchScene("game-creating");
     }
 }
