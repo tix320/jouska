@@ -25,8 +25,7 @@ public class WaitingController implements Controller<Long> {
 
     @Override
     public void initialize(Long gameId) {
-        CLONDER.registerTopicPublisher("game-board: " + gameId, new TypeReference<GameBoard>() {
-        }).asObservable().subscribe(gameBoard -> Platform.runLater(() -> Jouska.switchScene("game", gameBoard)));
+
     }
 
     @FXML
