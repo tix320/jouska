@@ -1,11 +1,13 @@
 package com.gitlab.tixtix320.jouska.server.app;
 
 
+import com.gitlab.tixtix320.jouska.server.service.GameService;
 import com.gitlab.tixtix320.sonder.api.server.Sonder;
 
 import java.io.IOException;
 
 public class Services {
+    public static GameService GAME_SERVICE;
     public static Sonder SONDER;
 
     public static void initialize(int port) {
@@ -25,7 +27,7 @@ public class Services {
     }
 
     private static void initServices() {
-
+        GAME_SERVICE = SONDER.getRPCService(GameService.class);
     }
 }
 

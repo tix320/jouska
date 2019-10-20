@@ -57,7 +57,7 @@ public class GameJoiningController implements Controller {
     public void initGamesTable() {
         idColumn.setCellValueFactory(cell -> new SimpleLongProperty(cell.getValue().getId()).asObject());
         nameColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getName()));
-        playersColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getPlayers() + "/" + cell.getValue().getPlayers()));
+        playersColumn.setCellValueFactory(cell -> new SimpleStringProperty(cell.getValue().getPlayers() + "/" + cell.getValue().getMaxPlayers()));
 
         gamesTable.setRowFactory(param -> {
             TableRow<GameInfo> row = new TableRow<>();
@@ -66,16 +66,7 @@ public class GameJoiningController implements Controller {
                     GameInfo gameInfo = row.getItem();
                     long gameId = gameInfo.getId();
                     loading.set(true);
-                    CLONDER.registerTopicPublisher("game-board: " + gameId, new TypeReference<GameBoard>() {
-                    }).asObservable().subscribe(gameBoard -> {
-                        Platform.runLater(() -> Jouska.switchScene("game", gameBoard));
-                    });
                     GAME_SERVICE.connect(gameId).subscribe(status -> {
-                        if (status.equals("connected")) {
-//                            Platform.runLater(() -> Jouska.switchScene("waiting"));
-                        } else {
-                            // show popup error
-                        }
                     });
                 }
             });

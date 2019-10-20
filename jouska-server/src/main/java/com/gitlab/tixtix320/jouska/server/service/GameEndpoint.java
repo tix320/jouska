@@ -1,19 +1,19 @@
 package com.gitlab.tixtix320.jouska.server.service;
 
-import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.tixtix320.jouska.core.model.GameBoard;
 import com.gitlab.tixtix320.jouska.core.model.GameBoards;
 import com.gitlab.tixtix320.jouska.core.model.GameInfo;
+import com.gitlab.tixtix320.kiwi.api.observable.Observable;
 import com.gitlab.tixtix320.kiwi.api.util.IDGenerator;
+import com.gitlab.tixtix320.kiwi.api.util.None;
 import com.gitlab.tixtix320.sonder.api.common.rpc.Endpoint;
 import com.gitlab.tixtix320.sonder.api.common.rpc.extra.ClientID;
-import com.gitlab.tixtix320.sonder.api.common.topic.TopicPublisher;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static com.gitlab.tixtix320.jouska.server.app.Services.SONDER;
+import static com.gitlab.tixtix320.jouska.server.app.Services.GAME_SERVICE;
 
 @Endpoint("game")
 public class GameEndpoint {
@@ -28,7 +28,7 @@ public class GameEndpoint {
     }
 
     @Endpoint("connect")
-    public String connect(long gameId, @ClientID long clientId) {
+    public void connect(long gameId, @ClientID long clientId) {
         AtomicReference<String> status = new AtomicReference<>("invalid-game-id");
         games.computeIfPresent(gameId, (key, gameInfo) -> {
             int players = gameInfo.getPlayers();
@@ -37,10 +37,15 @@ public class GameEndpoint {
                 gamePlayers.get(gameId).add(clientId);
                 GameInfo newGameInfo = new GameInfo(key, gameInfo.getName(), players + 1, gameInfo.getMaxPlayers());
                 if (newGameInfo.getPlayers() == newGameInfo.getMaxPlayers()) { // full
-                    TopicPublisher<GameBoard> publisher = SONDER.registerTopicPublisher("game-board: " + gameId, new TypeReference<>() {
+                    List<Observable<None>> playersReady = new ArrayList<>();
+                    for (Long playerId : gamePlayers.get(gameId)) {
+                        GameBoard board = GameBoards.defaultBoard(newGameInfo.getPlayers());
+                        Observable<None> playerReady = GAME_SERVICE.startGame(gameId, board, playerId);
+                        playersReady.add(playerReady);
+                    }
+                    Observable.combine(playersReady).subscribe(nones -> {
+                        System.out.println("Game started");
                     });
-                    GameBoard board = GameBoards.defaultBoard(newGameInfo.getPlayers());
-                    publisher.publish(board);
                 }
                 gamePlayers.get(key).add(clientId);
                 return newGameInfo;
@@ -49,13 +54,13 @@ public class GameEndpoint {
                 return gameInfo;
             }
         });
-        return status.get();
+//        return status.get();
     }
 
     @Endpoint("create")
     public long createGame(GameInfo gameInfo, @ClientID long clientId) {
         long gameId = ID_GENERATOR.next();
-        games.put(clientId, new GameInfo(gameId, gameInfo.getName(), 0, gameInfo.getMaxPlayers()));
+        games.put(gameId, new GameInfo(gameId, gameInfo.getName(), 0, gameInfo.getMaxPlayers()));
         Set<Long> clientIds = new HashSet<>();
         clientIds.add(clientId);
         gamePlayers.put(gameId, clientIds);

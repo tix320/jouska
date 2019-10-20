@@ -1,10 +1,6 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.gitlab.tixtix320.jouska.client.app.Jouska;
-import com.gitlab.tixtix320.jouska.core.model.GameBoard;
 import com.gitlab.tixtix320.jouska.core.model.GameInfo;
-import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.event.ActionEvent;
@@ -13,7 +9,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
 import javafx.scene.control.TextField;
 
-import static com.gitlab.tixtix320.jouska.client.app.Services.CLONDER;
 import static com.gitlab.tixtix320.jouska.client.app.Services.GAME_SERVICE;
 
 public class GameCreatingController implements Controller {
@@ -43,16 +38,7 @@ public class GameCreatingController implements Controller {
         loading.set(true);
         GameInfo gameInfo = new GameInfo(-1, gameNameTextField.getText(), -1, playersCountChoice.getValue());
         GAME_SERVICE.create(gameInfo).subscribe(gameId -> {
-            CLONDER.registerTopicPublisher("game-board: " + gameId, new TypeReference<GameBoard>() {
-            }).asObservable().subscribe(gameBoard -> {
-                Platform.runLater(() -> Jouska.switchScene("game", gameBoard));
-            });
             GAME_SERVICE.connect(gameId).subscribe(status -> {
-                if (status.equals("connected")) {
-//                    Platform.runLater(() -> Jouska.switchScene("waiting", gameId));
-                } else {
-                    // show popup error
-                }
             });
         });
     }

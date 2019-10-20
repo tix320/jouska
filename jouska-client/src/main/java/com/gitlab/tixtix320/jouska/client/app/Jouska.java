@@ -1,6 +1,7 @@
 package com.gitlab.tixtix320.jouska.client.app;
 
 import com.gitlab.tixtix320.jouska.client.ui.Controller;
+import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
@@ -47,6 +48,6 @@ public final class Jouska {
         if (cssResource != null) {
             scene.getStylesheets().add(cssResource.toExternalForm());
         }
-        stage.setScene(scene);
+        Platform.runLater(() -> stage.setScene(scene));
     }
 }

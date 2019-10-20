@@ -4,6 +4,10 @@ public final class GameBoard {
 
     private final CellInfo[][] matrix;
 
+    private GameBoard() {
+        this(null);
+    }
+
     public GameBoard(CellInfo[][] matrix) {
         this.matrix = matrix;
     }

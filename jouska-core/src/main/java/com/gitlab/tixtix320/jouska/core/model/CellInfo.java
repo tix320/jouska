@@ -6,6 +6,10 @@ public final class CellInfo {
 
     private final int points;
 
+    private CellInfo() {
+        this(0, 0);
+    }
+
     public CellInfo(int color, int points) {
         this.color = color;
         this.points = points;
