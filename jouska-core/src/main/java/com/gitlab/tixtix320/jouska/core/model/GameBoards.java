@@ -4,7 +4,7 @@ public final class GameBoards {
 
     public static GameBoard defaultBoard(int players) {
         int width = 12;
-        int height = 6;
+        int height = 8;
         CellInfo[][] cellInfos = new CellInfo[height][width];
         for (int i = 0; i < cellInfos.length; i++) {
             for (int j = 0; j < cellInfos[i].length; j++) {

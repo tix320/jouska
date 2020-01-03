@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="439.0" prefWidth="814.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gitlab.tixtix320.jouska.client.ui.ErrorController">
+   <children>
+      <TextArea fx:id="errorTextArea" layoutX="10.0" layoutY="22.0" prefHeight="405.0" prefWidth="797.0" />
+   </children>
+</AnchorPane>

@@ -1,39 +1,43 @@
 package com.gitlab.tixtix320.jouska.client.app;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.gitlab.tixtix320.jouska.core.model.GameBoard;
-import com.gitlab.tixtix320.jouska.core.model.GameInfo;
-import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.stage.Stage;
+import java.io.PrintWriter;
+import java.io.StringWriter;
 
-import static com.gitlab.tixtix320.jouska.client.app.Services.CLONDER;
-import static com.gitlab.tixtix320.jouska.client.app.Services.GAME_SERVICE;
+import javafx.application.Application;
+import javafx.stage.Stage;
 
 
 public class Main extends Application {
 
-    public static void main(String[] args) {
-//        Services.initialize("localhost", 8888);
-//        CLONDER.registerTopicPublisher("pizdec", new TypeReference<GameBoard>() {
-//        }).asObservable().subscribe(gameBoard -> {
-//            System.out.println(gameBoard);
-//        });
-        launch(args);
-    }
+	public static void main(String[] args)
+			throws InterruptedException {
+		launch(args);
+	}
 
-    @Override
-    public void init() throws Exception {
-        Services.initialize("localhost", 8888);
-    }
+	@Override
+	public void init()
+			throws Exception {
+	}
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        Jouska.initialize(stage);
-    }
+	@Override
+	public void start(Stage stage)
+			throws Exception {
+		Jouska.initialize(stage);
+		try {
+			Services.initialize("localhost", 8888);
 
-    @Override
-    public void stop() throws Exception {
-        Services.stop();
-    }
+		}
+		catch (Exception e) {
+			StringWriter out = new StringWriter();
+			PrintWriter stringWriter = new PrintWriter(out);
+			e.printStackTrace(stringWriter);
+			Jouska.switchScene("error", out.toString());
+		}
+	}
+
+	@Override
+	public void stop()
+			throws Exception {
+		Services.stop();
+	}
 }
