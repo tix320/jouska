@@ -10,6 +10,15 @@ import java.util.stream.Collectors;
 
 public class Main {
 
+	private static final String[] REQUIRED_MODULE_NAMES = {
+			"javafx.base",
+			"javafx.graphics",
+			"javafx.controls",
+			"javafx.fxml",
+			"sonder",
+			"kiwi",
+			"jouska.core"
+	};
 	private static final String MAIN_JAR_FILE_NAME = "jouska-app.jar";
 	private static final String MAIN_MODULE = "jouska.client";
 	private static final String MAIN_CLASS = "com.gitlab.tixtix320.jouska.client.app.Main";
@@ -45,21 +54,17 @@ public class Main {
 		}
 
 		StringBuilder modulePath = new StringBuilder();
-		modulePath.append(mainJarFile.getFileName()).append(";");
 		for (Path jar : jars) {
 			modulePath.append("lib/").append(jar.getFileName()).append(";");
 		}
 
-		String jlinkCommand = "jlink --module-path "
-							  + modulePath
-							  + " --add-modules "
-							  + MAIN_MODULE
-							  + " --output jre --compress=2 --no-header-files --no-man-pages --strip-debug";
+		String jlinkCommand = "jlink --module-path " + modulePath + " --add-modules " + String.join(",",
+				REQUIRED_MODULE_NAMES) + " --output jre --compress=2";
 
 		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
 
 		String runCommand = "jre\\bin\\java --module-path "
-							+ modulePath.toString()
+							+ mainJarFile.getFileName().toString()
 							+ " -m "
 							+ MAIN_MODULE
 							+ "/"
