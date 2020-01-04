@@ -24,7 +24,7 @@ public class Main extends Application {
 			throws Exception {
 		Jouska.initialize(stage);
 		try {
-			Services.initialize("localhost", 8888);
+			Services.initialize("3.230.34.96", 8888);
 
 		}
 		catch (Exception e) {

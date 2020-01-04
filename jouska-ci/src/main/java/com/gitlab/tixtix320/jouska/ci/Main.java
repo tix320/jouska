@@ -36,7 +36,7 @@ public class Main {
 		runCommand.append("java --module-path ");
 		runCommand.append(mainJarFile.getFileName()).append(";");
 		for (Path jar : jars) {
-			runCommand.append(jar.getFileName()).append(";");
+			runCommand.append("lib/").append(jar.getFileName()).append(";");
 		}
 		runCommand.append(" -m ").append(MAIN_MODULE).append("/").append(MAIN_CLASS);
 

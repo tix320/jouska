@@ -10,7 +10,7 @@
 		<version>0.1.0</version>
 	</parent>
 
-	<artifactId>ci</artifactId>
+	<artifactId>jouska-ci</artifactId>
 
 	<build>
 		<plugins>

@@ -13,7 +13,7 @@
 		<module>jouska-core</module>
 		<module>jouska-client</module>
 		<module>jouska-server</module>
-		<module>ci</module>
+		<module>jouska-ci</module>
 	</modules>
 
 	<build>
