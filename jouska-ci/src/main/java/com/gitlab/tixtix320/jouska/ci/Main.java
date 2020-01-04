@@ -3,7 +3,9 @@ package com.gitlab.tixtix320.jouska.ci;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class Main {
@@ -29,17 +31,39 @@ public class Main {
 			throw new IllegalStateException("Lib directory does not exists");
 		}
 
-		List<Path> jars = Files.walk(libPath, 1).collect(Collectors.toList());
-		jars.remove(0); // remove /lib
+		List<Path> jars = Files.walk(libPath, 1).skip(1).collect(Collectors.toList());
 
-		StringBuilder runCommand = new StringBuilder();
-		runCommand.append("java --module-path ");
-		runCommand.append(mainJarFile.getFileName()).append(";");
-		for (Path jar : jars) {
-			runCommand.append("lib/").append(jar.getFileName()).append(";");
+		Set<String> javafxEmptyJars = Set.of("javafx-base-13.jar", "javafx-controls-13.jar", "javafx-fxml-13.jar",
+				"javafx-graphics-13.jar");
+		Iterator<Path> iterator = jars.iterator();
+		while (iterator.hasNext()) {
+			Path jar = iterator.next();
+			if (javafxEmptyJars.contains(jar.getFileName().toString())) {
+				Files.delete(jar);
+				iterator.remove();
+			}
 		}
-		runCommand.append(" -m ").append(MAIN_MODULE).append("/").append(MAIN_CLASS);
 
+		StringBuilder modulePath = new StringBuilder();
+		modulePath.append(mainJarFile.getFileName()).append(";");
+		for (Path jar : jars) {
+			modulePath.append("lib/").append(jar.getFileName()).append(";");
+		}
+
+		String jlinkCommand = "jlink --module-path "
+							  + modulePath
+							  + " --add-modules "
+							  + MAIN_MODULE
+							  + " --output jre --compress=2 --no-header-files --no-man-pages --strip-debug";
+
+		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
+
+		String runCommand = "jre\\bin\\java --module-path "
+							+ modulePath.toString()
+							+ " -m "
+							+ MAIN_MODULE
+							+ "/"
+							+ MAIN_CLASS;
 		System.out.println(runCommand);
 	}
 }
