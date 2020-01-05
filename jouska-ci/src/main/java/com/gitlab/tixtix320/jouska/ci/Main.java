@@ -59,7 +59,7 @@ public class Main {
 		}
 
 		String jlinkCommand = "jlink --module-path " + modulePath + " --add-modules " + String.join(",",
-				REQUIRED_MODULE_NAMES) + " --output jre --compress=2";
+				REQUIRED_MODULE_NAMES) + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
 		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
 

@@ -1,4 +1,3 @@
 mvn clean install && ^
 cmd /c ""jouska-ci/target/appassembler/bin/ci.bat"" jouska-client/target >> jouska-client/target/jouska.bat && ^
-copy "jouska-ci\scripts\exe-builder.bat" "jouska-client\target\exe-builder.bat" && ^
-copy "jouska-ci\scripts\jouska.vbs" "jouska-client\target\jouska.vbs"
+cmd /c ""jouska-ci\scripts\generate-launcher.bat"" jouska-client\target\jouska.bat jouska-client\target\Jouska.exe jouska-ci\resources\icon.ico
