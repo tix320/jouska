@@ -13,6 +13,13 @@
 	<artifactId>jouska-server</artifactId>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -21,7 +28,7 @@
 					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 						<manifest>
-							<mainClass>com.gitlab.tixtix320.jouska.server.app.Main</mainClass>
+							<mainClass>com.gitlab.tixtix320.jouska.server.app.Application</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -50,7 +57,7 @@
 		<dependency>
 			<groupId>com.gitlab.tixtix320</groupId>
 			<artifactId>sonder</artifactId>
-			<version>0.6.3</version>
+			<version>0.7.0</version>
 		</dependency>
 	</dependencies>
 </project>

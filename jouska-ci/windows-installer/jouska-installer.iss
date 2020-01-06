@@ -34,9 +34,15 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\resources\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\jouska-app.jar"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\jouska.bat"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\Jouska.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\config.properties"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\jre\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\windows-installer\include\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
+
+[Dirs]
+Name: {app}; Permissions: users-full
 
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"

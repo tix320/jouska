@@ -20,8 +20,6 @@ public final class Jouska {
             stage.setTitle("Jouska");
             stage.setResizable(false);
             stage.sizeToScene();
-            switchScene("menu");
-            stage.show();
 
         } else {
             throw new IllegalStateException("Application already initialized");

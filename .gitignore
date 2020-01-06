@@ -1,4 +1,4 @@
 .idea/
 target/
 *.iml
-jouska-ci/scripts/Output/jouska-setup.exe
+jouska-ci/windows-installer/Output/jouska-setup.exe
