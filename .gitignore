@@ -3,3 +3,4 @@ target/
 *.iml
 jouska-ci/windows-installer/Output/jouska-setup.exe
 jouska-client/src/main/java/com/gitlab/tixtix320/jouska/client/app/Version.java
+jouska-ci/windows-installer/jouska-installer.iss

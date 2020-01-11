@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Jouska"
-#define MyAppVersion "0.1.0"
+#define MyAppVersion "@version@"
 #define MyAppPublisher "Tix Foundation"
 #define MyAppExeName "Jouska.exe"
 
