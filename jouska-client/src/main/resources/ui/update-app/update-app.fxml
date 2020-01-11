@@ -8,12 +8,13 @@
 <?import javafx.scene.layout.StackPane?>
 <?import javafx.scene.text.Font?>
 <AnchorPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.gitlab.tixtix320.jouska.client.ui.UpdateAppController">
+			xmlns:fx="http://javafx.com/fxml/1"
+			fx:controller="com.gitlab.tixtix320.jouska.client.ui.UpdateAppController">
 	<children>
 		<StackPane prefHeight="150.0" prefWidth="200.0"/>
 		<Group/>
-		<ProgressIndicator fx:id="loadingIndicator" layoutX="275.0" layoutY="150.0" prefHeight="58.0" prefWidth="59.0"/>
+		<ProgressIndicator fx:id="loadingIndicator" layoutX="275.0" layoutY="150.0" prefHeight="58.0" prefWidth="59.0"
+						   progress="0.0"/>
 		<Label fx:id="messageLabel" alignment="CENTER" layoutX="47.0" layoutY="47.0" prefHeight="117.0"
 			   prefWidth="507.0">
 			<font>

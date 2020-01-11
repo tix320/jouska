@@ -37,7 +37,7 @@ public class Main extends Application {
 			config = new Config(configReader.readFromConfigFile());
 			Services.initialize(config.getServerHost(), config.getServerPort());
 			APPLICATION_INSTALLER_SERVICE.getLatestVersion().subscribe(latestVersion -> {
-				if (config.getApplicationVersion().equals(latestVersion)) {
+				if (Version.VERSION.equals(latestVersion)) {
 					Jouska.switchScene("menu");
 				}
 				else {

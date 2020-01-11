@@ -57,7 +57,7 @@
 		<dependency>
 			<groupId>com.gitlab.tixtix320</groupId>
 			<artifactId>sonder</artifactId>
-			<version>0.7.0</version>
+			<version>${sonder.version}</version>
 		</dependency>
 	</dependencies>
 </project>

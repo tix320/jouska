@@ -1,9 +1,14 @@
 package com.gitlab.tixtix320.jouska.client.ui;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
+import java.nio.channels.ReadableByteChannel;
+import java.nio.file.Path;
+import java.nio.file.StandardOpenOption;
 
+import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -36,17 +41,32 @@ public class UpdateAppController implements Controller<String> {
 
 	public void updateApp(MouseEvent mouseEvent) {
 		loading.set(true);
-		APPLICATION_INSTALLER_SERVICE.getApplicationLatestSourcesZip().subscribe(bytes -> {
-			try (FileOutputStream fileOutputStream = new FileOutputStream("latest.zip")) {
-				fileOutputStream.write(bytes);
+		APPLICATION_INSTALLER_SERVICE.getApplicationLatestSourcesZip().subscribe(transfer -> {
+			long zipLength = transfer.getContentLength();
+			int consumedBytes = 0;
+
+			ReadableByteChannel channel = transfer.channel();
+
+			try (FileChannel fileChannel = FileChannel.open(Path.of("latest.zip"), StandardOpenOption.CREATE,
+					StandardOpenOption.WRITE)) {
+				ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
+				int read;
+				while ((read = channel.read(buffer)) != -1) {
+					buffer.flip();
+					fileChannel.write(buffer);
+					buffer.clear();
+					consumedBytes += read;
+					final double progress = (double) consumedBytes / zipLength;
+					Platform.runLater(() -> loadingIndicator.setProgress(progress));
+				}
+
 				Runtime.
 						getRuntime().
 						exec("cmd /c start \"\" unzip-latest.bat \\wait", null, new File("."));
 				System.exit(0);
-
 			}
 			catch (IOException e) {
-				throw new IllegalStateException(e);
+				throw new RuntimeException(e);
 			}
 		});
 	}

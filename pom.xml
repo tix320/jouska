@@ -6,8 +6,12 @@
 
 	<groupId>com.gitlab.tixtix320</groupId>
 	<artifactId>jouska</artifactId>
-	<version>0.1.0</version>
+	<version>0.2.0</version>
 	<packaging>pom</packaging>
+
+	<properties>
+		<sonder.version>0.9.0</sonder.version>
+	</properties>
 
 	<modules>
 		<module>jouska-core</module>
