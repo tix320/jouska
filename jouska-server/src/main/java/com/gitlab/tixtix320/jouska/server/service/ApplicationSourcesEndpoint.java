@@ -54,7 +54,7 @@ public class ApplicationSourcesEndpoint {
 
 		ReadableByteChannel channel = transfer.channel();
 		double border = 0.1;
-		try (FileChannel fileChannel = FileChannel.open(Path.of(installersPath + "/latest.zip"),
+		try (FileChannel fileChannel = FileChannel.open(Path.of(installersPath + "/jouska.zip"),
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
 			ByteBuffer buffer = ByteBuffer.allocate(zipLength);
 			while (buffer.hasRemaining()) {
