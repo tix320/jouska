@@ -58,10 +58,14 @@ public class ApplicationSourcesEndpoint {
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
 			ByteBuffer buffer = ByteBuffer.allocate(zipLength);
 			while (buffer.hasRemaining()) {
+				int position = buffer.position();
 				int read = channel.read(buffer);
 				buffer.flip();
-				fileChannel.write(buffer);
-
+				buffer.position(position);
+				while (buffer.hasRemaining()) {
+					fileChannel.write(buffer);
+				}
+				buffer.limit(buffer.capacity());
 				consumedBytes += read;
 				final double progress = (double) consumedBytes / zipLength;
 				if (progress > border) {
