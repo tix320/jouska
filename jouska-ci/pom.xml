@@ -37,9 +37,14 @@
 				<configuration>
 					<programs>
 						<program>
-							<id>app</id>>
-							<mainClass>com.gitlab.tixtix320.jouska.ci.Main</mainClass>
+							<id>ci</id>>
 							<name>ci</name>
+							<mainClass>com.gitlab.tixtix320.jouska.ci.Main</mainClass>
+						</program>
+						<program>
+							<id>upload</id>>
+							<name>upload</name>
+							<mainClass>com.gitlab.tixtix320.jouska.ci.upload.Main</mainClass>
 						</program>
 					</programs>
 					<showConsoleWindow>true</showConsoleWindow>
@@ -79,5 +84,13 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.gitlab.tixtix320</groupId>
+			<artifactId>sonder</artifactId>
+			<version>${sonder.version}</version>
+		</dependency>
+	</dependencies>
 
 </project>

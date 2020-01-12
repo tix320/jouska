@@ -10,7 +10,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<sonder.version>0.10.0</sonder.version>
+		<sonder.version>0.11.0</sonder.version>
 	</properties>
 
 	<modules>
