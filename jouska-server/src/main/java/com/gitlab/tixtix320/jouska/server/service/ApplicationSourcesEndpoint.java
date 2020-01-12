@@ -46,21 +46,28 @@ public class ApplicationSourcesEndpoint {
 		if (installersPath == null) {
 			throw new IllegalStateException("Sources path not specified");
 		}
-		long zipLength = transfer.getContentLength();
+		if (transfer.getContentLength() > Integer.MAX_VALUE) {
+			throw new IllegalStateException();
+		}
+		int zipLength = (int) transfer.getContentLength();
 		int consumedBytes = 0;
 
 		ReadableByteChannel channel = transfer.channel();
+		double border = 0.1;
 		try (FileChannel fileChannel = FileChannel.open(Path.of(installersPath + "/latest.zip"),
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
-			ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
-			int read;
-			while ((read = channel.read(buffer)) != -1) {
+			ByteBuffer buffer = ByteBuffer.allocate(zipLength);
+			while (buffer.hasRemaining()) {
+				int read = channel.read(buffer);
 				buffer.flip();
 				fileChannel.write(buffer);
-				buffer.clear();
+
 				consumedBytes += read;
 				final double progress = (double) consumedBytes / zipLength;
-				System.out.println("Uploading: " + progress);
+				if (progress > border) {
+					System.out.println("Uploading: " + progress);
+					border += 0.1;
+				}
 			}
 			System.out.println("Successfully uploaded");
 		}
