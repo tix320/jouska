@@ -24,7 +24,7 @@ public class Services {
 				.withRPCProtocol(servicesPackage)
 				.withTopicProtocol()
 				.contentTimeoutDurationFactory(contentLength -> {
-					long timout = Math.max((long) Math.ceil(contentLength * (60D / 1024 / 1024 / 1024)), 1);
+					long timout = Math.max((long) Math.ceil(contentLength * (500D / 1024 / 1024 / 30)), 1);
 					return Duration.ofSeconds(timout);
 				})
 				.build();

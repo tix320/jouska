@@ -6,7 +6,7 @@
 
 	<groupId>com.gitlab.tixtix320</groupId>
 	<artifactId>jouska</artifactId>
-	<version>0.3.0</version>
+	<version>0.4.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
