@@ -29,7 +29,7 @@ public class GameEndpoint {
 	}
 
 	@Endpoint("connect")
-	public void connect(long gameId, @ClientID long clientId) {
+	public String connect(long gameId, @ClientID long clientId) {
 		AtomicReference<String> status = new AtomicReference<>("invalid-game-id");
 		games.computeIfPresent(gameId, (key, gameInfo) -> {
 			int players = gameInfo.getPlayers();
@@ -60,7 +60,7 @@ public class GameEndpoint {
 				return gameInfo;
 			}
 		});
-		//        return status.get();
+		return status.get();
 	}
 
 	@Endpoint("create")
