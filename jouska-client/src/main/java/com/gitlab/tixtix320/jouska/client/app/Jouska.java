@@ -4,6 +4,9 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.gitlab.tixtix320.jouska.client.ui.Controller;
+import com.gitlab.tixtix320.kiwi.api.observable.Observable;
+import com.gitlab.tixtix320.kiwi.api.observable.subject.Subject;
+import com.gitlab.tixtix320.kiwi.api.util.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Parent;
@@ -19,19 +22,17 @@ public final class Jouska {
 			Jouska.stage = stage;
 			stage.setTitle("Jouska " + Version.VERSION);
 			stage.setResizable(false);
-			stage.sizeToScene();
-
 		}
 		else {
 			throw new IllegalStateException("Application already initialized");
 		}
 	}
 
-	public static void switchScene(String name) {
-		switchScene(name, null);
+	public static Observable<None> switchScene(String name) {
+		return switchScene(name, null);
 	}
 
-	public static void switchScene(String name, Object data) {
+	public static Observable<None> switchScene(String name, Object data) {
 		Parent root;
 		try {
 			FXMLLoader loader = new FXMLLoader(
@@ -49,6 +50,15 @@ public final class Jouska {
 		if (cssResource != null) {
 			scene.getStylesheets().add(cssResource.toExternalForm());
 		}
-		Platform.runLater(() -> stage.setScene(scene));
+
+		Subject<None> switchSubject = Subject.buffered(1);
+
+		Platform.runLater(() -> {
+			stage.setScene(scene);
+			stage.sizeToScene();
+			switchSubject.next(None.SELF);
+		});
+
+		return switchSubject.asObservable();
 	}
 }
