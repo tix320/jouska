@@ -20,10 +20,10 @@ public class Services {
 		SONDER = Sonder.forAddress(new InetSocketAddress(port))
 				.withRPCProtocol(servicesPackage)
 				.withTopicProtocol()
-				.headersTimeoutDuration(Duration.ofSeconds(5))
+				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> {
-					long timout = Math.max((long) Math.ceil(contentLength * (500D / 1024 / 1024 / 30)), 1);
-					return Duration.ofSeconds(timout);
+					// long timout = Math.max((long) Math.ceil(contentLength * (500D / 1024 / 1024 / 30)), 1);
+					return Duration.ofSeconds(Integer.MAX_VALUE);
 				})
 				.build();
 		initServices();
