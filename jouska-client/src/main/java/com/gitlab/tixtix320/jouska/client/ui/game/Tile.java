@@ -23,6 +23,13 @@ public class Tile extends Region {
 			},
 			{
 					"ui/game/blue-jouska-1.png",
+					"ui/game/blue-jouska-1.png",
+					"ui/game/blue-jouska-2.png",
+					"ui/game/blue-jouska-3.png",
+					"ui/game/blue-jouska-4.png"
+			},
+			{
+					"ui/game/blue-jouska-1.png",
 					"ui/game/green-jouska-1.png",
 					"ui/game/green-jouska-2.png",
 					"ui/game/green-jouska-3.png",

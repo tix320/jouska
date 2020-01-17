@@ -5,4 +5,3 @@ copy "jouska-client\target\classes\config.properties" "jouska-client\target\conf
 rmdir /S /Q jouska-client\target\classes jouska-client\target\generated-sources jouska-client\target\maven-archiver jouska-client\target\maven-status jouska-client\target\lib && ^
 cd jouska-client\target && "..\..\jouska-ci/scripts/zip" -r jouska.zip .\ && cd ..\.. && ^
 cmd /c ""jouska-ci/target/appassembler/bin/upload.bat"" jouska-client/target/jouska.zip
-

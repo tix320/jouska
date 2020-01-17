@@ -10,6 +10,7 @@ import com.gitlab.tixtix320.jouska.core.model.GameBoard;
 import com.gitlab.tixtix320.jouska.core.model.Player;
 import com.gitlab.tixtix320.jouska.core.model.Turn;
 import com.gitlab.tixtix320.sonder.api.common.topic.Topic;
+import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
@@ -18,6 +19,7 @@ import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
+import javafx.util.Duration;
 
 public class GameController implements Controller<Map<String, Object>> {
 
@@ -29,6 +31,9 @@ public class GameController implements Controller<Map<String, Object>> {
 
 	@FXML
 	private Circle turnIndicator;
+
+	@FXML
+	private Circle yourColor;
 
 	private Tile[][] tiles;
 
@@ -47,10 +52,19 @@ public class GameController implements Controller<Map<String, Object>> {
 		gameBoard.disableProperty().bind(yourTurn.not());
 		GameBoard gameBoard = (GameBoard) data.get("board");
 		you = (Player) data.get("player");
+		yourColor.setFill(Color.valueOf(you.getColorCode()));
+
+		FadeTransition transition = new FadeTransition(Duration.seconds(1), turnIndicator);
+		transition.setFromValue(0);
+		transition.setToValue(1);
+		transition.setCycleCount(Timeline.INDEFINITE);
+		transition.setAutoReverse(true);
+		transition.play();
 		Player firstTurn = (Player) data.get("firstTurn");
 		if (firstTurn == you) {
 			yourTurn.set(true);
 		}
+		turnIndicator.setFill(Color.valueOf(firstTurn.getColorCode()));
 
 		this.playersCount = (int) data.get("playersCount");
 
@@ -63,6 +77,8 @@ public class GameController implements Controller<Map<String, Object>> {
 			if (turn.getNextPlayer() == you) {
 				yourTurn.set(true);
 			}
+
+			turnIndicator.setFill(Color.valueOf(turn.getNextPlayer().getColorCode()));
 
 		}));
 		this.turnTopic = turnTopic;
@@ -91,9 +107,11 @@ public class GameController implements Controller<Map<String, Object>> {
 				tile.setOnMouseClicked(event -> {
 					if (tiles[x][y].color != Player.NONE && tiles[x][y].color == you) {
 						yourTurn.set(false);
-						turnTopic.publish(new Turn(x, y, you, nextPlayer(you)))
-								.subscribe(none -> Platform.runLater(() -> new Timeline(
-										plusPointToTile(x, y, tiles[x][y].color).toArray(KeyFrame[]::new)).play()));
+						Player nextPlayer = nextPlayer(you);
+						turnTopic.publish(new Turn(x, y, you, nextPlayer)).subscribe(none -> Platform.runLater(() -> {
+							new Timeline(plusPointToTile(x, y, tiles[x][y].color).toArray(KeyFrame[]::new)).play();
+							turnIndicator.setFill(Color.valueOf(nextPlayer.getColorCode()));
+						}));
 					}
 				});
 				gameBoard.getChildren().add(tile);
