@@ -56,6 +56,7 @@ public final class Jouska {
 		Platform.runLater(() -> {
 			stage.setScene(scene);
 			stage.sizeToScene();
+			stage.centerOnScreen();
 			switchSubject.next(None.SELF);
 		});
 

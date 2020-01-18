@@ -1,11 +1,10 @@
 package com.gitlab.tixtix320.jouska.client.ui.game;
 
-
 import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.gitlab.tixtix320.jouska.client.ui.Controller;
-import com.gitlab.tixtix320.jouska.core.dto.StartGameCommand;
+import com.gitlab.tixtix320.jouska.core.dto.WatchGameCommand;
 import com.gitlab.tixtix320.jouska.core.model.CellInfo;
 import com.gitlab.tixtix320.jouska.core.model.GameBoard;
 import com.gitlab.tixtix320.jouska.core.model.Player;
@@ -13,13 +12,11 @@ import com.gitlab.tixtix320.jouska.core.model.Turn;
 import com.gitlab.tixtix320.kiwi.api.observable.Observable;
 import com.gitlab.tixtix320.kiwi.api.observable.subject.Subject;
 import com.gitlab.tixtix320.kiwi.api.util.None;
-import com.gitlab.tixtix320.sonder.api.common.topic.Topic;
 import javafx.animation.FadeTransition;
 import javafx.animation.ParallelTransition;
 import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.application.Platform;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
@@ -28,7 +25,7 @@ import javafx.util.Duration;
 
 import static com.gitlab.tixtix320.jouska.client.app.Services.CLONDER;
 
-public class GameController implements Controller<StartGameCommand> {
+public class GameWatchingController implements Controller<WatchGameCommand> {
 
 	@FXML
 	private FlowPane gameBoard;
@@ -36,59 +33,35 @@ public class GameController implements Controller<StartGameCommand> {
 	@FXML
 	private Circle turnIndicator;
 
-	@FXML
-	private Circle myColor;
-
 	private Tile[][] tiles;
-
-	private Topic<Turn> turnTopic;
-
-	private Player myPlayer;
-
-	private SimpleBooleanProperty yourTurn = new SimpleBooleanProperty(false);
 
 	private int playersCount;
 
 	@Override
-	public void initialize(StartGameCommand startGameCommand) {
-		myPlayer = startGameCommand.getMyPlayer();
-		this.playersCount = startGameCommand.getPlayersCount();
-		Player firstTurn = startGameCommand.getFirstTurnPlayer();
-		myColor.setFill(Color.valueOf(myPlayer.getColorCode()));
-
-		if (firstTurn == myPlayer) {
-			yourTurn.set(true);
-		}
+	public void initialize(WatchGameCommand watchGameCommand) {
+		this.playersCount = watchGameCommand.getPlayersCount();
+		Player firstTurn = watchGameCommand.getFirstTurnPlayer();
 
 		turnIndicator.setFill(Color.valueOf(firstTurn.getColorCode()));
 
+		Observable<Turn> turns = CLONDER.registerTopic("game: " + watchGameCommand.getGameId(),
+				new TypeReference<Turn>() {}, 10).asObservable();
 
-		Topic<Turn> turnTopic = CLONDER.registerTopic("game: " + startGameCommand.getGameId(),
-				new TypeReference<>() {});
-		turnTopic.asObservable()
-				.subscribe(turn -> Platform.runLater(
-						() -> plusToTile(turn.getI(), turn.getJ(), tiles[turn.getI()][turn.getJ()].player).subscribe(
-								none -> {
 
-									if (turn.getNextPlayer() == myPlayer) {
-										yourTurn.set(true);
-									}
-
-									turnIndicator.setFill(Color.valueOf(turn.getNextPlayer().getColorCode()));
-								})));
-		this.turnTopic = turnTopic;
-
-		GameBoard gameBoard = startGameCommand.getGameBoard();
+		GameBoard gameBoard = watchGameCommand.getInitialGameBoard();
 		CellInfo[][] matrix = gameBoard.getMatrix();
 		initBoard(matrix.length, matrix[0].length);
+		applyTurns(watchGameCommand.getTurns(), matrix);
 		fillBoard(matrix);
 		initTurnIndicator();
+		turns.subscribe(turn -> Platform.runLater(
+				() -> plusToTile(turn.getI(), turn.getJ(), tiles[turn.getI()][turn.getJ()].player).subscribe(
+						none -> turnIndicator.setFill(Color.valueOf(turn.getNextPlayer().getColorCode())))));
 	}
 
 	private void initBoard(int height, int width) {
 		gameBoard.setBorder(new Border(
 				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))));
-		gameBoard.disableProperty().bind(yourTurn.not());
 		gameBoard.setPrefWidth(width * 100 + 10);
 		gameBoard.setMaxWidth(width * 100 + 10);
 		tiles = new Tile[height][width];
@@ -102,19 +75,6 @@ public class GameController implements Controller<StartGameCommand> {
 				tile.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.DASHED, CornerRadii.EMPTY,
 						BorderWidths.DEFAULT)));
 				tiles[i][j] = tile;
-				int x = i;
-				int y = j;
-				tile.setOnMouseClicked(event -> {
-					if (tiles[x][y].player == myPlayer) {
-						yourTurn.set(false);
-						Player nextPlayer = nextPlayer(myPlayer);
-						turnTopic.publish(new Turn(x, y, myPlayer, nextPlayer))
-								.subscribe(none -> Platform.runLater(
-										() -> plusToTile(x, y, tiles[x][y].player).subscribe(
-												none1 -> turnIndicator.setFill(
-														Color.valueOf(nextPlayer.getColorCode())))));
-					}
-				});
 				gameBoard.getChildren().add(tile);
 			}
 		}
@@ -140,6 +100,33 @@ public class GameController implements Controller<StartGameCommand> {
 			}
 		}
 		transition.play();
+	}
+
+	private void applyTurns(List<Turn> turns, CellInfo[][] matrix) {
+		for (Turn turn : turns) {
+			int i = turn.getI();
+			int j = turn.getJ();
+			Player player = turn.getCurrentPlayer();
+
+			turn(matrix, i, j, player);
+		}
+	}
+
+	private void turn(CellInfo[][] matrix, int i, int j, Player player) {
+		CellInfo cellInfo = matrix[i][j];
+		int cellPoints = cellInfo.getPoints();
+		int nextPoint = cellPoints + 1;
+		if (nextPoint > 3) {
+			matrix[i][j] = new CellInfo(player.ordinal(), nextPoint - 4);
+			;
+			List<Point> neighbors = findNeighbors(new Point(i, j));
+			for (Point point : neighbors) {
+				turn(matrix, point.i, point.j, player);
+			}
+		}
+		else {
+			matrix[i][j] = new CellInfo(player.ordinal(), cellPoints + 1);
+		}
 	}
 
 	private Observable<None> plusToTile(int i, int j, Player player) {

@@ -2,8 +2,9 @@ package com.gitlab.tixtix320.jouska.core.model;
 
 public class Turn {
 
-	private final int x;
-	private final int y;
+	private final int number;
+	private final int i;
+	private final int j;
 	private final Player currentPlayer;
 	private final Player nextPlayer;
 
@@ -11,26 +12,28 @@ public class Turn {
 		this(-1, -1, null, null);
 	}
 
-	public Turn(int x, int y) {
-		this.x = x;
-		this.y = y;
-		this.currentPlayer = null;
-		this.nextPlayer = null;
+	public Turn(int i, int j) {
+		this(i, j, null, null);
 	}
 
-	public Turn(int x, int y, Player currentPlayer, Player nextPlayer) {
-		this.x = x;
-		this.y = y;
+	public Turn(int i, int j, Player currentPlayer, Player nextPlayer) {
+		this(-1, i, j, currentPlayer, nextPlayer);
+	}
+
+	public Turn(int number, int i, int j, Player currentPlayer, Player nextPlayer) {
+		this.number = number;
+		this.i = i;
+		this.j = j;
 		this.currentPlayer = currentPlayer;
 		this.nextPlayer = nextPlayer;
 	}
 
-	public int getX() {
-		return x;
+	public int getI() {
+		return i;
 	}
 
-	public int getY() {
-		return y;
+	public int getJ() {
+		return j;
 	}
 
 	public Player getCurrentPlayer() {
@@ -39,5 +42,9 @@ public class Turn {
 
 	public Player getNextPlayer() {
 		return nextPlayer;
+	}
+
+	public Turn changeNumber(int number) {
+		return new Turn(number, this.i, this.j, this.currentPlayer, this.nextPlayer);
 	}
 }

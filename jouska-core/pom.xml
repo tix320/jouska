@@ -11,4 +11,12 @@
 	</parent>
 
 	<artifactId>jouska-core</artifactId>
+
+	<dependencies>
+		<dependency>
+			<groupId>com.gitlab.tixtix320</groupId>
+			<artifactId>sonder</artifactId>
+			<version>${sonder.version}</version>
+		</dependency>
+	</dependencies>
 </project>

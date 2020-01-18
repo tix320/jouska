@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.text.Font?>
 <AnchorPane prefHeight="307.0" prefWidth="406.0" xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gitlab.tixtix320.jouska.client.ui.LoadingController">
+			xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.gitlab.tixtix320.jouska.client.ui.ServerConnectController">
 	<children>
 		<ProgressIndicator layoutX="177.0" layoutY="127.0" prefHeight="91.0" prefWidth="90.0"/>
 		<Label alignment="CENTER" layoutX="88.0" layoutY="69.0" prefHeight="37.0" prefWidth="231.0"

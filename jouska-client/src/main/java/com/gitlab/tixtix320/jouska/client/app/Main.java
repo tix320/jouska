@@ -30,7 +30,7 @@ public class Main extends Application {
 	public void start(Stage stage)
 			throws Exception {
 		Jouska.initialize(stage);
-		Jouska.switchScene("loading").subscribe(none -> {
+		Jouska.switchScene("server-connect").subscribe(none -> {
 			stage.show();
 
 			new Thread(() -> {

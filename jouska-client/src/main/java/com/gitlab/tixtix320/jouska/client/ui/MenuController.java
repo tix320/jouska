@@ -8,36 +8,36 @@ import javafx.scene.input.MouseEvent;
 
 public final class MenuController implements Controller {
 
-    @FXML
-    private Button joinGameButton;
+	@FXML
+	private Button joinGameButton;
 
-    @FXML
-    private Button createGameButton;
+	@FXML
+	private Button createGameButton;
 
-    @Override
-    public void initialize(Object data) {
+	@Override
+	public void initialize(Object data) {
 
-    }
+	}
 
-    @FXML
-    void mouseEntered(MouseEvent event) {
-        ((Button) event.getSource()).setScaleX(1.2);
-        ((Button) event.getSource()).setScaleY(1.2);
-    }
+	@FXML
+	void mouseEntered(MouseEvent event) {
+		((Button) event.getSource()).setScaleX(1.2);
+		((Button) event.getSource()).setScaleY(1.2);
+	}
 
-    @FXML
-    void mouseExited(MouseEvent event) {
-        ((Button) event.getSource()).setScaleX(1);
-        ((Button) event.getSource()).setScaleY(1);
-    }
+	@FXML
+	void mouseExited(MouseEvent event) {
+		((Button) event.getSource()).setScaleX(1);
+		((Button) event.getSource()).setScaleY(1);
+	}
 
-    @FXML
-    void joinGame(ActionEvent event) {
-        Jouska.switchScene("game-joining");
-    }
+	@FXML
+	void joinGame(ActionEvent event) {
+		Jouska.switchScene("game-joining");
+	}
 
-    @FXML
-    void createGame(ActionEvent event) {
-        Jouska.switchScene("game-creating");
-    }
+	@FXML
+	void createGame(ActionEvent event) {
+		Jouska.switchScene("game-creating");
+	}
 }

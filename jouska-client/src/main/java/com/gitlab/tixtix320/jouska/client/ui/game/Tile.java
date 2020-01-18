@@ -1,10 +1,9 @@
 package com.gitlab.tixtix320.jouska.client.ui.game;
 
-import java.util.List;
-
 import com.gitlab.tixtix320.jouska.core.model.Player;
-import javafx.animation.KeyFrame;
-import javafx.animation.KeyValue;
+import javafx.animation.FadeTransition;
+import javafx.animation.SequentialTransition;
+import javafx.animation.Transition;
 import javafx.scene.Node;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.Region;
@@ -51,7 +50,7 @@ public class Tile extends Region {
 			},
 	};
 
-	public Player color;
+	public Player player;
 
 	public int points;
 
@@ -61,25 +60,44 @@ public class Tile extends Region {
 		getChildren().add(e);
 	}
 
-	public List<KeyFrame> changeContent(Player color, int point) {
-		this.color = color;
-		this.points = point;
-		if (color == Player.NONE) {
-			Node node = getChildren().get(0);
-			KeyFrame keyFrame = new KeyFrame(Duration.seconds(0.5), new KeyValue(node.opacityProperty(), 0));
-
-			return List.of(keyFrame);
+	public Transition changeContent(Player player, int points) {
+		Transition transition;
+		if (player == Player.NONE || points == 0) {
+			transition = disappearTransition();
+			this.player = Player.NONE;
+			this.points = 0;
 		}
 		else {
-			Node node = getChildren().get(0);
-			KeyFrame keyFrame = new KeyFrame(Duration.seconds(0.5), new KeyValue(node.opacityProperty(), 0));
+			ImageView imageView = new ImageView(jouskas[player.ordinal()][Math.min(4, points)]);
 
-			ImageView imageView = new ImageView(jouskas[color.ordinal()][point]);
-			imageView.setOpacity(0);
-			getChildren().set(0, imageView);
-			KeyFrame keyFrame2 = new KeyFrame(Duration.seconds(1.0), new KeyValue(imageView.opacityProperty(), 1));
+			if (this.points == 0) {
+				getChildren().set(0, imageView);
+				transition = appearTransition(imageView);
+			}
+			else {
+				Transition disappearTransition = disappearTransition();
+				disappearTransition.setOnFinished(actionEvent -> getChildren().set(0, imageView));
 
-			return List.of(keyFrame, keyFrame2);
+				transition = new SequentialTransition(disappearTransition, appearTransition(imageView));
+			}
+			this.player = player;
+			this.points = points;
 		}
+		return transition;
+	}
+
+	private Transition appearTransition(Node node) {
+		FadeTransition appearTransition = new FadeTransition(Duration.seconds(0.3), node);
+		appearTransition.setFromValue(0);
+		appearTransition.setToValue(1);
+		return appearTransition;
+	}
+
+	private Transition disappearTransition() {
+		Node node = getChildren().get(0);
+		FadeTransition disappearTransition = new FadeTransition(Duration.seconds(0.3), node);
+		disappearTransition.setFromValue(1);
+		disappearTransition.setToValue(0);
+		return disappearTransition;
 	}
 }
