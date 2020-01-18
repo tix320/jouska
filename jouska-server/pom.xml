@@ -5,9 +5,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.gitlab.tixtix320</groupId>
+		<groupId>com.github.tix320</groupId>
 		<artifactId>jouska</artifactId>
-		<version>0.7.0</version>
+		<version>0.8.0</version>
 	</parent>
 
 	<artifactId>jouska-server</artifactId>
@@ -28,7 +28,7 @@
 					<appendAssemblyId>false</appendAssemblyId>
 					<archive>
 						<manifest>
-							<mainClass>com.gitlab.tixtix320.jouska.server.app.Application</mainClass>
+							<mainClass>com.github.tix320.jouska.server.app.Application</mainClass>
 						</manifest>
 					</archive>
 					<descriptorRefs>
@@ -50,12 +50,12 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.gitlab.tixtix320</groupId>
+			<groupId>com.github.tix320</groupId>
 			<artifactId>jouska-core</artifactId>
-			<version>0.7.0</version>
+			<version>0.8.0</version>
 		</dependency>
 		<dependency>
-			<groupId>com.gitlab.tixtix320</groupId>
+			<groupId>com.github.tix320</groupId>
 			<artifactId>sonder</artifactId>
 			<version>${sonder.version}</version>
 		</dependency>

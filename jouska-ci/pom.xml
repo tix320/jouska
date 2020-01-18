@@ -5,9 +5,9 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<parent>
-		<groupId>com.gitlab.tixtix320</groupId>
+		<groupId>com.github.tix320</groupId>
 		<artifactId>jouska</artifactId>
-		<version>0.7.0</version>
+		<version>0.8.0</version>
 	</parent>
 
 	<artifactId>jouska-ci</artifactId>
@@ -39,12 +39,12 @@
 						<program>
 							<id>ci</id>>
 							<name>ci</name>
-							<mainClass>com.gitlab.tixtix320.jouska.ci.Main</mainClass>
+							<mainClass>com.github.tix320.jouska.ci.Main</mainClass>
 						</program>
 						<program>
 							<id>upload</id>>
 							<name>upload</name>
-							<mainClass>com.gitlab.tixtix320.jouska.ci.upload.Main</mainClass>
+							<mainClass>com.github.tix320.jouska.ci.upload.Main</mainClass>
 						</program>
 					</programs>
 					<showConsoleWindow>true</showConsoleWindow>
@@ -87,7 +87,7 @@
 
 	<dependencies>
 		<dependency>
-			<groupId>com.gitlab.tixtix320</groupId>
+			<groupId>com.github.tix320</groupId>
 			<artifactId>sonder</artifactId>
 			<version>${sonder.version}</version>
 		</dependency>

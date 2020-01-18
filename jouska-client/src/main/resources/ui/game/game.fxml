@@ -7,7 +7,7 @@
 <?import javafx.scene.text.Font?>
 <AnchorPane prefHeight="820.0" prefWidth="1250.0" xmlns="http://javafx.com/javafx/11.0.1"
 			xmlns:fx="http://javafx.com/fxml/1"
-			fx:controller="com.gitlab.tixtix320.jouska.client.ui.game.GameController">
+			fx:controller="com.github.tix320.jouska.client.ui.game.GameController">
 	<children>
 		<Label alignment="CENTER" layoutX="515.0" layoutY="20.0" prefHeight="29.0" prefWidth="110.0" text="Turn:"
 			   AnchorPane.leftAnchor="515.0">

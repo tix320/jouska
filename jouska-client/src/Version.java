@@ -1,4 +1,4 @@
-package com.gitlab.tixtix320.jouska.client.app;
+package com.github.tix320.jouska.client.app;
 
 public class Version {
 
