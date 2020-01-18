@@ -21,6 +21,7 @@ import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -39,13 +40,16 @@ public class GameController implements Controller<StartGameCommand> {
 	@FXML
 	private Circle myColor;
 
+	@FXML
+	private Label gameName;
+
 	private Tile[][] tiles;
 
 	private Topic<Turn> turnTopic;
 
 	private Player myPlayer;
 
-	private SimpleBooleanProperty yourTurn = new SimpleBooleanProperty(false);
+	private SimpleBooleanProperty myTurn = new SimpleBooleanProperty(false);
 
 	private int playersCount;
 
@@ -55,9 +59,9 @@ public class GameController implements Controller<StartGameCommand> {
 		this.playersCount = startGameCommand.getPlayersCount();
 		Player firstTurn = startGameCommand.getFirstTurnPlayer();
 		myColor.setFill(Color.valueOf(myPlayer.getColorCode()));
-
+		gameName.setText("Game: " + startGameCommand.getName());
 		if (firstTurn == myPlayer) {
-			yourTurn.set(true);
+			myTurn.set(true);
 		}
 
 		turnIndicator.setFill(Color.valueOf(firstTurn.getColorCode()));
@@ -71,7 +75,7 @@ public class GameController implements Controller<StartGameCommand> {
 								none -> {
 
 									if (turn.getNextPlayer() == myPlayer) {
-										yourTurn.set(true);
+										myTurn.set(true);
 									}
 
 									turnIndicator.setFill(Color.valueOf(turn.getNextPlayer().getColorCode()));
@@ -88,7 +92,7 @@ public class GameController implements Controller<StartGameCommand> {
 	private void initBoard(int height, int width) {
 		gameBoard.setBorder(new Border(
 				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))));
-		gameBoard.disableProperty().bind(yourTurn.not());
+		gameBoard.disableProperty().bind(myTurn.not());
 		gameBoard.setPrefWidth(width * 100 + 10);
 		gameBoard.setMaxWidth(width * 100 + 10);
 		tiles = new Tile[height][width];
@@ -106,13 +110,16 @@ public class GameController implements Controller<StartGameCommand> {
 				int y = j;
 				tile.setOnMouseClicked(event -> {
 					if (tiles[x][y].player == myPlayer) {
-						yourTurn.set(false);
+						myTurn.set(false);
 						Player nextPlayer = nextPlayer(myPlayer);
 						turnTopic.publish(new Turn(x, y, myPlayer, nextPlayer))
 								.subscribe(none -> Platform.runLater(
-										() -> plusToTile(x, y, tiles[x][y].player).subscribe(
-												none1 -> turnIndicator.setFill(
-														Color.valueOf(nextPlayer.getColorCode())))));
+										() -> plusToTile(x, y, tiles[x][y].player).subscribe(none1 -> {
+											turnIndicator.setFill(Color.valueOf(nextPlayer.getColorCode()));
+											if (nextPlayer == myPlayer) {
+												myTurn.set(true);
+											}
+										})));
 					}
 				});
 				gameBoard.getChildren().add(tile);

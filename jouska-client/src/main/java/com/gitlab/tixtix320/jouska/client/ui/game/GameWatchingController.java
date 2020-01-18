@@ -18,6 +18,7 @@ import javafx.animation.Timeline;
 import javafx.animation.Transition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
+import javafx.scene.control.Label;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -33,6 +34,9 @@ public class GameWatchingController implements Controller<WatchGameCommand> {
 	@FXML
 	private Circle turnIndicator;
 
+	@FXML
+	private Label gameName;
+
 	private Tile[][] tiles;
 
 	private int playersCount;
@@ -42,6 +46,7 @@ public class GameWatchingController implements Controller<WatchGameCommand> {
 		this.playersCount = watchGameCommand.getPlayersCount();
 		Player firstTurn = watchGameCommand.getFirstTurnPlayer();
 
+		gameName.setText("Game: " + watchGameCommand.getName());
 		turnIndicator.setFill(Color.valueOf(firstTurn.getColorCode()));
 
 		Observable<Turn> turns = CLONDER.registerTopic("game: " + watchGameCommand.getGameId(),

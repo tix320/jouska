@@ -64,8 +64,8 @@ public class GameEndpoint {
 					});
 					for (Long playerId : players) {
 						Observable<None> playerReady = GAME_SERVICE.startGame(
-								new StartGameCommand(gameId, Player.fromNumber(playerNumber++), firstPlayer,
-										players.size(), gameInfo.getInitialGameBoard()), playerId);
+								new StartGameCommand(gameId, gameInfo.getName(), Player.fromNumber(playerNumber++),
+										firstPlayer, players.size(), gameInfo.getInitialGameBoard()), playerId);
 						playersReady.add(playerReady);
 					}
 					Observable.combine(playersReady).subscribe(nones -> System.out.println("Game started"));
@@ -97,8 +97,9 @@ public class GameEndpoint {
 		try {
 			lock.lock();
 			GameInfo gameInfo = games.get(gameId);
-			WatchGameCommand watchGameCommand = new WatchGameCommand(gameId, gameInfo.getFirstTurnPlayer(),
-					gameInfo.getMaxPlayers(), gameInfo.getInitialGameBoard(), gameInfo.getTurns());
+			WatchGameCommand watchGameCommand = new WatchGameCommand(gameId, gameInfo.getName(),
+					gameInfo.getFirstTurnPlayer(), gameInfo.getMaxPlayers(), gameInfo.getInitialGameBoard(),
+					gameInfo.getTurns());
 			GAME_SERVICE.watchGame(watchGameCommand, clientId);
 		}
 		finally {

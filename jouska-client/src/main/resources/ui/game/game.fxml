@@ -25,5 +25,10 @@
 		</Label>
 		<Circle fx:id="myColor" fill="DODGERBLUE" layoutX="181.0" layoutY="40.0" radius="16.0" stroke="BLACK"
 				strokeType="INSIDE"/>
+		<Label fx:id="gameName" alignment="CENTER" layoutX="722.0" layoutY="24.0" prefHeight="40.0" prefWidth="472.0">
+			<font>
+				<Font size="28.0"/>
+			</font>
+		</Label>
 	</children>
 </AnchorPane>

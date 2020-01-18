@@ -31,7 +31,7 @@ public class GameCreatingController implements Controller<Object> {
 		playersCountChoice.disableProperty().bind(loading);
 		createButton.disableProperty().bind(loading);
 		createButton.disableProperty().bind(gameNameTextField.textProperty().isEmpty());
-		playersCountChoice.setItems(FXCollections.observableArrayList(2, 3, 4));
+		playersCountChoice.setItems(FXCollections.observableArrayList(1, 2, 3, 4));
 		playersCountChoice.setValue(2);
 	}
 

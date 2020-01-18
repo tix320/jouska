@@ -15,7 +15,7 @@ import javafx.stage.Stage;
 
 public final class Jouska {
 
-	private static Stage stage;
+	public static Stage stage;
 
 	public static void initialize(Stage stage) {
 		if (Jouska.stage == null) {

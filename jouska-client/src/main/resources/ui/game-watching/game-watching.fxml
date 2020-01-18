@@ -18,5 +18,10 @@
 		<Circle fx:id="turnIndicator" fill="DODGERBLUE" layoutX="625.0" layoutY="40.0" radius="16.0" stroke="BLACK"
 				strokeType="INSIDE" AnchorPane.leftAnchor="609.0"/>
 		<FlowPane fx:id="gameBoard" layoutX="14.0" layoutY="75.0" prefHeight="507.0" prefWidth="795.0"/>
+		<Label fx:id="gameName" alignment="CENTER" layoutX="722.0" layoutY="24.0" prefHeight="40.0" prefWidth="472.0">
+			<font>
+				<Font size="28.0"/>
+			</font>
+		</Label>
 	</children>
 </AnchorPane>

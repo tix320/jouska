@@ -15,6 +15,9 @@ public final class GameBoards {
 		int penultRowIndex;
 		CellInfo[] penultRow;
 		switch (playersCount) {
+			case 1:
+				cellInfos[1][1] = new CellInfo(1, 3);
+				break;
 			case 2:
 				cellInfos[1][1] = new CellInfo(1, 3);
 				penultRowIndex = cellInfos.length - 2;
