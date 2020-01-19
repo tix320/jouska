@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.client.Clonder;
 import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
 import com.github.tix320.sonder.api.common.communication.Headers;
@@ -16,7 +17,7 @@ public class Main {
 	public static void main(String[] args)
 			throws IOException {
 		String filePath = args[0];
-		Clonder clonder = Clonder.forAddress(new InetSocketAddress("3.230.34.96", 8888))
+		Clonder clonder = Clonder.forAddress(new InetSocketAddress("localhost", 8888))
 				.withRPCProtocol("com.github.tix320.jouska.ci.upload")
 				.withTopicProtocol()
 				.build();
@@ -25,6 +26,8 @@ public class Main {
 		long length = Files.size(file);
 		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY, FileChannel.open(file, StandardOpenOption.READ),
 				length);
-		uploaderService.upload(transfer);
+		uploaderService.upload(transfer).subscribe(none -> {
+			Try.runOrRethrow(clonder::close);
+		});
 	}
 }

@@ -56,6 +56,7 @@ public class ApplicationSourcesEndpoint {
 		double border = 0.1;
 		try (FileChannel fileChannel = FileChannel.open(Path.of(installersPath + "/jouska.zip"),
 				StandardOpenOption.CREATE, StandardOpenOption.WRITE)) {
+			System.out.println("Uploading started");
 			ByteBuffer buffer = ByteBuffer.allocate(zipLength);
 			while (buffer.hasRemaining()) {
 				int position = buffer.position();
