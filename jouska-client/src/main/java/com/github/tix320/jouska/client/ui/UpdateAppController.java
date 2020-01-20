@@ -8,6 +8,10 @@ import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import com.github.tix320.jouska.client.app.Version;
+import com.github.tix320.jouska.client.app.Version.OS;
+import com.github.tix320.kiwi.api.observable.Observable;
+import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -41,13 +45,29 @@ public class UpdateAppController implements Controller<String> {
 
 	public void updateApp(MouseEvent mouseEvent) {
 		loading.set(true);
-		APPLICATION_INSTALLER_SERVICE.getApplicationLatestSourcesZip().subscribe(transfer -> {
+		Observable<Transfer> observable;
+		String fileName;
+		String command;
+		if (Version.os == OS.WINDOWS) {
+			observable = APPLICATION_INSTALLER_SERVICE.downloadWindowsLatest();
+			fileName = "jouska-windows.zip";
+			command = "cmd /c start \"\" update.bat";
+		}
+		else if (Version.os == OS.UNIX) {
+			observable = APPLICATION_INSTALLER_SERVICE.downloadUnixLatest();
+			fileName = "jouska-unix.run";
+			command = "sh update.sh";
+		}
+		else {
+			throw new IllegalStateException(Version.os + "");
+		}
+		observable.subscribe(transfer -> {
 			long zipLength = transfer.getContentLength();
 			int consumedBytes = 0;
 
 			ReadableByteChannel channel = transfer.channel();
 
-			try (FileChannel fileChannel = FileChannel.open(Path.of("latest.zip"), StandardOpenOption.CREATE,
+			try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
 					StandardOpenOption.WRITE)) {
 				ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
 				int read;
@@ -62,7 +82,7 @@ public class UpdateAppController implements Controller<String> {
 
 				Runtime.
 						getRuntime().
-						exec("cmd /c start \"\" unzip-latest.bat \\wait", null, new File("."));
+						exec(command, null, new File("."));
 				System.exit(0);
 			}
 			catch (IOException e) {

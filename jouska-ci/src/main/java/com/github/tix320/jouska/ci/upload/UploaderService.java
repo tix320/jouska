@@ -8,6 +8,10 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 @Origin("application")
 public interface UploaderService {
 
-	@Origin("upload")
-	Observable<None> upload(Transfer transfer);
+	@Origin("upload-windows")
+	Observable<None> uploadWindows(Transfer transfer);
+
+	@Origin("upload-unix")
+	Observable<None> uploadUnix(Transfer transfer);
+
 }

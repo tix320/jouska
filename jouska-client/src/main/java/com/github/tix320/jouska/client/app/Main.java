@@ -39,12 +39,12 @@ public class Main extends Application {
 
 					config = new Config(configReader.readFromConfigFile());
 					Services.initialize(config.getServerHost(), config.getServerPort());
-					APPLICATION_INSTALLER_SERVICE.getLatestVersion().subscribe(latestVersion -> {
-						if (Version.VERSION.equals(latestVersion)) {
-							Jouska.switchScene("menu");
+					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION).subscribe(update -> {
+						if (update) {
+							Jouska.switchScene("update-app", update);
 						}
 						else {
-							Jouska.switchScene("update-app", latestVersion);
+							Jouska.switchScene("menu");
 						}
 					});
 				}

@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.github.tix320</groupId>
 		<artifactId>jouska</artifactId>
-		<version>0.8.0</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>jouska-client</artifactId>
@@ -27,7 +27,7 @@
 		<dependency>
 			<groupId>com.github.tix320</groupId>
 			<artifactId>jouska-core</artifactId>
-			<version>0.8.0</version>
+			<version>1.0.0</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.tix320</groupId>
@@ -57,6 +57,10 @@
 						<replacement>
 							<token>@version@</token>
 							<value>${parent.version}</value>
+						</replacement>
+						<replacement>
+							<token>@os@</token>
+							<value>${os}</value>
 						</replacement>
 					</replacements>
 				</configuration>

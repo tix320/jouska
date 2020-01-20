@@ -7,7 +7,7 @@
 	<parent>
 		<groupId>com.github.tix320</groupId>
 		<artifactId>jouska</artifactId>
-		<version>0.8.0</version>
+		<version>1.0.0</version>
 	</parent>
 
 	<artifactId>jouska-ci</artifactId>
@@ -37,14 +37,12 @@
 				<configuration>
 					<programs>
 						<program>
-							<id>ci</id>>
-							<name>ci</name>
-							<mainClass>com.github.tix320.jouska.ci.Main</mainClass>
+							<id>jre</id>>
+							<mainClass>com.github.tix320.jouska.ci.jre.JRE</mainClass>
 						</program>
 						<program>
 							<id>upload</id>>
-							<name>upload</name>
-							<mainClass>com.github.tix320.jouska.ci.upload.Main</mainClass>
+							<mainClass>com.github.tix320.jouska.ci.upload.Uploader</mainClass>
 						</program>
 					</programs>
 					<showConsoleWindow>true</showConsoleWindow>
@@ -72,8 +70,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<file>windows-installer/jouska-installer-template.iss</file>
-					<outputFile>windows-installer/jouska-installer.iss</outputFile>
+					<file>windows/installer/jouska-installer-template.iss</file>
+					<outputFile>windows/installer/jouska-installer.iss</outputFile>
 					<replacements>
 						<replacement>
 							<token>@version@</token>

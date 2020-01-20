@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.ci;
+package com.github.tix320.jouska.ci.jre;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-public class Main {
+public class JRE {
 
 	private static final String[] REQUIRED_MODULE_NAMES = {
 			"javafx.base",
@@ -19,20 +19,10 @@ public class Main {
 			"kiwi",
 			"jouska.core"
 	};
-	private static final String MAIN_JAR_FILE_NAME = "jouska-app.jar";
-	private static final String MAIN_MODULE = "jouska.client";
-	private static final String MAIN_CLASS = "com.github.tix320.jouska.client.app.Main";
 
 	public static void main(String[] args)
 			throws InterruptedException, IOException {
 		Path targetPath = Path.of(args[0]);
-
-		Path mainJarFile = Files.find(targetPath, 1,
-				(path, basicFileAttributes) -> path.getFileName().toString().equals(MAIN_JAR_FILE_NAME))
-				.findFirst()
-				.orElseThrow(() -> new IllegalStateException(
-						String.format("Main jar file not found %s", MAIN_JAR_FILE_NAME)));
-
 
 		Path libPath = Path.of(targetPath.toString() + "/lib");
 
@@ -62,13 +52,5 @@ public class Main {
 				REQUIRED_MODULE_NAMES) + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
 		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
-
-		String runCommand = "jre\\bin\\java --module-path "
-							+ mainJarFile.getFileName().toString()
-							+ " -m "
-							+ MAIN_MODULE
-							+ "/"
-							+ MAIN_CLASS;
-		System.out.println(runCommand);
 	}
 }
