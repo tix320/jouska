@@ -8,6 +8,7 @@ public class Version {
 
 	public enum OS {
 		WINDOWS,
-		UNIX
+		LINUX,
+		MAC
 	}
 }

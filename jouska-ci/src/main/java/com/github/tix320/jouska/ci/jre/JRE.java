@@ -23,6 +23,7 @@ public class JRE {
 	public static void main(String[] args)
 			throws InterruptedException, IOException {
 		Path targetPath = Path.of(args[0]);
+		String jdkPath = args[1];
 
 		Path libPath = Path.of(targetPath.toString() + "/lib");
 
@@ -48,8 +49,13 @@ public class JRE {
 			modulePath.append("lib/").append(jar.getFileName()).append(";");
 		}
 
-		String jlinkCommand = "jlink --module-path " + modulePath + " --add-modules " + String.join(",",
-				REQUIRED_MODULE_NAMES) + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
+		String jlinkCommand = "jlink --module-path "
+							  + jdkPath
+							  + "/jmods;"
+							  + modulePath
+							  + " --add-modules "
+							  + String.join(",", REQUIRED_MODULE_NAMES)
+							  + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
 		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
 	}

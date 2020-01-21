@@ -27,18 +27,22 @@ public class Uploader {
 		long length = Files.size(file);
 		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY, FileChannel.open(file, StandardOpenOption.READ),
 				length);
-		if (os.equals("WINDOWS")) {
-			uploaderService.uploadWindows(transfer).subscribe(none -> {
-				Try.runOrRethrow(clonder::close);
-			});
-		}
-		else if (os.equals("UNIX")) {
-			uploaderService.uploadUnix(transfer).subscribe(none -> {
-				Try.runOrRethrow(clonder::close);
-			});
-		}
-		else {
-			throw new IllegalArgumentException(os);
+		switch (os) {
+			case "WINDOWS":
+				uploaderService.uploadWindows(transfer).subscribe(none -> {
+					Try.runOrRethrow(clonder::close);
+				});
+				break;
+			case "LINUX":
+				uploaderService.uploadLinux(transfer).subscribe(none -> {
+					Try.runOrRethrow(clonder::close);
+				});
+			case "MAC":
+				uploaderService.uploadMac(transfer).subscribe(none -> {
+					Try.runOrRethrow(clonder::close);
+				});
+			default:
+				throw new IllegalArgumentException(os);
 		}
 	}
 }

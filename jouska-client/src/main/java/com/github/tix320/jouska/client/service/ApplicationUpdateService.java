@@ -14,5 +14,8 @@ public interface ApplicationUpdateService {
 	Observable<Transfer> downloadWindowsLatest();
 
 	@Origin("linux-latest")
-	Observable<Transfer> downloadUnixLatest();
+	Observable<Transfer> downloadLinuxLatest();
+
+	@Origin("mac-latest")
+	Observable<Transfer> downloadMacLatest();
 }

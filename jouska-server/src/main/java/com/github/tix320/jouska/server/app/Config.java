@@ -14,7 +14,7 @@ public class Config {
 	public Config(Map<String, String> properties) {
 		this.port = Integer.parseInt(properties.get("port"));
 		this.applicationVersion = properties.get("applicationVersion");
-		this.sourcesPath = Path.of(properties.get("sourcesPath"));
+		this.sourcesPath = Path.of(properties.getOrDefault("sourcesPath", "."));
 	}
 
 	public int getPort() {

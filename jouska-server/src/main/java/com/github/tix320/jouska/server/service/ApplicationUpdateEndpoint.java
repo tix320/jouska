@@ -17,6 +17,10 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 @Endpoint("application")
 public class ApplicationUpdateEndpoint {
 
+	private static final String WINDOWS_FILE_NAME = "/jouska-windows.zip";
+	private static final String LINUX_FILE_NAME = "/jouska-linux.run";
+	private static final String MAC_FILE_NAME = "/jouska-mac.run";
+
 	@Endpoint("check-update")
 	public Boolean checkUpdate(String version, String os) {
 		String applicationVersion = Application.config.getApplicationVersion();
@@ -29,51 +33,52 @@ public class ApplicationUpdateEndpoint {
 			return false;
 		}
 
-		if (os.equals("WINDOWS")) {
-			return Files.exists(Path.of(installersPath + "/jouska-windows.zip"));
-		}
-		else if (os.equals("UNIX")) {
-			return Files.exists(Path.of(installersPath + "/jouska-unix.run"));
-		}
-		else {
-			throw new IllegalArgumentException(os);
+		switch (os) {
+			case "WINDOWS":
+				return Files.exists(Path.of(installersPath + WINDOWS_FILE_NAME));
+			case "LINUX":
+				return Files.exists(Path.of(installersPath + LINUX_FILE_NAME));
+			case "MAC":
+				return Files.exists(Path.of(installersPath + MAC_FILE_NAME));
+			default:
+				throw new IllegalArgumentException(os);
 		}
 	}
 
 	@Endpoint("windows-latest")
 	public Transfer downloadWindowsLatest() {
 		Path installersPath = Application.config.getSourcesPath();
-		if (installersPath == null) {
-			throw new IllegalStateException("Sources path not specified");
-		}
-		return fileToTransfer(installersPath + "/jouska-windows.zip");
+		return fileToTransfer(installersPath + WINDOWS_FILE_NAME);
 	}
 
-	@Endpoint("unix-latest")
-	public Transfer downloadUnixLatest() {
+	@Endpoint("linux-latest")
+	public Transfer downloadLinuxLatest() {
 		Path installersPath = Application.config.getSourcesPath();
-		if (installersPath == null) {
-			throw new IllegalStateException("Sources path not specified");
-		}
-		return fileToTransfer(installersPath + "/jouska-unix.run");
+		return fileToTransfer(installersPath + LINUX_FILE_NAME);
+	}
+
+	@Endpoint("mac-latest")
+	public Transfer downloadMacLatest() {
+		Path installersPath = Application.config.getSourcesPath();
+		return fileToTransfer(installersPath + MAC_FILE_NAME);
 	}
 
 	@Endpoint("upload-windows")
 	public void uploadWindows(Transfer transfer) {
 		Path installersPath = Application.config.getSourcesPath();
-		if (installersPath == null) {
-			throw new IllegalStateException("Sources path not specified");
-		}
-		transferToFile(transfer, installersPath + "jouska-windows.zip");
+		transferToFile(transfer, installersPath + WINDOWS_FILE_NAME);
 	}
 
-	@Endpoint("upload-unix")
-	public void uploadUnix(Transfer transfer) {
+	@Endpoint("upload-linux")
+	public void uploadLinux(Transfer transfer) {
 		Path installersPath = Application.config.getSourcesPath();
-		if (installersPath == null) {
-			throw new IllegalStateException("Sources path not specified");
-		}
-		transferToFile(transfer, installersPath + "jouska-unix.run");
+		transferToFile(transfer, installersPath + LINUX_FILE_NAME);
+	}
+
+	@Endpoint("upload-mac")
+	public void uploadMac(Transfer transfer) {
+		Path installersPath = Application.config.getSourcesPath();
+		transferToFile(transfer, installersPath + MAC_FILE_NAME);
 	}
 
 	private Transfer fileToTransfer(String filePath) {

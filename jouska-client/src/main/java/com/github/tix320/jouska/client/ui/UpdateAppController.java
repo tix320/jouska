@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.client.app.Version;
-import com.github.tix320.jouska.client.app.Version.OS;
 import com.github.tix320.kiwi.api.observable.Observable;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
@@ -48,19 +47,26 @@ public class UpdateAppController implements Controller<String> {
 		Observable<Transfer> observable;
 		String fileName;
 		String command;
-		if (Version.os == OS.WINDOWS) {
-			observable = APPLICATION_INSTALLER_SERVICE.downloadWindowsLatest();
-			fileName = "jouska-windows.zip";
-			command = "cmd /c start \"\" update.bat";
+		switch (Version.os) {
+			case WINDOWS:
+				observable = APPLICATION_INSTALLER_SERVICE.downloadWindowsLatest();
+				fileName = "jouska-windows.zip";
+				command = "cmd /c start \"\" update.bat";
+				break;
+			case LINUX:
+				observable = APPLICATION_INSTALLER_SERVICE.downloadLinuxLatest();
+				fileName = "jouska-linux.run";
+				command = "sh update.sh";
+				break;
+			case MAC:
+				observable = APPLICATION_INSTALLER_SERVICE.downloadMacLatest();
+				fileName = "jouska-mac.run";
+				command = "sh update.sh";
+				break;
+			default:
+				throw new IllegalStateException(Version.os + "");
 		}
-		else if (Version.os == OS.UNIX) {
-			observable = APPLICATION_INSTALLER_SERVICE.downloadUnixLatest();
-			fileName = "jouska-unix.run";
-			command = "sh update.sh";
-		}
-		else {
-			throw new IllegalStateException(Version.os + "");
-		}
+
 		observable.subscribe(transfer -> {
 			long zipLength = transfer.getContentLength();
 			int consumedBytes = 0;

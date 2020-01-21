@@ -11,7 +11,9 @@ public interface UploaderService {
 	@Origin("upload-windows")
 	Observable<None> uploadWindows(Transfer transfer);
 
-	@Origin("upload-unix")
-	Observable<None> uploadUnix(Transfer transfer);
+	@Origin("upload-linux")
+	Observable<None> uploadLinux(Transfer transfer);
 
+	@Origin("upload-mac")
+	Observable<None> uploadMac(Transfer transfer);
 }
