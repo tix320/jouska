@@ -37,10 +37,12 @@ public class Uploader {
 				uploaderService.uploadLinux(transfer).subscribe(none -> {
 					Try.runOrRethrow(clonder::close);
 				});
+				break;
 			case "MAC":
 				uploaderService.uploadMac(transfer).subscribe(none -> {
 					Try.runOrRethrow(clonder::close);
 				});
+				break;
 			default:
 				throw new IllegalArgumentException(os);
 		}
