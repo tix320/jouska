@@ -9,7 +9,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.client.app.Version;
-import com.github.tix320.kiwi.api.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;

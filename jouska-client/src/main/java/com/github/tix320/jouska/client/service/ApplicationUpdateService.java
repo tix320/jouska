@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.client.service;
 
-import com.github.tix320.kiwi.api.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 
@@ -8,14 +8,14 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 public interface ApplicationUpdateService {
 
 	@Origin("check-update")
-	Observable<Boolean> checkUpdate(String version, String os);
+	MonoObservable<Boolean> checkUpdate(String version, String os);
 
 	@Origin("windows-latest")
-	Observable<Transfer> downloadWindowsLatest();
+	MonoObservable<Transfer> downloadWindowsLatest();
 
 	@Origin("linux-latest")
-	Observable<Transfer> downloadLinuxLatest();
+	MonoObservable<Transfer> downloadLinuxLatest();
 
 	@Origin("mac-latest")
-	Observable<Transfer> downloadMacLatest();
+	MonoObservable<Transfer> downloadMacLatest();
 }

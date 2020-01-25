@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.client.ui.game;
 
-
 import java.util.*;
 
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -11,8 +10,8 @@ import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Turn;
-import com.github.tix320.kiwi.api.observable.Observable;
-import com.github.tix320.kiwi.api.observable.subject.Subject;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.sonder.api.common.topic.Topic;
 import javafx.animation.FadeTransition;
@@ -149,14 +148,14 @@ public class GameController implements Controller<StartGameCommand> {
 	}
 
 	private Observable<None> plusToTile(int i, int j, Player player) {
-		Subject<None> onFinish = Subject.single();
+		Publisher<None> onFinish = Publisher.simple();
 		Tile tile = tiles[i][j];
 		int nextPoint = tile.points + 1;
 		Transition transition;
 		if (nextPoint > 3) {
 			transition = tile.changeContent(player, nextPoint - 4);
 			transition.setOnFinished(actionEvent -> plusToNeighbors(i, j, player).subscribe(none -> {
-				onFinish.next(None.SELF);
+				onFinish.publish(None.SELF);
 				onFinish.complete();
 			}));
 
@@ -164,7 +163,7 @@ public class GameController implements Controller<StartGameCommand> {
 		else {
 			transition = tile.changeContent(player, nextPoint);
 			transition.setOnFinished(actionEvent -> {
-				onFinish.next(None.SELF);
+				onFinish.publish(None.SELF);
 				onFinish.complete();
 			});
 		}
@@ -176,7 +175,7 @@ public class GameController implements Controller<StartGameCommand> {
 	Set<Point> nextGenSet = new HashSet<>();
 
 	private Observable<None> plusToNeighbors(int i, int j, Player player) {
-		Subject<None> onFinish = Subject.single();
+		Publisher<None> onFinish = Publisher.simple();
 		ParallelTransition parallelTransition = new ParallelTransition();
 		List<Point> neighbors = findNeighbors(new Point(i, j));
 		Queue<Point> nextGen = new LinkedList<>();
@@ -193,31 +192,31 @@ public class GameController implements Controller<StartGameCommand> {
 		}
 		if (!nextGen.isEmpty()) {
 			parallelTransition.setOnFinished(actionEvent -> {
-				Subject<Point> subject = Subject.single();
-				subject.asObservable().subscribe(point -> {
+				Publisher<Point> publisher = Publisher.simple();
+				publisher.asObservable().subscribe(point -> {
 					Tile tile = tiles[point.i][point.j];
 					tile.points -= 1;
 					plusToTile(point.i, point.j, player).subscribe(none -> {
 						if (!nextGen.isEmpty()) {
 							Point nextPoint = nextGen.poll();
-							subject.next(nextPoint);
+							publisher.publish(nextPoint);
 							nextGenSet.remove(nextPoint);
 						}
 						else {
-							subject.complete();
-							onFinish.next(None.SELF);
+							publisher.complete();
+							onFinish.publish(None.SELF);
 							onFinish.complete();
 						}
 					});
 				});
 				Point point = nextGen.poll();
-				subject.next(point);
+				publisher.publish(point);
 				nextGenSet.remove(point);
 			});
 		}
 		else {
 			parallelTransition.setOnFinished(actionEvent -> {
-				onFinish.next(None.SELF);
+				onFinish.publish(None.SELF);
 				onFinish.complete();
 			});
 		}

@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.ui.Controller;
-import com.github.tix320.kiwi.api.observable.Observable;
-import com.github.tix320.kiwi.api.observable.subject.Subject;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -51,13 +51,13 @@ public final class Jouska {
 			scene.getStylesheets().add(cssResource.toExternalForm());
 		}
 
-		Subject<None> switchSubject = Subject.buffered(1);
+		Publisher<None> switchSubject = Publisher.buffered(1);
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
 			stage.sizeToScene();
 			stage.centerOnScreen();
-			switchSubject.next(None.SELF);
+			switchSubject.publish(None.SELF);
 		});
 
 		return switchSubject.asObservable();

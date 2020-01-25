@@ -6,11 +6,11 @@
 
 	<groupId>com.github.tix320</groupId>
 	<artifactId>jouska</artifactId>
-	<version>1.0.0</version>
+	<version>1.1.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
-		<sonder.version>0.14.0</sonder.version>
+		<sonder.version>0.15.0</sonder.version>
 	</properties>
 
 	<modules>
