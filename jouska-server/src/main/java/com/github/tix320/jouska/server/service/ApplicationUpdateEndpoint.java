@@ -22,7 +22,7 @@ public class ApplicationUpdateEndpoint {
 	private static final String MAC_FILE_NAME = "/jouska-mac.run";
 
 	@Endpoint("check-update")
-	public Boolean checkUpdate(String version, String os) {
+	public String checkUpdate(String version, String os) {
 		String applicationVersion = Application.config.getApplicationVersion();
 		Path installersPath = Application.config.getSourcesPath();
 		if (installersPath == null) {
@@ -30,16 +30,16 @@ public class ApplicationUpdateEndpoint {
 		}
 
 		if (version.equals(applicationVersion)) {
-			return false;
+			return "";
 		}
 
 		switch (os) {
 			case "WINDOWS":
-				return Files.exists(Path.of(installersPath + WINDOWS_FILE_NAME));
+				return Files.exists(Path.of(installersPath + WINDOWS_FILE_NAME)) ? applicationVersion : "";
 			case "LINUX":
-				return Files.exists(Path.of(installersPath + LINUX_FILE_NAME));
+				return Files.exists(Path.of(installersPath + LINUX_FILE_NAME)) ? applicationVersion : "";
 			case "MAC":
-				return Files.exists(Path.of(installersPath + MAC_FILE_NAME));
+				return Files.exists(Path.of(installersPath + MAC_FILE_NAME)) ? applicationVersion : "";
 			default:
 				throw new IllegalArgumentException(os);
 		}
