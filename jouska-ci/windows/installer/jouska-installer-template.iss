@@ -43,6 +43,17 @@ Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\windows\installer\include\
 [Dirs]
 Name: {app}; Permissions: users-full
 
+[UninstallDelete]
+Type: files; Name: "{app}\icon.ico"
+Type: files; Name: "{app}\jouska-app.jar"
+Type: files; Name: "{app}\Jouska.exe"
+Type: files; Name: "{app}\jouska-app.jar"
+Type: files; Name: "{app}\config.properties"
+Type: filesandordirs; Name: "{app}\jre"
+Type: files; Name: "{app}\jouska.bat"
+Type: files; Name: "{app}\unzip.exe"
+Type: files; Name: "{app}\update.bat"
+
 [Icons]
 Name: "{autoprograms}\{#MyAppName}"; Filename: "{app}\{#MyAppExeName}"; IconFilename: "{app}\icon.ico"
 Name: "{group}\My Program"; Filename: "{app}\Jouska.exe"; IconFilename: "{app}\icon.ico"
