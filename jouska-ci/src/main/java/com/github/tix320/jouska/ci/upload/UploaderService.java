@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.ci.upload;
 
-import com.github.tix320.kiwi.api.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import com.github.tix320.sonder.api.common.rpc.Origin;
@@ -9,11 +9,11 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 public interface UploaderService {
 
 	@Origin("upload-windows")
-	Observable<None> uploadWindows(Transfer transfer);
+	MonoObservable<None> uploadWindows(Transfer transfer);
 
 	@Origin("upload-linux")
-	Observable<None> uploadLinux(Transfer transfer);
+	MonoObservable<None> uploadLinux(Transfer transfer);
 
 	@Origin("upload-mac")
-	Observable<None> uploadMac(Transfer transfer);
+	MonoObservable<None> uploadMac(Transfer transfer);
 }
