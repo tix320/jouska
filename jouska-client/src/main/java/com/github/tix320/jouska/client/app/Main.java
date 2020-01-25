@@ -42,7 +42,7 @@ public class Main extends Application {
 					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION, Version.os.name())
 							.subscribe(lastVersion -> {
 								if (!lastVersion.equals("")) { // update
-									Jouska.switchScene("update-app");
+									Jouska.switchScene("update-app", lastVersion);
 								}
 								else {
 									Jouska.switchScene("menu");
