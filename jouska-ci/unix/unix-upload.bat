@@ -1,1 +1,1 @@
-cmd /c ""jouska-ci/target/appassembler/bin/upload.bat"" jouska-client/target/jouska-unix.run %1
+cmd /c ""jouska-ci/target/appassembler/bin/upload.bat"" jouska-client/target/%1 %2

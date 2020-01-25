@@ -1,1 +1,1 @@
-cmd /c ""jouska-ci/unix/unix-upload.bat"" MAC
+cmd /c ""jouska-ci/unix/unix-upload.bat"" jouska-mac.run MAC

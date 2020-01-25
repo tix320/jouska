@@ -56,12 +56,12 @@ public class UpdateAppController implements Controller<String> {
 			case LINUX:
 				observable = APPLICATION_INSTALLER_SERVICE.downloadLinuxLatest();
 				fileName = "jouska-linux.run";
-				command = "sh update.sh";
+				command = "sh update-linux.sh";
 				break;
 			case MAC:
 				observable = APPLICATION_INSTALLER_SERVICE.downloadMacLatest();
 				fileName = "jouska-mac.run";
-				command = "sh update.sh";
+				command = "sh update-mac.sh";
 				break;
 			default:
 				throw new IllegalStateException(Version.os + "");

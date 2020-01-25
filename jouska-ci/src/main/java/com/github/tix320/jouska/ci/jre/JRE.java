@@ -24,6 +24,7 @@ public class JRE {
 			throws InterruptedException, IOException {
 		Path targetPath = Path.of(args[0]);
 		String jdkPath = args[1];
+		String javaFxJmodsPath = args[2];
 
 		Path libPath = Path.of(targetPath.toString() + "/lib");
 
@@ -38,7 +39,7 @@ public class JRE {
 		Iterator<Path> iterator = jars.iterator();
 		while (iterator.hasNext()) {
 			Path jar = iterator.next();
-			if (javafxEmptyJars.contains(jar.getFileName().toString())) {
+			if (jar.getFileName().toString().contains("javafx")) {
 				Files.delete(jar);
 				iterator.remove();
 			}
@@ -52,11 +53,16 @@ public class JRE {
 		String jlinkCommand = "jlink --module-path "
 							  + jdkPath
 							  + "/jmods;"
+							  + javaFxJmodsPath
+							  + ";"
 							  + modulePath
 							  + " --add-modules "
 							  + String.join(",", REQUIRED_MODULE_NAMES)
 							  + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
-		Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
+		int i = Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
+		if (i != 0) {
+			throw new RuntimeException("Jlink failed");
+		}
 	}
 }

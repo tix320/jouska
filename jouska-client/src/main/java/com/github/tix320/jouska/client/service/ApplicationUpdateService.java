@@ -8,7 +8,7 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 public interface ApplicationUpdateService {
 
 	@Origin("check-update")
-	Observable<Boolean> checkUpdate(String version);
+	Observable<Boolean> checkUpdate(String version, String os);
 
 	@Origin("windows-latest")
 	Observable<Transfer> downloadWindowsLatest();
