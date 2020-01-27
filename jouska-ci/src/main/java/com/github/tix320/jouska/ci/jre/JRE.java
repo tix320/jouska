@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 public class JRE {
@@ -34,8 +33,6 @@ public class JRE {
 
 		List<Path> jars = Files.walk(libPath, 1).skip(1).collect(Collectors.toList());
 
-		Set<String> javafxEmptyJars = Set.of("javafx-base-13.jar", "javafx-controls-13.jar", "javafx-fxml-13.jar",
-				"javafx-graphics-13.jar");
 		Iterator<Path> iterator = jars.iterator();
 		while (iterator.hasNext()) {
 			Path jar = iterator.next();
