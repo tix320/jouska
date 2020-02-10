@@ -1,4 +1,4 @@
-package haskaca;
+package com.github.tix320.jouska.client.app;
 
 import java.io.File;
 import java.io.IOException;
