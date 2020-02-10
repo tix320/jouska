@@ -5,7 +5,7 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 
 @Endpoint("in-game")
-public class InGameEndpoint {
+public class ServerInGameEndpoint {
 
 	@Endpoint("turn")
 	public void turn(long gameId, Point point, @ClientID long clientId) {

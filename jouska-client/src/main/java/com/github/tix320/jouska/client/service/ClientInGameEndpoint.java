@@ -6,7 +6,7 @@ import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("in-game")
-public class InGameEndpoint {
+public class ClientInGameEndpoint {
 
 	@Endpoint("turn")
 	public void turn(Point point) {

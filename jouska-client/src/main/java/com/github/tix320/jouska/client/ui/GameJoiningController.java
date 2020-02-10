@@ -3,7 +3,7 @@ package com.github.tix320.jouska.client.ui;
 import java.util.Optional;
 
 import com.github.tix320.jouska.client.app.Jouska;
-import com.github.tix320.jouska.core.dto.Game;
+import com.github.tix320.jouska.core.dto.GameView;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleLongProperty;
@@ -22,19 +22,19 @@ public class GameJoiningController implements Controller<Object> {
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
 	@FXML
-	private TableView<Game> gamesTable;
+	private TableView<GameView> gamesTable;
 
 	@FXML
 	private ProgressIndicator loadingIndicator;
 
 	@FXML
-	private TableColumn<Game, Long> idColumn;
+	private TableColumn<GameView, Long> idColumn;
 
 	@FXML
-	private TableColumn<Game, String> nameColumn;
+	private TableColumn<GameView, String> nameColumn;
 
 	@FXML
-	private TableColumn<Game, String> playersColumn;
+	private TableColumn<GameView, String> playersColumn;
 
 	@FXML
 	private Button refreshButton;
@@ -61,11 +61,11 @@ public class GameJoiningController implements Controller<Object> {
 				cell.getValue().getPlayersCount() + "/" + cell.getValue().getMaxPlayersCount()));
 
 		gamesTable.setRowFactory(param -> {
-			TableRow<Game> row = new TableRow<>();
+			TableRow<GameView> row = new TableRow<>();
 			row.setOnMouseClicked(event -> {
 				if (event.getClickCount() == 2 && (!row.isEmpty())) {
-					Game gameInfo = row.getItem();
-					long gameId = gameInfo.getId();
+					GameView gameViewInfo = row.getItem();
+					long gameId = gameViewInfo.getId();
 					loading.set(true);
 					GAME_SERVICE.connect(gameId).subscribe(answer -> {
 						switch (answer) {

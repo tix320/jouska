@@ -7,7 +7,7 @@ import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("in-game")
-public class InGameEndpoint {
+public class BotInGameEndpoint {
 
 	@Endpoint("turn")
 	public void turn(Point point) {
@@ -21,7 +21,7 @@ public class InGameEndpoint {
 		if (currentPlayer == myPlayer) {
 			Try.run(() -> Thread.sleep(1000));
 			Point turn = bot.turn(game.getBoard());
-			BotApp.CLONDER.getRPCService(InGameService.class).turn(gameId, turn);
+			BotApp.CLONDER.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}
 	}
 

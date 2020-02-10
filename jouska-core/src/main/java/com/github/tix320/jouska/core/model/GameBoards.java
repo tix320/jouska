@@ -2,6 +2,9 @@ package com.github.tix320.jouska.core.model;
 
 import java.util.List;
 
+/**
+ * Factory of boards.
+ */
 public final class GameBoards {
 
 	public static GameBoard defaultBoard(Player[] players) {

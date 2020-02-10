@@ -7,7 +7,7 @@ import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("game")
-public class GameEndpoint {
+public class BotGameEndpoint {
 
 	@Endpoint("start")
 	public void startGame(StartGameCommand startGameCommand) {
@@ -22,7 +22,7 @@ public class GameEndpoint {
 		if (jouskaGame.getCurrentPlayer() == myPlayer) {
 			Point turn = bot.turn(jouskaGame.getBoard());
 			jouskaGame.turn(turn);
-			BotApp.CLONDER.getRPCService(InGameService.class).turn(gameId, turn);
+			BotApp.CLONDER.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}
 	}
 }

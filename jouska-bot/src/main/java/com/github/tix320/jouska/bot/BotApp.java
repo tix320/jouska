@@ -18,10 +18,9 @@ public class BotApp {
 				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> {
-					// long timout = Math.max((long) Math.ceil(contentLength * (500D / 1024 / 1024 / 30)), 1);
 					return Duration.ofSeconds(Integer.MAX_VALUE);
 				})
 				.build();
-		CLONDER.getRPCService(GameService.class).connect(gameId);
+		CLONDER.getRPCService(BotGameService.class).connect(gameId);
 	}
 }

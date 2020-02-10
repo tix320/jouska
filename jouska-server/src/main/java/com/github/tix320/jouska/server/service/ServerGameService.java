@@ -8,7 +8,7 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 
 @Origin("game")
-public interface GameService {
+public interface ServerGameService {
 
 	@Origin("start")
 	MonoObservable<None> startGame(StartGameCommand startGameCommand, @ClientID long clientId);

@@ -4,19 +4,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
-import com.github.tix320.jouska.core.dto.Game;
+import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 
 @Endpoint("game")
-public class GameEndpoint {
+public class ServerGameEndpoint {
 
 	@Endpoint("info")
-	public List<Game> getGames() {
+	public List<GameView> getGames() {
 		return GameManager.getGames()
 				.stream()
-				.map(gameInfo -> new Game(gameInfo.getId(), gameInfo.getName(), gameInfo.getPlayerIds().size(),
+				.map(gameInfo -> new GameView(gameInfo.getId(), gameInfo.getName(), gameInfo.getPlayerIds().size(),
 						gameInfo.getPlayers().length))
 				.collect(Collectors.toList());
 	}

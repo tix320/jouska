@@ -6,7 +6,7 @@ import com.github.tix320.jouska.core.dto.WatchGameCommand;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("game")
-public class GameEndpoint {
+public class ClientGameEndpoint {
 
 	@Endpoint("start")
 	public void startGame(StartGameCommand startGameCommand) {

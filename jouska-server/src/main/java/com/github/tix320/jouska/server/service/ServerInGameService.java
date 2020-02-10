@@ -8,7 +8,7 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 
 @Origin("in-game")
-public interface InGameService {
+public interface ServerInGameService {
 
 	@Origin("turn")
 	MonoObservable<None> turn(Point point, @ClientID long clientId);

@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.core.dto;
 
-public class Game {
+public class GameView {
 
 	private final long id;
 
@@ -10,11 +10,11 @@ public class Game {
 
 	private final int maxPlayersCount;
 
-	private Game() {
+	private GameView() {
 		this(-1, null, -1, -1);
 	}
 
-	public Game(long id, String name, int playersCount, int maxPlayersCount) {
+	public GameView(long id, String name, int playersCount, int maxPlayersCount) {
 		this.id = id;
 		this.name = name;
 		this.playersCount = playersCount;

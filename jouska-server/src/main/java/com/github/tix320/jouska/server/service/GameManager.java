@@ -16,6 +16,7 @@ import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.GameBoards;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
+import com.github.tix320.jouska.server.model.GameInfo;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.util.IDGenerator;
 import com.github.tix320.kiwi.api.util.None;

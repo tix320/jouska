@@ -53,16 +53,16 @@ public final class Jouska {
 			scene.getStylesheets().add(cssResource.toExternalForm());
 		}
 
-		Publisher<None> switchSubject = Publisher.buffered(1);
+		Publisher<None> switchCompletePublisher = Publisher.buffered(1);
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
 			stage.sizeToScene();
 			stage.centerOnScreen();
-			switchSubject.publish(None.SELF);
-			switchSubject.complete();
+			switchCompletePublisher.publish(None.SELF);
+			switchCompletePublisher.complete();
 		});
 
-		return switchSubject.asObservable().toMono();
+		return switchCompletePublisher.asObservable().toMono();
 	}
 }

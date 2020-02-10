@@ -5,7 +5,7 @@ import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 
 @Origin("game")
-public interface GameService {
+public interface BotGameService {
 
 	@Origin("connect")
 	MonoObservable<GameConnectionAnswer> connect(long gameId);

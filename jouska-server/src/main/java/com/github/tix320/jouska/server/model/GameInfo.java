@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.server.service;
+package com.github.tix320.jouska.server.model;
 
 import java.util.Set;
 
