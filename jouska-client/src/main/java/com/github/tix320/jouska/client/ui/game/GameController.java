@@ -145,7 +145,7 @@ public class GameController implements Controller<StartGameCommand> {
 	public void turn(Point point) {
 		CellChange cellChange = game.turn(point);
 
-		animateCellChanges(cellChange).await().subscribe(none -> {
+		animateCellChanges(cellChange).waitComplete().subscribe(none -> {
 			Platform.runLater(() -> {
 				turnProperty.set(game.getCurrentPlayer());
 				updateStatistics();
