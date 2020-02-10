@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.ci.jre;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -57,9 +58,11 @@ public class JRE {
 							  + String.join(",", REQUIRED_MODULE_NAMES)
 							  + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
-		int i = Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile()).waitFor();
-		if (i != 0) {
-			throw new RuntimeException("Jlink failed");
-		}
+		Process jlinkProcess = Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile());
+		byte[] bytes = jlinkProcess.getInputStream().readAllBytes();
+		String output = new String(bytes);
+		System.out.println(output);
+
+
 	}
 }

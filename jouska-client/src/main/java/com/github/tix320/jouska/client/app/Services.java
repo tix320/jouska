@@ -5,12 +5,14 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 
-import com.github.tix320.jouska.client.service.GameService;
 import com.github.tix320.jouska.client.service.ApplicationUpdateService;
+import com.github.tix320.jouska.client.service.GameService;
+import com.github.tix320.jouska.client.service.InGameService;
 import com.github.tix320.sonder.api.client.Clonder;
 
 public class Services {
 	public static GameService GAME_SERVICE;
+	public static InGameService IN_GAME_SERVICE;
 	public static ApplicationUpdateService APPLICATION_INSTALLER_SERVICE;
 
 	public static Clonder CLONDER;
@@ -42,6 +44,7 @@ public class Services {
 
 	private static void initServices() {
 		GAME_SERVICE = CLONDER.getRPCService(GameService.class);
+		IN_GAME_SERVICE = CLONDER.getRPCService(InGameService.class);
 		APPLICATION_INSTALLER_SERVICE = CLONDER.getRPCService(ApplicationUpdateService.class);
 	}
 }

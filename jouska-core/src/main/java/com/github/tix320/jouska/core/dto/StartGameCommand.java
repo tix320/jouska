@@ -11,23 +11,19 @@ public final class StartGameCommand {
 
 	private final Player myPlayer;
 
-	private final Player firstTurnPlayer;
-
-	private final int playersCount;
+	private final Player[] players;
 
 	private final GameBoard gameBoard;
 
-	public StartGameCommand() {
-		this(-1, null, null, null, -1, null);
+	private StartGameCommand() {
+		this(-1, null, null, null, null);
 	}
 
-	public StartGameCommand(long gameId, String name, Player myPlayer, Player firstTurnPlayer, int playersCount,
-							GameBoard gameBoard) {
+	public StartGameCommand(long gameId, String name, Player myPlayer, Player[] players, GameBoard gameBoard) {
 		this.gameId = gameId;
 		this.name = name;
 		this.myPlayer = myPlayer;
-		this.firstTurnPlayer = firstTurnPlayer;
-		this.playersCount = playersCount;
+		this.players = players;
 		this.gameBoard = gameBoard;
 	}
 
@@ -43,12 +39,8 @@ public final class StartGameCommand {
 		return myPlayer;
 	}
 
-	public Player getFirstTurnPlayer() {
-		return firstTurnPlayer;
-	}
-
-	public int getPlayersCount() {
-		return playersCount;
+	public Player[] getPlayers() {
+		return players;
 	}
 
 	public GameBoard getGameBoard() {

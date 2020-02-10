@@ -1,1 +1,1 @@
-cmd /c ""jouska-ci/unix/unix-upload.bat"" jouska-linux.run LINUX
+cmd /c ""jouska-ci/unix/unix-upload.bat"" jouska-linux-setup.run LINUX

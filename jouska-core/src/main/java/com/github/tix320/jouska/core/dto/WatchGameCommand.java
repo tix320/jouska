@@ -4,27 +4,24 @@ import java.util.List;
 
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.Turn;
+import com.github.tix320.jouska.core.model.Point;
 
 public final class WatchGameCommand {
 
 	private final long gameId;
 	private final String name;
-	private final Player firstTurnPlayer;
-	private final int playersCount;
+	private final Player[] players;
 	private final GameBoard initialGameBoard;
-	private final List<Turn> turns;
+	private final List<Point> turns;
 
 	public WatchGameCommand() {
-		this(-1, null, null, -1, null, null);
+		this(-1, null, null, null, null);
 	}
 
-	public WatchGameCommand(long gameId, String name, Player firstTurnPlayer, int playersCount,
-							GameBoard initialGameBoard, List<Turn> turns) {
+	public WatchGameCommand(long gameId, String name, Player[] players, GameBoard initialGameBoard, List<Point> turns) {
 		this.gameId = gameId;
 		this.name = name;
-		this.firstTurnPlayer = firstTurnPlayer;
-		this.playersCount = playersCount;
+		this.players = players;
 		this.initialGameBoard = initialGameBoard;
 		this.turns = turns;
 	}
@@ -37,19 +34,15 @@ public final class WatchGameCommand {
 		return name;
 	}
 
-	public Player getFirstTurnPlayer() {
-		return firstTurnPlayer;
-	}
-
-	public int getPlayersCount() {
-		return playersCount;
+	public Player[] getPlayers() {
+		return players;
 	}
 
 	public GameBoard getInitialGameBoard() {
 		return initialGameBoard;
 	}
 
-	public List<Turn> getTurns() {
+	public List<Point> getTurns() {
 		return turns;
 	}
 }

@@ -1,12 +1,10 @@
 package com.github.tix320.jouska.core.model;
 
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+
 public enum Player {
-	NONE {
-		@Override
-		public String getColorCode() {
-			throw new IllegalStateException();
-		}
-	},
 	BLUE {
 		@Override
 		public String getColorCode() {
@@ -34,20 +32,9 @@ public enum Player {
 
 	public abstract String getColorCode();
 
-	public static Player fromNumber(int number) {
-		switch (number) {
-			case 0:
-				return NONE;
-			case 1:
-				return BLUE;
-			case 2:
-				return GREEN;
-			case 3:
-				return RED;
-			case 4:
-				return YELLOW;
-			default:
-				throw new IllegalArgumentException("pfff");
-		}
+	public static Player[] getPlayers(int count) {
+		List<Player> players = Arrays.asList(Player.values());
+		Collections.shuffle(players);
+		return players.subList(0, count).toArray(Player[]::new);
 	}
 }

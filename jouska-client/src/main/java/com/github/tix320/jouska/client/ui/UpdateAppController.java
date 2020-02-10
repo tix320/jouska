@@ -55,12 +55,12 @@ public class UpdateAppController implements Controller<String> {
 				break;
 			case LINUX:
 				observable = APPLICATION_INSTALLER_SERVICE.downloadLinuxLatest();
-				fileName = "jouska-linux.run";
+				fileName = "jouska-linux-setup.run";
 				command = "sh update-linux.sh";
 				break;
 			case MAC:
 				observable = APPLICATION_INSTALLER_SERVICE.downloadMacLatest();
-				fileName = "jouska-mac.run";
+				fileName = "jouska-mac-setup.run";
 				command = "sh update-mac.sh";
 				break;
 			default:

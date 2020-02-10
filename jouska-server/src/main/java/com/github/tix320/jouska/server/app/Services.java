@@ -6,10 +6,12 @@ import java.net.InetSocketAddress;
 import java.time.Duration;
 
 import com.github.tix320.jouska.server.service.GameService;
+import com.github.tix320.jouska.server.service.InGameService;
 import com.github.tix320.sonder.api.server.Sonder;
 
 public class Services {
 	public static GameService GAME_SERVICE;
+	public static InGameService IN_GAME_SERVICE;
 	public static Sonder SONDER;
 
 	public static void initialize(int port) {
@@ -39,6 +41,7 @@ public class Services {
 
 	private static void initServices() {
 		GAME_SERVICE = SONDER.getRPCService(GameService.class);
+		IN_GAME_SERVICE = SONDER.getRPCService(InGameService.class);
 	}
 }
 

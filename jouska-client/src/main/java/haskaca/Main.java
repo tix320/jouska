@@ -1,10 +1,14 @@
-package com.github.tix320.jouska.client.app;
+package haskaca;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import com.github.tix320.jouska.client.app.Config;
+import com.github.tix320.jouska.client.app.Jouska;
+import com.github.tix320.jouska.client.app.Services;
+import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.core.config.ConfigReader;
 import javafx.application.Application;
 import javafx.stage.Stage;
