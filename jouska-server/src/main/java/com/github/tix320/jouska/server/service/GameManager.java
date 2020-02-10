@@ -27,12 +27,13 @@ public class GameManager {
 	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
 	private static final Map<Long, GameInfo> games = new ConcurrentHashMap<>();
 	private static final Map<Long, Lock> gameLocks = new ConcurrentHashMap<>();
+	private static final Map<Long, Player> playerByClientId = new ConcurrentHashMap<>();
 
 	public static long createNewGame(CreateGameCommand createGameCommand) {
 		long gameId = ID_GENERATOR.next();
 		Player[] players = Player.getPlayers(createGameCommand.getPlayersCount());
 
-		games.put(gameId, new GameInfo(gameId, createGameCommand.getName(), new HashSet<>(), players, new HashMap<>(),
+		games.put(gameId, new GameInfo(gameId, createGameCommand.getName(), new HashSet<>(), players,
 				new JouskaGame(GameBoards.defaultBoard(players), players)));
 		gameLocks.put(gameId, new ReentrantLock());
 		return gameId;
@@ -49,7 +50,7 @@ public class GameManager {
 			Player[] players = gameInfo.getPlayers();
 			if (playersIds.size() < players.length) { // free
 				answer.set(GameConnectionAnswer.CONNECTED);
-				gameInfo.addPlayer(clientId, playersIds.size());
+				gameInfo.getPlayerIds().add(clientId);
 				if (playersIds.size() == players.length) { // full
 					startGame(gameInfo);
 				}
@@ -90,7 +91,7 @@ public class GameManager {
 			}
 
 			Player currentPlayer = game.getCurrentPlayer();
-			Player player = gameInfo.getPlayer(clientId);
+			Player player = playerByClientId.get(clientId);
 
 			if (player != currentPlayer) {
 				throw new IllegalStateException(String.format("Now is turn of %s, not %s", currentPlayer, player));
@@ -98,7 +99,7 @@ public class GameManager {
 
 			game.turn(point);
 			for (Long playerId : playerIds) {
-			IN_GAME_SERVICE.turn(point,playerId);
+				IN_GAME_SERVICE.turn(point, playerId);
 
 			}
 			// Observable.combine(
@@ -107,7 +108,7 @@ public class GameManager {
 
 			List<Player> losePlayers = game.getLosePlayers();
 			for (Player losePlayer : losePlayers) {
-						playerIds.stream().map(id -> IN_GAME_SERVICE.lose(losePlayer, id)).collect(Collectors.toList());
+				playerIds.stream().map(id -> IN_GAME_SERVICE.lose(losePlayer, id)).collect(Collectors.toList());
 			}
 
 			game.getWinPlayer().ifPresent(winPlayer -> {
@@ -129,6 +130,7 @@ public class GameManager {
 		Iterator<Long> playerIdIterator = playerIds.iterator();
 		for (Player player : players) {
 			Long playerId = playerIdIterator.next();
+			playerByClientId.put(playerId, player);
 			Observable<None> playerReady = GAME_SERVICE.startGame(
 					new StartGameCommand(gameId, gameInfo.getName(), player, players,
 							new GameBoard(gameInfo.getGame().getBoard())), playerId);
