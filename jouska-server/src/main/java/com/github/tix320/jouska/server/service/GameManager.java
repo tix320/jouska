@@ -33,7 +33,7 @@ public class GameManager {
 		Player[] players = Player.getPlayers(createGameCommand.getPlayersCount());
 
 		GameBoard board = GameBoards.defaultBoard(players);
-		JouskaGame jouskaGame = TimedJouskaGame.create(SimpleJouskaGame.create(board, players), 20, 1);
+		JouskaGame jouskaGame = TimedJouskaGame.create(SimpleJouskaGame.create(board, players), 20, 20);
 
 		games.put(gameId, new GameInfo(gameId, createGameCommand.getName(), new HashSet<>(), players, new HashMap<>(),
 				board.getMatrix(), jouskaGame));
