@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.core.game.JouskaGame;
+import com.github.tix320.jouska.core.game.SimpleJouskaGame;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.kiwi.api.check.Try;

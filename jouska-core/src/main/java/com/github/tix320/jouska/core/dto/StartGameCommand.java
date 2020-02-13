@@ -15,16 +15,26 @@ public final class StartGameCommand {
 
 	private final GameBoard gameBoard;
 
+	private final int turnTimeSeconds;
+
+	private final int gameDurationMinutes;
+
+	private final GameType gameType;
+
 	private StartGameCommand() {
-		this(-1, null, null, null, null);
+		this(-1, null, null, null, null, -1, -1, null);
 	}
 
-	public StartGameCommand(long gameId, String name, Player myPlayer, Player[] players, GameBoard gameBoard) {
+	public StartGameCommand(long gameId, String name, Player myPlayer, Player[] players, GameBoard gameBoard,
+							int turnTimeSeconds, int gameDurationMinutes, GameType gameType) {
 		this.gameId = gameId;
 		this.name = name;
 		this.myPlayer = myPlayer;
 		this.players = players;
 		this.gameBoard = gameBoard;
+		this.turnTimeSeconds = turnTimeSeconds;
+		this.gameDurationMinutes = gameDurationMinutes;
+		this.gameType = gameType;
 	}
 
 	public long getGameId() {
@@ -45,5 +55,13 @@ public final class StartGameCommand {
 
 	public GameBoard getGameBoard() {
 		return gameBoard;
+	}
+
+	public int getTurnTimeSeconds() {
+		return turnTimeSeconds;
+	}
+
+	public int getGameDurationMinutes() {
+		return gameDurationMinutes;
 	}
 }
