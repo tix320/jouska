@@ -113,8 +113,13 @@ public class TimedJouskaGame implements JouskaGame {
 	}
 
 	@Override
-	public Optional<Player> getWinner() {
-		return jouskaGame.getWinner();
+	public Observable<PlayerWithPoints> kickedPlayers() {
+		return jouskaGame.kickedPlayers();
+	}
+
+	@Override
+	public void kick(Player player) {
+		jouskaGame.kick(player);
 	}
 
 	@Override

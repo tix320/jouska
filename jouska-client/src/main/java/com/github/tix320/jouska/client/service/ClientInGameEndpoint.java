@@ -13,14 +13,9 @@ public class ClientInGameEndpoint {
 		GameController.CURRENT.turn(point);
 	}
 
-	@Endpoint("lose")
+	@Endpoint("leave")
 	public void lose(Player player) {
-		GameController.CURRENT.lose(player);
-	}
-
-	@Endpoint("win")
-	public void win(Player player) {
-		GameController.CURRENT.win(player);
+		GameController.CURRENT.leave(player);
 	}
 }
 

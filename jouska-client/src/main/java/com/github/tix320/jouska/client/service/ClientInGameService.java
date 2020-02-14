@@ -8,4 +8,7 @@ public interface ClientInGameService {
 
 	@Origin("turn")
 	void turn(long gameId, Point point);
+
+	@Origin("leave")
+	void leave(long gameId);
 }

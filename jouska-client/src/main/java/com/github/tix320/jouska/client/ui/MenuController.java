@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.client.ui;
 
-import com.github.tix320.jouska.client.app.Jouska;
+import com.github.tix320.jouska.client.app.JouskaUI;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
@@ -33,11 +33,11 @@ public final class MenuController implements Controller {
 
 	@FXML
 	void joinGame(ActionEvent event) {
-		Jouska.switchScene("game-joining");
+		JouskaUI.switchScene("game-joining");
 	}
 
 	@FXML
 	void createGame(ActionEvent event) {
-		Jouska.switchScene("game-creating");
+		JouskaUI.switchScene("game-creating");
 	}
 }

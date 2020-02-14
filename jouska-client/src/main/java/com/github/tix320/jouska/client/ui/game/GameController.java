@@ -1,22 +1,21 @@
 package com.github.tix320.jouska.client.ui.game;
 
 import java.time.LocalTime;
-import java.util.Deque;
-import java.util.EnumMap;
-import java.util.LinkedList;
-import java.util.Map;
+import java.util.*;
 
-import com.github.tix320.jouska.client.app.Jouska;
+import com.github.tix320.jouska.client.app.JouskaUI;
 import com.github.tix320.jouska.client.ui.Controller;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
+import com.github.tix320.jouska.core.game.JouskaGame.PlayerWithPoints;
 import com.github.tix320.jouska.core.game.SimpleJouskaGame;
 import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.animation.*;
@@ -27,7 +26,6 @@ import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
-import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.layout.*;
@@ -126,6 +124,7 @@ public class GameController implements Controller<StartGameCommand> {
 		initGameTimer();
 		initTurnTimer();
 		startTurnTimer();
+		JouskaUI.onExit().subscribe(none -> leaveGame());
 	}
 
 	private void initStatisticsBoard(Player[] players) {
@@ -158,6 +157,18 @@ public class GameController implements Controller<StartGameCommand> {
 							}
 							startTurnTimer();
 						})));
+
+		game.lostPlayers().subscribe(this::handleLose);
+
+		game.kickedPlayers().subscribe(player -> animateKick(player).subscribe(none -> Platform.runLater(() -> {
+			turnProperty.set(game.getCurrentPlayer());
+			if (game.getCurrentPlayer() == myPlayer) {
+				activeBoard.set(true);
+			}
+			startTurnTimer();
+		})));
+
+		game.onComplete().subscribe(leftPlayers -> handleWin(leftPlayers.get(leftPlayers.size() - 1)));
 	}
 
 	private void initTurnTimer() {
@@ -190,8 +201,12 @@ public class GameController implements Controller<StartGameCommand> {
 		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
 	}
 
-	public void win(Player player) {
-		game.forceCompleteGame(player);
+	public void leave(Player player) {
+		game.kick(player);
+		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+	}
+
+	public void handleWin(Player player) {
 		activeBoard.set(false);
 		turnIndicator.setFill(Color.GRAY);
 		if (player == myPlayer) {
@@ -203,35 +218,35 @@ public class GameController implements Controller<StartGameCommand> {
 		gameTimer.stop();
 		Platform.runLater(() -> {
 			turnTimeIndicator.setText("0");
+			turnTimeIndicator.setTextFill(Color.RED);
 			gameDurationIndicator.setText("00:00");
 			gameDurationIndicator.setTextFill(Color.RED);
 		});
 	}
 
-	public void lose(Player player) {
+	public void handleLose(Player player) {
 		turnProperty.set(game.getCurrentPlayer());
-		Platform.runLater(() -> {
-			HBox statisticsNode = statisticsNodes.remove(player);
-			Transition transition = disappearStatisticsNode(statisticsNode);
-			if (player == myPlayer) {
-				activeBoard.set(false);
-				transition = new ParallelTransition(transition, appearLoseWinLabel("You lose", Color.RED));
-			}
-
-			transition.play();
-		});
+		if (player == myPlayer) {
+			activeBoard.set(false);
+			Platform.runLater(() -> {
+				Transition transition = appearLoseWinLabel("You lose", Color.RED);
+				transition.play();
+			});
+		}
 	}
 
-	private Transition disappearStatisticsNode(Node node) {
-		TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(1), node);
-		translateTransition.setFromX(0);
-		translateTransition.setToX(200);
-		FadeTransition fadeTransition = new FadeTransition(Duration.seconds(1), node);
-		fadeTransition.setFromValue(1);
-		fadeTransition.setToValue(0);
-		ParallelTransition parallelTransition = new ParallelTransition(translateTransition, fadeTransition);
-		parallelTransition.setOnFinished(event -> mainPane.getChildren().remove(node));
-		return parallelTransition;
+
+	public Observable<None> animateKick(PlayerWithPoints playerWithPoints) {
+		List<Point> pointsBelongedToPlayer = playerWithPoints.points;
+		Transition[] transitions = pointsBelongedToPlayer.stream()
+				.map(point -> makeTileTransition(point, new CellInfo(null, 0)))
+				.toArray(Transition[]::new);
+
+		ParallelTransition fullTransition = new ParallelTransition(transitions);
+		Publisher<None> onFinishPublisher = Publisher.simple();
+		fullTransition.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
+		fullTransition.play();
+		return onFinishPublisher.asObservable();
 	}
 
 	private Transition appearLoseWinLabel(String text, Color color) {
@@ -381,8 +396,12 @@ public class GameController implements Controller<StartGameCommand> {
 		}
 	}
 
+	public void onLeaveClick(ActionEvent actionEvent) {
+		leaveGame();
+	}
 
-	public void leaveGame(ActionEvent actionEvent) {
-		Jouska.switchScene("game-joining");
+	public void leaveGame() {
+		IN_GAME_SERVICE.leave(gameId);
+		JouskaUI.switchScene("game-joining");
 	}
 }

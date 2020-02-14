@@ -5,10 +5,6 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
-import com.github.tix320.jouska.client.app.Config;
-import com.github.tix320.jouska.client.app.Jouska;
-import com.github.tix320.jouska.client.app.Services;
-import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.core.config.ConfigReader;
 import javafx.application.Application;
 import javafx.stage.Stage;
@@ -33,8 +29,8 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage)
 			throws Exception {
-		Jouska.initialize(stage);
-		Jouska.switchScene("server-connect").subscribe(none -> {
+		JouskaUI.initialize(stage);
+		JouskaUI.switchScene("server-connect").subscribe(none -> {
 			stage.show();
 
 			new Thread(() -> {
@@ -46,10 +42,10 @@ public class Main extends Application {
 					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION, Version.os.name())
 							.subscribe(lastVersion -> {
 								if (!lastVersion.equals("")) { // update
-									Jouska.switchScene("update-app", lastVersion);
+									JouskaUI.switchScene("update-app", lastVersion);
 								}
 								else {
-									Jouska.switchScene("menu");
+									JouskaUI.switchScene("menu");
 								}
 							});
 				}
@@ -58,7 +54,7 @@ public class Main extends Application {
 					StringWriter out = new StringWriter();
 					PrintWriter stringWriter = new PrintWriter(out);
 					e.printStackTrace(stringWriter);
-					Jouska.switchScene("error", out.toString());
+					JouskaUI.switchScene("error", out.toString());
 				}
 			}).start();
 		});
@@ -67,6 +63,7 @@ public class Main extends Application {
 	@Override
 	public void stop()
 			throws Exception {
+		JouskaUI.close();
 		Services.stop();
 	}
 }

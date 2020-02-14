@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.core.game;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.core.infastructure.CheckCompleted;
@@ -40,8 +39,10 @@ public interface JouskaGame {
 
 	Observable<Player> lostPlayers();
 
+	Observable<PlayerWithPoints> kickedPlayers();
+
 	@CheckStarted
-	Optional<Player> getWinner();
+	void kick(Player player);
 
 	@CheckStarted
 	void forceCompleteGame(Player winner);
@@ -65,6 +66,16 @@ public interface JouskaGame {
 			this.cellInfo = cellInfo;
 			this.collapse = collapse;
 			this.children = children;
+		}
+	}
+
+	class PlayerWithPoints {
+		public final Player player;
+		public final List<Point> points;
+
+		public PlayerWithPoints(Player player, List<Point> points) {
+			this.player = player;
+			this.points = points;
 		}
 	}
 

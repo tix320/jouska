@@ -6,11 +6,11 @@
 
 	<groupId>com.github.tix320</groupId>
 	<artifactId>jouska</artifactId>
-	<version>1.3.1</version>
+	<version>1.4.0</version>
 	<packaging>pom</packaging>
 
 	<properties>
-		<sonder.version>0.16.2</sonder.version>
+		<sonder.version>0.16.3</sonder.version>
 	</properties>
 
 	<modules>
@@ -34,5 +34,13 @@
 			</plugin>
 		</plugins>
 	</build>
+
+	<dependencies>
+<!--		<dependency>-->
+<!--			<groupId>com.github.tix320</groupId>-->
+<!--			<artifactId>kiwi</artifactId>-->
+<!--			<version>${kiwi.version}</version>-->
+<!--		</dependency>-->
+	</dependencies>
 
 </project>

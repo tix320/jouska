@@ -14,14 +14,16 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-public final class Jouska {
+public final class JouskaUI {
+
+	private static final Publisher<None> onExit = Publisher.buffered(1);
 
 	public static Stage stage;
 
 	public static void initialize(Stage stage) {
-		if (Jouska.stage == null) {
-			Jouska.stage = stage;
-			stage.getIcons().add(new Image(Jouska.class.getResourceAsStream("/installer.ico")));
+		if (JouskaUI.stage == null) {
+			JouskaUI.stage = stage;
+			stage.getIcons().add(new Image(JouskaUI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.VERSION);
 			stage.setResizable(false);
 		}
@@ -38,7 +40,7 @@ public final class Jouska {
 		Parent root;
 		try {
 			FXMLLoader loader = new FXMLLoader(
-					Jouska.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", name)));
+					JouskaUI.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", name)));
 			root = loader.load();
 			Controller<Object> controller = loader.getController();
 			controller.initialize(data);
@@ -48,7 +50,8 @@ public final class Jouska {
 		}
 
 		Scene scene = new Scene(root);
-		URL cssResource = Jouska.class.getResource(String.format("/ui/{name}/style.css".replace("{name}", name), name));
+		URL cssResource = JouskaUI.class.getResource(
+				String.format("/ui/{name}/style.css".replace("{name}", name), name));
 		if (cssResource != null) {
 			scene.getStylesheets().add(cssResource.toExternalForm());
 		}
@@ -64,5 +67,13 @@ public final class Jouska {
 		});
 
 		return switchCompletePublisher.asObservable().toMono();
+	}
+
+	public static void close() {
+		onExit.publish(None.SELF);
+	}
+
+	public static MonoObservable<None> onExit() {
+		return onExit.asObservable().toMono();
 	}
 }

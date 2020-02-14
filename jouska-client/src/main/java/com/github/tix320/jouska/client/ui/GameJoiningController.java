@@ -2,7 +2,7 @@ package com.github.tix320.jouska.client.ui;
 
 import java.util.Optional;
 
-import com.github.tix320.jouska.client.app.Jouska;
+import com.github.tix320.jouska.client.app.JouskaUI;
 import com.github.tix320.jouska.core.dto.GameView;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -106,6 +106,6 @@ public class GameJoiningController implements Controller<Object> {
 	}
 
 	public void back(ActionEvent actionEvent) {
-		Jouska.switchScene("menu");
+		JouskaUI.switchScene("menu");
 	}
 }

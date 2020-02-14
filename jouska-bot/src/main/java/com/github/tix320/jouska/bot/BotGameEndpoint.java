@@ -23,7 +23,6 @@ public class BotGameEndpoint {
 		Context.myPlayer = myPlayer;
 		if (jouskaGame.getCurrentPlayer() == myPlayer) {
 			Point turn = bot.turn(jouskaGame.getBoard());
-			jouskaGame.turn(turn);
 			BotApp.CLONDER.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}
 	}

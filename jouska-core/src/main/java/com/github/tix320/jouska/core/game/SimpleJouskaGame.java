@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Supplier;
 
 import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.GameBoard;
@@ -11,6 +12,7 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.publisher.BufferPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.CachedPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 
@@ -24,14 +26,13 @@ public class SimpleJouskaGame implements JouskaGame {
 
 	private final Map<Player, Integer> playerSummaryPoints;
 
-	private Player winPlayer;
-
 	private Player currentPlayer;
 
 	private final Publisher<CellChange> turns;
 	private final Publisher<Map<Player, Integer>> summaryStatistics;
 	private final CachedPublisher<Player> lostPlayers;
-	private final Publisher<List<Player>> onComplete;
+	private final CachedPublisher<PlayerWithPoints> kickPlayers;
+	private final BufferPublisher<List<Player>> onComplete;
 
 	private final Lock lock;
 
@@ -50,6 +51,7 @@ public class SimpleJouskaGame implements JouskaGame {
 		turns = Publisher.cached();
 		summaryStatistics = Publisher.single(Collections.unmodifiableMap(playerSummaryPoints));
 		lostPlayers = Publisher.cached();
+		kickPlayers = Publisher.cached();
 		onComplete = Publisher.buffered(1);
 
 		this.players = new ArrayList<>(Arrays.asList(players));
@@ -61,27 +63,38 @@ public class SimpleJouskaGame implements JouskaGame {
 
 	@Override
 	public void start() {
-		initBoard();
-		isStarted = true;
+		if (isStarted) {
+			throw new RuntimeException("Already started");
+		}
+		runInLock(() -> {
+			if (isStarted) {
+				throw new RuntimeException("Already started");
+			}
+			initBoard();
+			isStarted = true;
+		});
 	}
 
 	public void turn(Point point) {
-		int i = point.i;
-		int j = point.j;
-		CellInfo cellInfo = board[i][j];
-		Player player = cellInfo.getPlayer();
-		Player currentPlayer = getCurrentPlayer();
-		if (currentPlayer != player) {
-			throw new IllegalStateException(
-					String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
-							currentPlayer, i, j, Objects.requireNonNullElse(player, "None")));
-		}
+		runInLock(() -> {
+			int i = point.i;
+			int j = point.j;
+			CellInfo cellInfo = board[i][j];
+			Player player = cellInfo.getPlayer();
+			Player currentPlayer = getCurrentPlayer();
+			if (currentPlayer != player) {
+				throw new IllegalStateException(
+						String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
+								currentPlayer, i, j, Objects.requireNonNullElse(player, "None")));
+			}
 
 
-		CellChange cellChange = turn(point, player);
-		checkLoses();
-		this.currentPlayer = nextPlayer();
-		turns.publish(cellChange);
+			CellChange cellChange = turn(point, player);
+			this.currentPlayer = nextPlayer();
+			turns.publish(cellChange);
+			checkLoses();
+			checkWinner();
+		});
 	}
 
 	public CellInfo[][] getBoard() {
@@ -93,16 +106,18 @@ public class SimpleJouskaGame implements JouskaGame {
 	}
 
 	public List<Point> getPointsBelongedToPlayer(Player player) {
-		List<Point> points = new ArrayList<>();
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board[i].length; j++) {
-				if (board[i][j].getPlayer() == player) {
-					points.add(new Point(i, j));
+		return runInLock(() -> {
+			List<Point> points = new ArrayList<>();
+			for (int i = 0; i < board.length; i++) {
+				for (int j = 0; j < board[i].length; j++) {
+					if (board[i][j].getPlayer() == player) {
+						points.add(new Point(i, j));
+					}
 				}
 			}
-		}
 
-		return points;
+			return points;
+		});
 	}
 
 
@@ -111,7 +126,7 @@ public class SimpleJouskaGame implements JouskaGame {
 	}
 
 	public Player ownerOfPoint(Point point) {
-		return board[point.i][point.j].getPlayer();
+		return runInLock(() -> board[point.i][point.j].getPlayer());
 	}
 
 	public Statistics getStatistics() {
@@ -127,22 +142,37 @@ public class SimpleJouskaGame implements JouskaGame {
 		return lostPlayers.asObservable();
 	}
 
-	public Optional<Player> getWinner() {
-		return Optional.ofNullable(winPlayer);
+	@Override
+	public Observable<PlayerWithPoints> kickedPlayers() {
+		return kickPlayers.asObservable();
+	}
+
+	@Override
+	public void kick(Player player) {
+		runInLock(() -> {
+			List<Point> pointsBelongedToPlayer = getPointsBelongedToPlayer(player);
+			for (Point point : pointsBelongedToPlayer) {
+				putInfoToPoint(point, new CellInfo(null, 0));
+			}
+			lostPlayers.publish(player);
+			kickPlayers.publish(new PlayerWithPoints(player, pointsBelongedToPlayer));
+			checkWinner();
+		});
 	}
 
 	@Override
 	public void forceCompleteGame(Player winner) {
-		this.winPlayer = winner;
-		List<Player> lostPlayersNow = new ArrayList<>(this.players);
-		lostPlayersNow.remove(winner);
-		lostPlayersNow.removeAll(this.lostPlayers.getCache());
-		lostPlayers.publish(lostPlayersNow);
+		runInLock(() -> {
+			List<Player> lostPlayersNow = new ArrayList<>(this.players);
+			lostPlayersNow.remove(winner);
+			lostPlayersNow.removeAll(this.lostPlayers.getCache());
+			lostPlayers.publish(lostPlayersNow);
 
-		List<Player> lastView = new ArrayList<>(this.lostPlayers.getCache());
-		lastView.add(winner);
+			List<Player> lastView = new ArrayList<>(this.lostPlayers.getCache());
+			lastView.add(winner);
 
-		onComplete.publish(lastView);
+			onComplete.publish(lastView);
+		});
 	}
 
 	@Override
@@ -290,8 +320,14 @@ public class SimpleJouskaGame implements JouskaGame {
 				lostPlayers.publish(player);
 			}
 		}
+	}
+
+	private void checkWinner() {
 		if (lostPlayers.getCache().size() == this.players.size() - 1) { // 1 player left
-			forceCompleteGame(winPlayer);
+			List<Player> leftPlayers = new ArrayList<>(this.players);
+			leftPlayers.removeAll(lostPlayers.getCache());
+			Player player = leftPlayers.get(0);
+			forceCompleteGame(player);
 		}
 	}
 
@@ -317,12 +353,32 @@ public class SimpleJouskaGame implements JouskaGame {
 
 	@Override
 	public boolean isStarted() {
-		return isStarted;
+		return runInLock(() -> isStarted);
 	}
 
 	@Override
 	public boolean isCompleted() {
-		return winPlayer != null;
+		return runInLock(() -> !onComplete.getBuffer().isEmpty());
+	}
+
+	private void runInLock(Runnable runnable) {
+		try {
+			lock.lock();
+			runnable.run();
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
+	private <T> T runInLock(Supplier<T> supplier) {
+		try {
+			lock.lock();
+			return supplier.get();
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	private static class PointWithCellChange {
@@ -334,5 +390,4 @@ public class SimpleJouskaGame implements JouskaGame {
 			this.cellChange = cellChange;
 		}
 	}
-
 }

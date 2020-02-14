@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.client.ui;
 
-import com.github.tix320.jouska.client.app.Jouska;
+import com.github.tix320.jouska.client.app.JouskaUI;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
@@ -20,6 +20,12 @@ public class GameCreatingController implements Controller<Object> {
 	private TextField gameNameTextField;
 
 	@FXML
+	private TextField turnDurationInput;
+
+	@FXML
+	private TextField gameDurationInput;
+
+	@FXML
 	private ChoiceBox<Integer> playersCountChoice;
 
 	@FXML
@@ -28,23 +34,44 @@ public class GameCreatingController implements Controller<Object> {
 	@Override
 	public void initialize(Object data) {
 		gameNameTextField.disableProperty().bind(loading);
+		turnDurationInput.disableProperty().bind(loading);
+		gameDurationInput.disableProperty().bind(loading);
 		playersCountChoice.disableProperty().bind(loading);
-		createButton.disableProperty().bind(loading);
-		createButton.disableProperty().bind(gameNameTextField.textProperty().isEmpty());
+		createButton.disableProperty()
+				.bind(loading.or(gameNameTextField.textProperty().isEmpty())
+						.or(turnDurationInput.textProperty().isEmpty())
+						.or(turnDurationInput.textProperty().isEqualTo("0"))
+						.or(gameDurationInput.textProperty().isEmpty())
+						.or(gameDurationInput.textProperty().isEqualTo("0")));
 		playersCountChoice.setItems(FXCollections.observableArrayList(1, 2, 3, 4));
 		playersCountChoice.setValue(2);
+
+		makeTextFieldNumeric(turnDurationInput);
+		makeTextFieldNumeric(gameDurationInput);
+
+		turnDurationInput.setText("20");
+		gameDurationInput.setText("20");
 	}
 
 	@FXML
 	void create(ActionEvent event) {
 		loading.set(true);
-		GAME_SERVICE.create(new CreateGameCommand(gameNameTextField.getText(), playersCountChoice.getValue()))
+		GAME_SERVICE.create(new CreateGameCommand(gameNameTextField.getText(), playersCountChoice.getValue(),
+				Integer.parseInt(turnDurationInput.getText()), Integer.parseInt(gameDurationInput.getText())))
 				.subscribe(gameId -> {
-					Jouska.switchScene("game-joining");
+					JouskaUI.switchScene("game-joining");
 				});
 	}
 
+	public void makeTextFieldNumeric(TextField textField) {
+		textField.textProperty().addListener((observable, oldValue, newValue) -> {
+			if (!newValue.matches("\\d*")) {
+				textField.setText(newValue.replaceAll("[^\\d]", ""));
+			}
+		});
+	}
+
 	public void back(ActionEvent actionEvent) {
-		Jouska.switchScene("menu");
+		JouskaUI.switchScene("menu");
 	}
 }

@@ -11,4 +11,9 @@ public class ServerInGameEndpoint {
 	public void turn(long gameId, Point point, @ClientID long clientId) {
 		GameManager.turnInGame(gameId, clientId, point);
 	}
+
+	@Endpoint("leave")
+	public void leave(long gameId, @ClientID long clientId) {
+		GameManager.leaveFromGame(gameId, clientId);
+	}
 }

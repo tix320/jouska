@@ -33,10 +33,12 @@ public class GameManager {
 		Player[] players = Player.getPlayers(createGameCommand.getPlayersCount());
 
 		GameBoard board = GameBoards.defaultBoard(players);
-		JouskaGame jouskaGame = TimedJouskaGame.create(SimpleJouskaGame.create(board, players), 20, 20);
+		JouskaGame jouskaGame = TimedJouskaGame.create(SimpleJouskaGame.create(board, players),
+				createGameCommand.getTurnDurationSeconds(), createGameCommand.getGameDurationMinutes());
 
 		games.put(gameId, new GameInfo(gameId, createGameCommand.getName(), new HashSet<>(), players, new HashMap<>(),
-				board.getMatrix(), jouskaGame));
+				board.getMatrix(), jouskaGame, createGameCommand.getTurnDurationSeconds(),
+				createGameCommand.getTurnDurationSeconds()));
 		return gameId;
 	}
 
@@ -82,6 +84,20 @@ public class GameManager {
 		// }
 	}
 
+	public static void leaveFromGame(long gameId, long playerId) {
+		GameInfo gameInfo = games.get(gameId);
+		JouskaGame game = gameInfo.getGame();
+		Lock lock = game.getLock();
+		try {
+			lock.lock();
+			Player player = gameInfo.getPlayerById(playerId);
+			game.kick(player);
+		}
+		finally {
+			lock.unlock();
+		}
+	}
+
 	public static void turnInGame(long gameId, long clientId, Point point) {
 		GameInfo gameInfo = games.get(gameId);
 		if (gameInfo == null) {
@@ -93,7 +109,7 @@ public class GameManager {
 			throw new IllegalStateException(String.format("Player %s is not a player of game %s", clientId, gameId));
 		}
 
-		Player player = gameInfo.getPlayerByClientId(clientId);
+		Player player = gameInfo.getPlayerById(clientId);
 
 		turnInGame(gameInfo, player, point);
 	}
@@ -127,10 +143,11 @@ public class GameManager {
 		JouskaGame game = gameInfo.getGame();
 		for (Player player : players) {
 			Long playerId = playerIdIterator.next();
-			gameInfo.setPlayerByClientId(playerId, player);
+			gameInfo.setPlayerById(playerId, player);
 			Observable<None> playerReady = GAME_SERVICE.startGame(
 					new StartGameCommand(gameId, gameInfo.getName(), player, players,
-							new GameBoard(gameInfo.getBoard()), 20, 1, GameType.SIMPLE), playerId);
+							new GameBoard(gameInfo.getBoard()), gameInfo.getTurnDurationSeconds(),
+							gameInfo.getGameDurationMinutes(), GameType.SIMPLE), playerId);
 			playersReady.add(playerReady);
 		}
 
@@ -140,13 +157,19 @@ public class GameManager {
 			}
 		});
 
-		game.lostPlayers().subscribe(player -> playerIds.forEach(id -> IN_GAME_SERVICE.lose(player, id)));
+		game.kickedPlayers().subscribe(playerWithPoints -> {
+			Player player = playerWithPoints.player;
+			Long playerId = gameInfo.getPlayerId(player);
+			playerIds.remove(playerId);
+			playerIds.forEach(id -> IN_GAME_SERVICE.leave(player, id));
+		});
 
 		game.onComplete().subscribe(leftPlayers -> {
 			Player winner = leftPlayers.get(leftPlayers.size() - 1);
-			for (Long playerId : gameInfo.getPlayerIds()) {
-				IN_GAME_SERVICE.win(winner, playerId);
-			}
+			games.remove(gameId);
+			System.out.println(
+					String.format("Game %s(%s) ended: Players %s Winner is %s", gameInfo.getName(), gameId, leftPlayers,
+							winner));
 		});
 
 		Lock lock = game.getLock();

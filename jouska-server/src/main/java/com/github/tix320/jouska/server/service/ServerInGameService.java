@@ -13,9 +13,6 @@ public interface ServerInGameService {
 	@Origin("turn")
 	MonoObservable<None> turn(Point point, @ClientID long clientId);
 
-	@Origin("lose")
-	MonoObservable<None> lose(Player player, @ClientID long clientId);
-
-	@Origin("win")
-	MonoObservable<None> win(Player player, @ClientID long clientId);
+	@Origin("leave")
+	MonoObservable<None> leave(Player player, @ClientID long clientId);
 }
