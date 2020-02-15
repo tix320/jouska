@@ -2,9 +2,11 @@ package com.github.tix320.jouska.client.ui.game;
 
 import java.time.LocalTime;
 import java.util.*;
+import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.client.app.JouskaUI;
 import com.github.tix320.jouska.client.ui.Controller;
+import com.github.tix320.jouska.client.ui.transtion.Transitions;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
@@ -23,7 +25,6 @@ import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleObjectProperty;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Button;
@@ -39,9 +40,6 @@ import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
 public class GameController implements Controller<StartGameCommand> {
 
 	public static GameController CURRENT;
-
-	@FXML
-	private AnchorPane mainPane;
 
 	@FXML
 	private FlowPane gameBoard;
@@ -148,25 +146,17 @@ public class GameController implements Controller<StartGameCommand> {
 			statisticsBoard.getChildren().add(hBox);
 		}
 
-		game.turns()
-				.subscribe(
-						rootChange -> animateCellChanges(rootChange).await().subscribe(none -> Platform.runLater(() -> {
-							turnProperty.set(game.getCurrentPlayer());
-							if (game.getCurrentPlayer() == myPlayer) {
-								activeBoard.set(true);
-							}
-							startTurnTimer();
-						})));
+		game.turns().subscribe(rootChange -> {
+			animateCellChanges(rootChange).blockUntilComplete();
+			Platform.runLater(this::resetTurn);
+		});
 
 		game.lostPlayers().subscribe(this::handleLose);
 
-		game.kickedPlayers().subscribe(player -> animateKick(player).subscribe(none -> Platform.runLater(() -> {
-			turnProperty.set(game.getCurrentPlayer());
-			if (game.getCurrentPlayer() == myPlayer) {
-				activeBoard.set(true);
-			}
-			startTurnTimer();
-		})));
+		game.kickedPlayers().subscribe(player -> {
+			animateKick(player).blockUntilComplete();
+			Platform.runLater(this::resetTurn);
+		});
 
 		game.onComplete().subscribe(leftPlayers -> handleWin(leftPlayers.get(leftPlayers.size() - 1)));
 	}
@@ -197,8 +187,16 @@ public class GameController implements Controller<StartGameCommand> {
 	}
 
 	public void turn(Point point) {
-		game.turn(point);
-		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+		Lock lock = game.getLock();
+		try {
+			lock.lock();
+			activeBoard.set(false);
+			game.turn(point);
+			game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	public void leave(Player player) {
@@ -210,9 +208,7 @@ public class GameController implements Controller<StartGameCommand> {
 		activeBoard.set(false);
 		turnIndicator.setFill(Color.GRAY);
 		if (player == myPlayer) {
-			Platform.runLater(() -> {
-				appearLoseWinLabel("You win", Color.valueOf(myPlayer.getColorCode())).play();
-			});
+			Platform.runLater(() -> appearLoseWinLabel("You win", Color.valueOf(myPlayer.getColorCode())).play());
 		}
 		currentTurnTimer.stop();
 		gameTimer.stop();
@@ -269,9 +265,20 @@ public class GameController implements Controller<StartGameCommand> {
 		});
 	}
 
+	private void resetTurn() {
+		if (game.isCompleted()) {
+			return;
+		}
+		turnProperty.set(game.getCurrentPlayer());
+		if (game.getCurrentPlayer() == myPlayer) {
+			activeBoard.set(true);
+		}
+		startTurnTimer();
+	}
+
 	private void initBoard(int height, int width) {
 		gameBoard.setBorder(new Border(
-				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))));
+				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(5))));
 		gameBoard.disableProperty().bind(activeBoard.not());
 		gameBoard.borderProperty()
 				.bind(Bindings.createObjectBinding(() -> new Border(
@@ -287,8 +294,6 @@ public class GameController implements Controller<StartGameCommand> {
 				tile.setPrefHeight(100);
 				tile.setLayoutX(i * 100);
 				tile.setLayoutY(j * 100);
-				tile.setBorder(new Border(new BorderStroke(Color.BLACK, BorderStrokeStyle.DASHED, CornerRadii.EMPTY,
-						BorderWidths.DEFAULT)));
 				tiles[i][j] = tile;
 				int x = i;
 				int y = j;
@@ -326,6 +331,9 @@ public class GameController implements Controller<StartGameCommand> {
 
 	private MonoObservable<None> animateCellChanges(CellChange root) {
 		SequentialTransition fullAnimation = new SequentialTransition();
+
+		fullAnimation.getChildren().add(makeClickedTransition(root.point, root.cellInfo.getPlayer()));
+
 		Publisher<None> onFinishPublisher = Publisher.simple();
 		fullAnimation.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
 
@@ -396,7 +404,15 @@ public class GameController implements Controller<StartGameCommand> {
 		}
 	}
 
-	public void onLeaveClick(ActionEvent actionEvent) {
+	private Transition makeClickedTransition(Point point, Player player) {
+		Tile tile = tiles[point.i][point.j];
+
+		Timeline timeline = tile.animateBorder(Color.valueOf(player.getColorCode()));
+
+		return Transitions.timeLineToTransition(timeline);
+	}
+
+	public void onLeaveClick() {
 		leaveGame();
 	}
 

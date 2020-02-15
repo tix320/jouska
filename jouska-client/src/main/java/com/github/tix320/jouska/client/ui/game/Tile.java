@@ -1,14 +1,15 @@
 package com.github.tix320.jouska.client.ui.game;
 
-import com.github.tix320.jouska.client.ui.transtion.TransitionInterceptor;
+import java.util.stream.Stream;
+
+import com.github.tix320.jouska.client.ui.transtion.Transitions;
 import com.github.tix320.jouska.core.model.Player;
-import javafx.animation.FadeTransition;
-import javafx.animation.SequentialTransition;
-import javafx.animation.Transition;
+import javafx.animation.*;
 import javafx.scene.Node;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.*;
+import javafx.scene.paint.*;
 import javafx.util.Duration;
 
 public class Tile extends Region {
@@ -43,15 +44,33 @@ public class Tile extends Region {
 
 	private static final double ANIMATION_SECONDS = 0.4;
 
+	private static final Color DEFAULT_BORDER_COLOR = Color.GRAY;
+
 	private final ImageView content;
 
 	public Tile() {
 		this.content = new ImageView();
 		getChildren().add(content);
+		setBorder(createBorder(DEFAULT_BORDER_COLOR));
 	}
 
 	public Node content() {
 		return content;
+	}
+
+	public Timeline animateBorder(Color color) {
+		int[] mills = {-10};
+		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + 0.02)
+				.limit(50)
+				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, DEFAULT_BORDER_COLOR),
+						new Stop(i, color), new Stop(1, DEFAULT_BORDER_COLOR)))
+				.map(this::createBorder)
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10), new KeyValue(borderProperty(), border)))
+				.toArray(KeyFrame[]::new);
+
+		Timeline timeline = new Timeline(keyFrames);
+		timeline.setOnFinished(event -> setBorder(createBorder(DEFAULT_BORDER_COLOR)));
+		return timeline;
 	}
 
 	public Transition disappearTransition() {
@@ -63,14 +82,13 @@ public class Tile extends Region {
 
 		String imagePath = jouskas[player.ordinal()][points - 1];
 
-		return TransitionInterceptor.intercept(transition, () -> content.setImage(new Image(imagePath)));
+		return Transitions.intercept(transition, () -> content.setImage(new Image(imagePath)));
 	}
 
 	public Transition disAppearAndAppearTransition(Player player, int points) {
 		String imagePath = jouskas[player.ordinal()][points - 1];
 		Transition disappearTransition = disappearTransition(Duration.seconds(ANIMATION_SECONDS / 2));
-		Transition appearTransition = TransitionInterceptor.intercept(
-				appearTransition(Duration.seconds(ANIMATION_SECONDS / 2)),
+		Transition appearTransition = Transitions.intercept(appearTransition(Duration.seconds(ANIMATION_SECONDS / 2)),
 				() -> content.setImage(new Image(imagePath)));
 
 		return new SequentialTransition(disappearTransition, appearTransition);
@@ -88,5 +106,9 @@ public class Tile extends Region {
 		disappearTransition.setFromValue(1);
 		disappearTransition.setToValue(0);
 		return disappearTransition;
+	}
+
+	private Border createBorder(Paint paint) {
+		return new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
 	}
 }

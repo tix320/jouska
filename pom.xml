@@ -10,7 +10,7 @@
 	<packaging>pom</packaging>
 
 	<properties>
-		<sonder.version>0.16.3</sonder.version>
+		<sonder.version>0.16.5</sonder.version>
 	</properties>
 
 	<modules>
@@ -39,7 +39,7 @@
 <!--		<dependency>-->
 <!--			<groupId>com.github.tix320</groupId>-->
 <!--			<artifactId>kiwi</artifactId>-->
-<!--			<version>${kiwi.version}</version>-->
+<!--			<version>0.11.2-SNAPSHOT</version>-->
 <!--		</dependency>-->
 	</dependencies>
 

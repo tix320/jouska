@@ -38,7 +38,7 @@ public class GameManager {
 
 		games.put(gameId, new GameInfo(gameId, createGameCommand.getName(), new HashSet<>(), players, new HashMap<>(),
 				board.getMatrix(), jouskaGame, createGameCommand.getTurnDurationSeconds(),
-				createGameCommand.getTurnDurationSeconds()));
+				createGameCommand.getGameDurationMinutes()));
 		return gameId;
 	}
 
@@ -177,7 +177,7 @@ public class GameManager {
 		try {
 			lock.lock();
 
-			Observable.combine(playersReady).subscribe(nones -> {
+			Observable.zip(playersReady).subscribe(nones -> {
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameInfo.getName(), gameId));
 			});
