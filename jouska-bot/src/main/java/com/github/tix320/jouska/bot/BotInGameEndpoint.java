@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.core.game.JouskaGame;
-import com.github.tix320.jouska.core.game.SimpleJouskaGame;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.kiwi.api.check.Try;
@@ -20,7 +19,7 @@ public class BotInGameEndpoint {
 		game.turn(point);
 		Player currentPlayer = game.getCurrentPlayer();
 		if (currentPlayer == myPlayer) {
-			Try.run(() -> Thread.sleep(1000));
+			Try.runOrRethrow(() -> Thread.sleep(1000));
 			Point turn = bot.turn(game.getBoard());
 			BotApp.CLONDER.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}

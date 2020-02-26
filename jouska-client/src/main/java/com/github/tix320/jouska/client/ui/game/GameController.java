@@ -4,7 +4,7 @@ import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
-import com.github.tix320.jouska.client.app.JouskaUI;
+import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.ui.Controller;
 import com.github.tix320.jouska.client.ui.transtion.Transitions;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
@@ -40,6 +40,9 @@ import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
 public class GameController implements Controller<StartGameCommand> {
 
 	public static GameController CURRENT;
+
+	@FXML
+	private AnchorPane mainPane;
 
 	@FXML
 	private FlowPane gameBoard;
@@ -93,7 +96,6 @@ public class GameController implements Controller<StartGameCommand> {
 	@Override
 	public void initialize(StartGameCommand startGameCommand) {
 		CURRENT = this;
-		leaveButton.setFocusTraversable(false);
 		game = SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers());
 		gameId = startGameCommand.getGameId();
 		Player[] players = startGameCommand.getPlayers();
@@ -106,6 +108,7 @@ public class GameController implements Controller<StartGameCommand> {
 		initStatisticsBoard(players);
 		GameBoard gameBoard = startGameCommand.getGameBoard();
 		CellInfo[][] matrix = gameBoard.getMatrix();
+		leaveButton.setFocusTraversable(false);
 		initBoard(matrix.length, matrix[0].length);
 		fillBoard(matrix);
 		initTurnIndicator();
@@ -276,7 +279,7 @@ public class GameController implements Controller<StartGameCommand> {
 		startTurnTimer();
 	}
 
-	private void initBoard(int height, int width) {
+	private void initBoard(int rows, int columns) {
 		gameBoard.setBorder(new Border(
 				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(5))));
 		gameBoard.disableProperty().bind(activeBoard.not());
@@ -284,14 +287,15 @@ public class GameController implements Controller<StartGameCommand> {
 				.bind(Bindings.createObjectBinding(() -> new Border(
 						new BorderStroke(Color.valueOf(game.getCurrentPlayer().getColorCode()), BorderStrokeStyle.SOLID,
 								CornerRadii.EMPTY, new BorderWidths(5))), turnProperty));
-		// gameBoard.setPrefWidth(width * 100 + 10);
-		// gameBoard.setMaxWidth(width * 100 + 10);
-		tiles = new Tile[height][width];
-		for (int i = 0; i < height; i++) {
-			for (int j = 0; j < width; j++) {
+		double boardWidth = columns * Tile.PREF_SIZE + 10;
+		double boardHeight = rows * Tile.PREF_SIZE + 10;
+		gameBoard.setPrefWidth(boardWidth);
+		gameBoard.setPrefHeight(boardHeight);
+		mainPane.setPrefWidth(boardWidth + 400);
+		tiles = new Tile[rows][columns];
+		for (int i = 0; i < rows; i++) {
+			for (int j = 0; j < columns; j++) {
 				Tile tile = new Tile();
-				tile.setPrefWidth(100);
-				tile.setPrefHeight(100);
 				tile.setLayoutX(i * 100);
 				tile.setLayoutY(j * 100);
 				tiles[i][j] = tile;
@@ -414,10 +418,10 @@ public class GameController implements Controller<StartGameCommand> {
 
 	public void onLeaveClick() {
 		leaveGame();
+		JouskaUI.switchScene("menu");
 	}
 
 	public void leaveGame() {
 		IN_GAME_SERVICE.leave(gameId);
-		JouskaUI.switchScene("game-joining");
 	}
 }

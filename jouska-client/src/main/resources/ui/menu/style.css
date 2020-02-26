@@ -1,0 +1,35 @@
+.root {
+    -fx-font-family: "Comic Sans MS";
+}
+
+#menu {
+    -fx-background-color: radial-gradient(radius 180%, #1e323a, #363841);
+}
+
+.menu-item {
+    -fx-border-color: transparent;
+    -fx-background-color: transparent;
+    -fx-font-size: 1.5em; /* 12 */
+    -fx-text-fill: #e3faff;
+    -fx-background-radius: 7px;
+}
+
+.menu-item:hover {
+    -fx-background-color: #7aa456;
+}
+
+.menu-item:pressed {
+    -fx-background-color: #35a421;
+}
+
+#header-pane {
+    -fx-background-color: radial-gradient(radius 180%, #1e323a, #363841);
+}
+
+#content-pane {
+    -fx-background-color: radial-gradient(radius 180%, #2c7880, #c2fff5);
+}
+
+#loading-indicator {
+    -fx-progress-color: #aaff03;
+}

@@ -1,7 +1,8 @@
 package com.github.tix320.jouska.client.ui;
 
-import com.github.tix320.jouska.client.app.JouskaUI;
+import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
+import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -18,7 +19,7 @@ public class GameCreatingController implements Controller<Object> {
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
 	@FXML
-	private TextField gameNameTextField;
+	private TextField gameNameInput;
 
 	@FXML
 	private TextField turnDurationInput;
@@ -34,7 +35,7 @@ public class GameCreatingController implements Controller<Object> {
 
 	@Override
 	public void initialize(Object data) {
-		gameNameTextField.disableProperty().bind(loading);
+		gameNameInput.disableProperty().bind(loading);
 		turnDurationInput.disableProperty().bind(loading);
 		gameDurationInput.disableProperty().bind(loading);
 		playersCountChoice.disableProperty().bind(loading);
@@ -49,7 +50,7 @@ public class GameCreatingController implements Controller<Object> {
 		}, gameDurationInput.textProperty());
 
 		createButton.disableProperty()
-				.bind(loading.or(gameNameTextField.textProperty().isEmpty())
+				.bind(loading.or(gameNameInput.textProperty().isEmpty())
 						.or(turnDurationInput.textProperty().isEmpty())
 						.or(turnDurationBinding.lessThan(5))
 						.or(gameDurationInput.textProperty().isEmpty())
@@ -67,9 +68,9 @@ public class GameCreatingController implements Controller<Object> {
 	@FXML
 	void create() {
 		loading.set(true);
-		GAME_SERVICE.create(new CreateGameCommand(gameNameTextField.getText(), playersCountChoice.getValue(),
+		GAME_SERVICE.create(new CreateGameCommand(gameNameInput.getText(), playersCountChoice.getValue(),
 				Integer.parseInt(turnDurationInput.getText()), Integer.parseInt(gameDurationInput.getText())))
-				.subscribe(gameId -> JouskaUI.switchScene("game-joining"));
+				.subscribe(gameId -> Platform.runLater(() -> JouskaUI.changeMenuScene("lobby")));
 	}
 
 	public void makeTextFieldNumeric(TextField textField) {
@@ -78,9 +79,5 @@ public class GameCreatingController implements Controller<Object> {
 				textField.setText(newValue.replaceAll("[^\\d]", ""));
 			}
 		});
-	}
-
-	public void back() {
-		JouskaUI.switchScene("menu");
 	}
 }

@@ -1,58 +1,79 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.FlowPane?>
-<?import javafx.scene.layout.StackPane?>
-<?import javafx.scene.layout.VBox?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.Font?>
-
-<StackPane xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.game.GameController">
+<?import javafx.scene.text.*?>
+<AnchorPane fx:id="mainPane" prefHeight="639.0" prefWidth="1084.0" stylesheets="@style.css"
+			xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+			fx:controller="com.github.tix320.jouska.client.ui.game.GameController">
 	<children>
-		<AnchorPane>
+		<VBox id="statisticsBoard" fx:id="statisticsBoard" layoutX="1335.0" layoutY="75.0" prefHeight="250.0"
+			  prefWidth="100.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0"/>
+		<Label fx:id="loseWinLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="1344.0" layoutY="455.0"
+			   maxHeight="40.0" prefHeight="40.0" prefWidth="200.0" text="Foo" textAlignment="CENTER" textFill="#c61616"
+			   visible="false" AnchorPane.rightAnchor="10.0"/>
+		<Button fx:id="leaveButton" focusTraversable="false" layoutX="1344.0" layoutY="810.0" mnemonicParsing="false"
+				onAction="#onLeaveClick" prefHeight="51.0" prefWidth="185.0" text="Leave" textFill="#393535"
+				AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
+			<font>
+				<Font size="20.0"/>
+			</font>
+		</Button>
+		<HBox layoutX="14.0" layoutY="-6.0" prefWidth="200.0" spacing="5.0" styleClass="hbox"
+			  AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
 			<children>
-				<AnchorPane fx:id="mainPane" layoutX="-15.0" layoutY="-7.0" prefHeight="820.0" prefWidth="1480.0">
-					<children>
-						<Label alignment="CENTER" layoutX="515.0" layoutY="20.0" prefHeight="29.0" prefWidth="110.0" text="Turn:" AnchorPane.leftAnchor="515.0">
-							<font>
-								<Font size="28.0" />
-							</font>
-						</Label>
-						<Circle fx:id="turnIndicator" fill="DODGERBLUE" layoutX="625.0" layoutY="40.0" radius="16.0" stroke="BLACK" strokeType="INSIDE" AnchorPane.leftAnchor="609.0" />
-						<FlowPane fx:id="gameBoard" layoutX="14.0" layoutY="75.0" maxHeight="800.0" maxWidth="1210.0" prefHeight="800.0" prefWidth="1210.0" />
-						<Label alignment="CENTER" layoutX="14.0" layoutY="20.0" prefHeight="40.0" prefWidth="160.0" text="Your color:">
-							<font>
-								<Font size="28.0" />
-							</font>
-						</Label>
-						<Circle fx:id="myColor" fill="DODGERBLUE" layoutX="181.0" layoutY="40.0" radius="16.0" stroke="BLACK" strokeType="INSIDE" />
-						<Label fx:id="gameName" alignment="CENTER" layoutX="722.0" layoutY="24.0" prefHeight="40.0" prefWidth="472.0" text="Game Name">
-							<font>
-								<Font size="28.0" />
-							</font>
-						</Label>
-						<VBox fx:id="statisticsBoard" layoutX="1335.0" layoutY="75.0" prefHeight="224.0" prefWidth="203.0" />
-						<Label fx:id="loseWinLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="1344.0" layoutY="455.0" prefHeight="40.0" prefWidth="102.0" textAlignment="CENTER" textFill="#c61616" visible="false" />
-						<Button fx:id="leaveButton" layoutX="1344.0" layoutY="810.0" mnemonicParsing="false" onAction="#onLeaveClick" prefHeight="51.0" prefWidth="185.0" text="Leave" textFill="#393535">
-							<font>
-								<Font size="20.0" />
-							</font>
-						</Button>
-                  <Label fx:id="turnTimeIndicator" layoutX="656.0" layoutY="20.0" text="20">
-                     <font>
-                        <Font size="28.0" />
-                     </font>
-                  </Label>
-                  <Label fx:id="gameDurationIndicator" layoutX="1049.0" layoutY="24.0" prefHeight="40.0" prefWidth="71.0" text="20:00">
-                     <font>
-                        <Font size="28.0" />
-                     </font>
-                  </Label>
-					</children>
-				</AnchorPane>
+				<Label alignment="CENTER" prefHeight="40.0" prefWidth="160.0" text="Your color:">
+					<font>
+						<Font size="28.0"/>
+					</font>
+				</Label>
+				<Circle fx:id="myColor" fill="DODGERBLUE" radius="16.0" stroke="BLACK" strokeType="INSIDE">
+					<HBox.margin>
+						<Insets top="5.0"/>
+					</HBox.margin>
+				</Circle>
 			</children>
-		</AnchorPane>
+		</HBox>
+		<HBox alignment="CENTER" layoutX="521.0" layoutY="14.0" spacing="5.0" styleClass="hbox"
+			  AnchorPane.leftAnchor="300.0" AnchorPane.topAnchor="10.0">
+			<children>
+				<Label alignment="CENTER" prefHeight="40.0" prefWidth="78.0" text="Turn:">
+					<font>
+						<Font size="28.0"/>
+					</font>
+				</Label>
+				<Circle fx:id="turnIndicator" fill="DODGERBLUE" radius="16.0" stroke="BLACK" strokeType="INSIDE"/>
+				<Label fx:id="turnTimeIndicator" text="20">
+					<font>
+						<Font size="28.0"/>
+					</font>
+					<HBox.margin>
+						<Insets left="10.0"/>
+					</HBox.margin>
+				</Label>
+			</children>
+		</HBox>
+		<HBox alignment="CENTER_RIGHT" layoutX="1131.0" layoutY="24.0" spacing="5.0" styleClass="hbox"
+			  AnchorPane.rightAnchor="300.0" AnchorPane.topAnchor="10.0">
+			<children>
+				<Label fx:id="gameName" alignment="CENTER" maxWidth="300.0" prefHeight="40.0" text="Game Name">
+					<font>
+						<Font size="28.0"/>
+					</font>
+				</Label>
+				<Separator orientation="VERTICAL" prefHeight="37.0"/>
+				<Label fx:id="gameDurationIndicator" prefHeight="40.0" text="20:00">
+					<font>
+						<Font size="28.0"/>
+					</font>
+				</Label>
+			</children>
+		</HBox>
+		<FlowPane fx:id="gameBoard" layoutX="-12.0" layoutY="87.0" AnchorPane.leftAnchor="10.0"
+				  AnchorPane.topAnchor="80.0"/>
+		<Separator layoutX="254.0" layoutY="10.0" orientation="VERTICAL" prefHeight="37.0" prefWidth="1.0"
+				   AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="10.0"/>
 	</children>
-</StackPane>
+</AnchorPane>

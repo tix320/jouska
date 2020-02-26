@@ -4,16 +4,18 @@ import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.transtion.Transitions;
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.kiwi.api.check.Try;
 import javafx.animation.*;
-import javafx.scene.Node;
+import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
+import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.util.Duration;
 
-public class Tile extends Region {
-
+public class Tile extends AnchorPane {
 
 	private static final String[][] jouskas = new String[][]{
 			{
@@ -42,34 +44,38 @@ public class Tile extends Region {
 			},
 	};
 
+	public static final double PREF_SIZE = 110;
+
 	private static final double ANIMATION_SECONDS = 0.4;
 
 	private static final Color DEFAULT_BORDER_COLOR = Color.GRAY;
 
-	private final ImageView content;
+	private final Background defaultBackground;
+
+	@FXML
+	private ImageView imageHolder;
 
 	public Tile() {
-		this.content = new ImageView();
-		getChildren().add(content);
-		setBorder(createBorder(DEFAULT_BORDER_COLOR));
-	}
-
-	public Node content() {
-		return content;
+		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/game/tile.fxml"));
+		fxmlLoader.setRoot(this);
+		fxmlLoader.setController(this);
+		Try.runOrRethrow(fxmlLoader::load);
+		setBorder(new Border(new BorderStroke(DEFAULT_BORDER_COLOR, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2))));
+		defaultBackground = backgroundProperty().get();
 	}
 
 	public Timeline animateBorder(Color color) {
 		int[] mills = {-10};
 		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + 0.02)
 				.limit(50)
-				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, DEFAULT_BORDER_COLOR),
-						new Stop(i, color), new Stop(1, DEFAULT_BORDER_COLOR)))
+				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, Color.TRANSPARENT),
+						new Stop(i, color), new Stop(1, Color.TRANSPARENT)))
 				.map(this::createBorder)
-				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10), new KeyValue(borderProperty(), border)))
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10), new KeyValue(backgroundProperty(), border)))
 				.toArray(KeyFrame[]::new);
 
 		Timeline timeline = new Timeline(keyFrames);
-		timeline.setOnFinished(event -> setBorder(createBorder(DEFAULT_BORDER_COLOR)));
+		timeline.setOnFinished(event -> setBackground(defaultBackground));
 		return timeline;
 	}
 
@@ -82,33 +88,33 @@ public class Tile extends Region {
 
 		String imagePath = jouskas[player.ordinal()][points - 1];
 
-		return Transitions.intercept(transition, () -> content.setImage(new Image(imagePath)));
+		return Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath)));
 	}
 
 	public Transition disAppearAndAppearTransition(Player player, int points) {
 		String imagePath = jouskas[player.ordinal()][points - 1];
 		Transition disappearTransition = disappearTransition(Duration.seconds(ANIMATION_SECONDS / 2));
 		Transition appearTransition = Transitions.intercept(appearTransition(Duration.seconds(ANIMATION_SECONDS / 2)),
-				() -> content.setImage(new Image(imagePath)));
+				() -> imageHolder.setImage(new Image(imagePath)));
 
 		return new SequentialTransition(disappearTransition, appearTransition);
 	}
 
 	private Transition appearTransition(Duration duration) {
-		FadeTransition appearTransition = new FadeTransition(duration, content);
+		FadeTransition appearTransition = new FadeTransition(duration, imageHolder);
 		appearTransition.setFromValue(0);
 		appearTransition.setToValue(1);
 		return appearTransition;
 	}
 
 	private Transition disappearTransition(Duration duration) {
-		FadeTransition disappearTransition = new FadeTransition(duration, content);
+		FadeTransition disappearTransition = new FadeTransition(duration, imageHolder);
 		disappearTransition.setFromValue(1);
 		disappearTransition.setToValue(0);
 		return disappearTransition;
 	}
 
-	private Border createBorder(Paint paint) {
-		return new Border(new BorderStroke(paint, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
+	private Background createBorder(Paint paint) {
+		return new Background(new BackgroundFill(paint,CornerRadii.EMPTY,Insets.EMPTY));//new BorderStroke(paint, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
 	}
 }

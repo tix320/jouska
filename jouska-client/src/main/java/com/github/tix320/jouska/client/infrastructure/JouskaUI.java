@@ -1,9 +1,11 @@
-package com.github.tix320.jouska.client.app;
+package com.github.tix320.jouska.client.infrastructure;
 
 import java.io.IOException;
 import java.net.URL;
 
+import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.client.ui.Controller;
+import com.github.tix320.jouska.client.ui.MenuController;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -20,12 +22,13 @@ public final class JouskaUI {
 
 	public static Stage stage;
 
+	private static String currentMenuScene;
+
 	public static void initialize(Stage stage) {
 		if (JouskaUI.stage == null) {
 			JouskaUI.stage = stage;
 			stage.getIcons().add(new Image(JouskaUI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.VERSION);
-			stage.setResizable(false);
 		}
 		else {
 			throw new IllegalStateException("Application already initialized");
@@ -62,11 +65,38 @@ public final class JouskaUI {
 			stage.setScene(scene);
 			stage.sizeToScene();
 			stage.centerOnScreen();
+			stage.setMinWidth(stage.getWidth());
+			stage.setMinHeight(stage.getHeight());
 			switchCompletePublisher.publish(None.SELF);
 			switchCompletePublisher.complete();
 		});
 
 		return switchCompletePublisher.asObservable().toMono();
+	}
+
+	public static void changeMenuScene(String sceneName) {
+		if (sceneName.equals(currentMenuScene)) {
+			return;
+		}
+		Parent content = loadFxml(sceneName, null);
+		MenuController.SELF.changeContent(content);
+		currentMenuScene = sceneName;
+	}
+
+	private static Parent loadFxml(String path, Object data) {
+		Parent root;
+		try {
+			FXMLLoader loader = new FXMLLoader(
+					JouskaUI.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", path)));
+			root = loader.load();
+			Controller<Object> controller = loader.getController();
+			controller.initialize(data);
+			return root;
+		}
+		catch (IOException e) {
+			throw new IllegalArgumentException(String.format("Scene %s not found", path), e);
+		}
+
 	}
 
 	public static void close() {
@@ -75,5 +105,10 @@ public final class JouskaUI {
 
 	public static MonoObservable<None> onExit() {
 		return onExit.asObservable().toMono();
+	}
+
+	public enum SceneType {
+		MENU,
+		GAME
 	}
 }

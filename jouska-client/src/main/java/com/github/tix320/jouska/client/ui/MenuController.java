@@ -1,43 +1,57 @@
 package com.github.tix320.jouska.client.ui;
 
-import com.github.tix320.jouska.client.app.JouskaUI;
+import com.github.tix320.jouska.client.infrastructure.JouskaUI;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
+import javafx.scene.Node;
+import javafx.scene.control.ProgressIndicator;
+import javafx.scene.layout.AnchorPane;
 
 public final class MenuController implements Controller {
 
-	@FXML
-	private Button joinGameButton;
+	public static MenuController SELF;
+
+	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
 	@FXML
-	private Button createGameButton;
+	private ProgressIndicator loadingIndicator;
+
+	@FXML
+	private AnchorPane contentPane;
+
+	public MenuController() {
+		SELF = this;
+	}
 
 	@Override
 	public void initialize(Object data) {
-
-	}
-
-	@FXML
-	void mouseEntered(MouseEvent event) {
-		((Button) event.getSource()).setScaleX(1.2);
-		((Button) event.getSource()).setScaleY(1.2);
-	}
-
-	@FXML
-	void mouseExited(MouseEvent event) {
-		((Button) event.getSource()).setScaleX(1);
-		((Button) event.getSource()).setScaleY(1);
+		JouskaUI.changeMenuScene("lobby");
+		loadingIndicator.visibleProperty().bind(loading);
 	}
 
 	@FXML
 	void joinGame(ActionEvent event) {
-		JouskaUI.switchScene("game-joining");
+		JouskaUI.changeMenuScene("lobby");
 	}
 
 	@FXML
 	void createGame(ActionEvent event) {
-		JouskaUI.switchScene("game-creating");
+		JouskaUI.changeMenuScene("game-creating");
+	}
+
+	public void changeContent(Node node) {
+		ObservableList<Node> children = this.contentPane.getChildren();
+		children.clear();
+		AnchorPane.setTopAnchor(node, 0.0);
+		AnchorPane.setRightAnchor(node, 0.0);
+		AnchorPane.setLeftAnchor(node, 0.0);
+		AnchorPane.setBottomAnchor(node, 0.0);
+		children.add(node);
+	}
+
+	public SimpleBooleanProperty loadingProperty() {
+		return loading;
 	}
 }

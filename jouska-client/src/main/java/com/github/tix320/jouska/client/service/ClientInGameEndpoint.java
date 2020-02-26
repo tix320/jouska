@@ -14,7 +14,7 @@ public class ClientInGameEndpoint {
 	}
 
 	@Endpoint("leave")
-	public void lose(Player player) {
+	public void leave(Player player) {
 		GameController.CURRENT.leave(player);
 	}
 }

@@ -1,17 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-
+<?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
-<?import javafx.scene.layout.AnchorPane?>
-<AnchorPane fx:controller="com.github.tix320.jouska.client.ui.MenuController" maxHeight="-Infinity"
-			maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="182.0" prefWidth="265.0"
-			xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
-    <children>
-        <Button fx:id="joinGameButton" layoutX="83.0" layoutY="33.0" mnemonicParsing="false" onAction="#joinGame"
-                onMouseEntered="#mouseEntered" onMouseExited="#mouseExited" prefHeight="20.0" prefWidth="100.0"
-                text="Join game"/>
-        <Button fx:id="createGameButton" layoutX="83.0" layoutY="91.0" mnemonicParsing="false" onAction="#createGame"
-                onMouseEntered="#mouseEntered" onMouseExited="#mouseExited" prefHeight="20.0" prefWidth="100.0"
-                text="Create Game"/>
-    </children>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.layout.*?>
+<AnchorPane fx:id="root" prefHeight="738.0" prefWidth="1085.0" stylesheets="@style.css"
+            xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="com.github.tix320.jouska.client.ui.MenuController">
+	<children>
+		<AnchorPane id="header-pane" layoutX="443.0" layoutY="-8.0" prefHeight="80.0" prefWidth="835.0"
+					AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+			<children>
+				<ProgressIndicator id="loading-indicator" fx:id="loadingIndicator" layoutX="769.0" layoutY="14.0"
+								   visible="false" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+			</children>
+		</AnchorPane>
+		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" prefHeight="622.0"
+					prefWidth="835.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0"
+					AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0"/>
+		<AnchorPane id="menu" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+					prefHeight="493.0" prefWidth="250.0" stylesheets="@style.css" AnchorPane.bottomAnchor="0.0"
+					AnchorPane.topAnchor="0.0">
+			<children>
+				<VBox alignment="TOP_CENTER" layoutX="75.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0"
+					  spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+					  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+					<children>
+						<Button fx:id="joinGameButton" mnemonicParsing="false" onAction="#joinGame" prefHeight="25.0"
+								prefWidth="167.0" styleClass="menu-item" stylesheets="@style.css" text="Lobby"/>
+						<Button fx:id="createGameButton" mnemonicParsing="false" onAction="#createGame"
+								prefHeight="25.0" prefWidth="164.0" styleClass="menu-item" stylesheets="@style.css"
+								text="Create Game"/>
+					</children>
+					<padding>
+						<Insets top="50.0"/>
+					</padding>
+				</VBox>
+			</children>
+		</AnchorPane>
+	</children>
 </AnchorPane>

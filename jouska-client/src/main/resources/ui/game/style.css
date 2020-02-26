@@ -1,0 +1,17 @@
+.root {
+    -fx-font-size: 26px;
+    -fx-font-family: "Comic Sans MS";
+    -fx-background-color: #faf7f4;
+}
+
+.separator {
+    -fx-background-color: #728d95;
+}
+
+#statisticsBoard {
+    -fx-border-width: 2px;
+    -fx-border-color: #948fff;
+    -fx-border-radius: 10px;
+    -fx-padding: 5px;
+}
+

@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.core.config.ConfigReader;
 import javafx.application.Application;
 import javafx.stage.Stage;

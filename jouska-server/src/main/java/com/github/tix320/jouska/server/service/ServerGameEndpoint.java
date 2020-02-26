@@ -17,7 +17,7 @@ public class ServerGameEndpoint {
 		return GameManager.getGames()
 				.stream()
 				.map(gameInfo -> new GameView(gameInfo.getId(), gameInfo.getName(), gameInfo.getPlayerIds().size(),
-						gameInfo.getPlayers().length))
+						gameInfo.getPlayers().length, gameInfo.getTurnDurationSeconds(), gameInfo.getGameDurationMinutes()))
 				.collect(Collectors.toList());
 	}
 
