@@ -1,5 +1,4 @@
 .root {
-    -fx-font-size: 26px;
     -fx-font-family: "Comic Sans MS";
     -fx-background-color: #faf7f4;
 }
@@ -15,3 +14,15 @@
     -fx-padding: 5px;
 }
 
+#fullScreenButton {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10px;
+}
+
+#fullScreenButton:hover {
+    -fx-background-color: #82be3c;
+}
+
+#fullScreenButton:pressed {
+    -fx-background-color: #ffc023;
+}

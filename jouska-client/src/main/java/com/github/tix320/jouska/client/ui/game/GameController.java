@@ -6,7 +6,6 @@ import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.ui.Controller;
-import com.github.tix320.jouska.client.ui.transtion.Transitions;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
@@ -33,6 +32,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
 import javafx.scene.text.Font;
+import javafx.stage.Stage;
 import javafx.util.Duration;
 
 import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
@@ -126,6 +126,17 @@ public class GameController implements Controller<StartGameCommand> {
 		initTurnTimer();
 		startTurnTimer();
 		JouskaUI.onExit().subscribe(none -> leaveGame());
+	}
+
+	@FXML
+	private void onFullScreenClick() {
+		Stage stage = JouskaUI.stage;
+		if (stage.isFullScreen()) {
+			stage.setFullScreen(false);
+		}
+		else {
+			stage.setFullScreen(true);
+		}
 	}
 
 	private void initStatisticsBoard(Player[] players) {
@@ -336,8 +347,6 @@ public class GameController implements Controller<StartGameCommand> {
 	private MonoObservable<None> animateCellChanges(CellChange root) {
 		SequentialTransition fullAnimation = new SequentialTransition();
 
-		fullAnimation.getChildren().add(makeClickedTransition(root.point, root.cellInfo.getPlayer()));
-
 		Publisher<None> onFinishPublisher = Publisher.simple();
 		fullAnimation.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
 
@@ -406,14 +415,6 @@ public class GameController implements Controller<StartGameCommand> {
 			default:
 				throw new IllegalStateException(points + "");
 		}
-	}
-
-	private Transition makeClickedTransition(Point point, Player player) {
-		Tile tile = tiles[point.i][point.j];
-
-		Timeline timeline = tile.animateBorder(Color.valueOf(player.getColorCode()));
-
-		return Transitions.timeLineToTransition(timeline);
 	}
 
 	public void onLeaveClick() {

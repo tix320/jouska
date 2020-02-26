@@ -46,11 +46,9 @@ public class Tile extends AnchorPane {
 
 	public static final double PREF_SIZE = 110;
 
-	private static final double ANIMATION_SECONDS = 0.4;
+	private static final double ANIMATION_SECONDS = 0.3;
 
 	private static final Color DEFAULT_BORDER_COLOR = Color.GRAY;
-
-	private final Background defaultBackground;
 
 	@FXML
 	private ImageView imageHolder;
@@ -60,22 +58,25 @@ public class Tile extends AnchorPane {
 		fxmlLoader.setRoot(this);
 		fxmlLoader.setController(this);
 		Try.runOrRethrow(fxmlLoader::load);
-		setBorder(new Border(new BorderStroke(DEFAULT_BORDER_COLOR, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2))));
-		defaultBackground = backgroundProperty().get();
+		setBorder(new Border(new BorderStroke(DEFAULT_BORDER_COLOR, BorderStrokeStyle.SOLID, new CornerRadii(5),
+				new BorderWidths(2))));
 	}
 
-	public Timeline animateBorder(Color color) {
+	private Timeline animateBackground(Duration duration, Color color) {
+		int chunks = (int) duration.toMillis() / 10;
+		double chunkPercentage = (double) 1 / chunks;
 		int[] mills = {-10};
-		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + 0.02)
-				.limit(50)
+		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + chunkPercentage)
+				.limit(chunks)
 				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, Color.TRANSPARENT),
 						new Stop(i, color), new Stop(1, Color.TRANSPARENT)))
-				.map(this::createBorder)
-				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10), new KeyValue(backgroundProperty(), border)))
+				.map(this::createBackground)
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10),
+						new KeyValue(backgroundProperty(), border)))
 				.toArray(KeyFrame[]::new);
 
 		Timeline timeline = new Timeline(keyFrames);
-		timeline.setOnFinished(event -> setBackground(defaultBackground));
+		timeline.setOnFinished(event -> setBackground(null));
 		return timeline;
 	}
 
@@ -84,20 +85,29 @@ public class Tile extends AnchorPane {
 	}
 
 	public Transition appearTransition(Player player, int points) {
-		Transition transition = appearTransition(Duration.seconds(ANIMATION_SECONDS));
+		Duration duration = Duration.seconds(ANIMATION_SECONDS);
+		Transition transition = appearTransition(duration);
+
+		Transition backgroundTransition = Transitions.timeLineToTransition(
+				animateBackground(duration, Color.web(player.getColorCode())));
 
 		String imagePath = jouskas[player.ordinal()][points - 1];
 
-		return Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath)));
+		return new ParallelTransition(backgroundTransition,
+				Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath))));
 	}
 
 	public Transition disAppearAndAppearTransition(Player player, int points) {
+		Transition backgroundTransition = Transitions.timeLineToTransition(
+				animateBackground(Duration.seconds(ANIMATION_SECONDS), Color.web(player.getColorCode())));
+
 		String imagePath = jouskas[player.ordinal()][points - 1];
 		Transition disappearTransition = disappearTransition(Duration.seconds(ANIMATION_SECONDS / 2));
 		Transition appearTransition = Transitions.intercept(appearTransition(Duration.seconds(ANIMATION_SECONDS / 2)),
 				() -> imageHolder.setImage(new Image(imagePath)));
 
-		return new SequentialTransition(disappearTransition, appearTransition);
+		return new ParallelTransition(backgroundTransition,
+				new SequentialTransition(disappearTransition, appearTransition));
 	}
 
 	private Transition appearTransition(Duration duration) {
@@ -114,7 +124,7 @@ public class Tile extends AnchorPane {
 		return disappearTransition;
 	}
 
-	private Background createBorder(Paint paint) {
-		return new Background(new BackgroundFill(paint,CornerRadii.EMPTY,Insets.EMPTY));//new BorderStroke(paint, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(2)));
+	private Background createBackground(Paint paint) {
+		return new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY));
 	}
 }

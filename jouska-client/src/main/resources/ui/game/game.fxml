@@ -2,6 +2,8 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.*?>
@@ -75,5 +77,13 @@
 				  AnchorPane.topAnchor="80.0"/>
 		<Separator layoutX="254.0" layoutY="10.0" orientation="VERTICAL" prefHeight="37.0" prefWidth="1.0"
 				   AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="10.0"/>
+		<Button id="fullScreenButton" fx:id="fullScreenButton" layoutX="998.0" layoutY="18.0" mnemonicParsing="false"
+				onAction="#onFullScreenClick" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+			<graphic>
+				<ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
+					<Image url="@full-screen.png"/>
+				</ImageView>
+			</graphic>
+		</Button>
 	</children>
 </AnchorPane>
