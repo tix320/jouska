@@ -27,9 +27,9 @@
 					  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 					<children>
 						<Button fx:id="joinGameButton" mnemonicParsing="false" onAction="#joinGame" prefHeight="25.0"
-								prefWidth="167.0" styleClass="menu-item" stylesheets="@style.css" text="Lobby"/>
+								prefWidth="167.0" styleClass="game-menu-item" stylesheets="@style.css" text="Lobby"/>
 						<Button fx:id="createGameButton" mnemonicParsing="false" onAction="#createGame"
-								prefHeight="25.0" prefWidth="164.0" styleClass="menu-item" stylesheets="@style.css"
+								prefHeight="25.0" prefWidth="164.0" styleClass="game-menu-item" stylesheets="@style.css"
 								text="Create Game"/>
 					</children>
 					<padding>
