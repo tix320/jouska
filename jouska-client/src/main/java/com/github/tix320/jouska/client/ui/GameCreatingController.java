@@ -54,7 +54,7 @@ public class GameCreatingController implements Controller<Object> {
 						.or(turnDurationInput.textProperty().isEmpty())
 						.or(turnDurationBinding.lessThan(5))
 						.or(gameDurationInput.textProperty().isEmpty())
-						.or(gameDurationBinding.lessThan(5)));
+						.or(gameDurationBinding.lessThan(1)));
 		playersCountChoice.setItems(FXCollections.observableArrayList(1, 2, 3, 4));
 		playersCountChoice.setValue(2);
 

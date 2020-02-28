@@ -42,7 +42,7 @@ public class TimedJouskaGame implements JouskaGame {
 		try {
 			lock.lock();
 			jouskaGame.onComplete().subscribe(players -> {
-				cancelTurnTimer();
+				cancelTurnTimerTask();
 				gameTimerTask.cancel();
 			});
 			new Timer(true).schedule(gameTimerTask, Duration.ofMinutes(gameDurationMinutes).toMillis());
@@ -69,7 +69,7 @@ public class TimedJouskaGame implements JouskaGame {
 		Lock lock = jouskaGame.getLock();
 		try {
 			lock.lock();
-			cancelTurnTimer();
+			cancelTurnTimerTask();
 			jouskaGame.turn(point);
 		}
 		finally {
@@ -127,7 +127,7 @@ public class TimedJouskaGame implements JouskaGame {
 		Lock lock = jouskaGame.getLock();
 		try {
 			lock.lock();
-			cancelTurnTimer();
+			cancelTurnTimerTask();
 			gameTimerTask.cancel();
 			jouskaGame.forceCompleteGame(winner);
 		}
@@ -151,7 +151,7 @@ public class TimedJouskaGame implements JouskaGame {
 		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(turnTimeSeconds).toMillis());
 	}
 
-	private void cancelTurnTimer() {
+	private void cancelTurnTimerTask() {
 		lastTurnTimerTask.cancel();
 	}
 

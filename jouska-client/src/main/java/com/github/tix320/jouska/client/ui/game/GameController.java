@@ -11,6 +11,7 @@ import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
 import com.github.tix320.jouska.core.game.JouskaGame.PlayerWithPoints;
 import com.github.tix320.jouska.core.game.SimpleJouskaGame;
+import com.github.tix320.jouska.core.game.TimedJouskaGame;
 import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.Player;
@@ -96,7 +97,9 @@ public class GameController implements Controller<StartGameCommand> {
 	@Override
 	public void initialize(StartGameCommand startGameCommand) {
 		CURRENT = this;
-		game = SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers());
+		game = TimedJouskaGame.create(
+				SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers()),
+				startGameCommand.getTurnTimeSeconds(), startGameCommand.getGameDurationMinutes());
 		gameId = startGameCommand.getGameId();
 		Player[] players = startGameCommand.getPlayers();
 		myPlayer = startGameCommand.getMyPlayer();
