@@ -1,17 +1,38 @@
-package com.github.tix320.jouska.core.game;
+package com.github.tix320.jouska.server.game;
 
 import java.time.Duration;
 import java.util.*;
 import java.util.Map.Entry;
 import java.util.concurrent.locks.Lock;
 
+import com.github.tix320.jouska.core.game.JouskaGame;
+import com.github.tix320.jouska.core.game.Statistics;
+import com.github.tix320.jouska.core.infastructure.CheckCompleted;
+import com.github.tix320.jouska.core.infastructure.CheckStarted;
 import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
+import com.github.tix320.kiwi.api.proxy.AnnotationBasedProxyCreator;
+import com.github.tix320.kiwi.api.proxy.AnnotationInterceptor;
+import com.github.tix320.kiwi.api.proxy.ProxyCreator;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.util.None;
 
 public class TimedJouskaGame implements JouskaGame {
+
+	private static final ProxyCreator<TimedJouskaGame> PROXY = new AnnotationBasedProxyCreator<>(TimedJouskaGame.class,
+			List.of(new AnnotationInterceptor<>(CheckStarted.class, (method, target) -> {
+				if (!target.isStarted()) {
+					throw new IllegalStateException("Game does not started");
+				}
+				return None.SELF;
+			}), new AnnotationInterceptor<>(CheckCompleted.class, (method, target) -> {
+				if (target.isCompleted()) {
+					throw new IllegalStateException("Game already completed");
+				}
+				return None.SELF;
+			})));
 
 	private final JouskaGame jouskaGame;
 
@@ -23,12 +44,11 @@ public class TimedJouskaGame implements JouskaGame {
 	private TimerTask lastTurnTimerTask;
 	private TimerTask gameTimerTask;
 
-	public static JouskaGame create(JouskaGame jouskaGame, int turnTimeSeconds, int gameDurationMinutes) {
-		return COMPLETE_CHECKER_PROXY.create(
-				START_CHECKER_PROXY.create(new TimedJouskaGame(jouskaGame, turnTimeSeconds, gameDurationMinutes)));
+	public static TimedJouskaGame create(JouskaGame jouskaGame, int turnTimeSeconds, int gameDurationMinutes) {
+		return PROXY.create(jouskaGame, turnTimeSeconds, gameDurationMinutes);
 	}
 
-	private TimedJouskaGame(JouskaGame jouskaGame, int turnTimeSeconds, int gameDurationMinutes) {
+	public TimedJouskaGame(JouskaGame jouskaGame, int turnTimeSeconds, int gameDurationMinutes) {
 		this.jouskaGame = jouskaGame;
 		this.turnTimeSeconds = turnTimeSeconds;
 		this.gameDurationMinutes = gameDurationMinutes;
@@ -36,18 +56,17 @@ public class TimedJouskaGame implements JouskaGame {
 		gameTimerTask = new GameTimerTask();
 	}
 
+	@CheckCompleted
 	@Override
 	public void start() {
 		Lock lock = getLock();
 		try {
 			lock.lock();
-			jouskaGame.onComplete().subscribe(players -> {
+			onComplete().subscribe(players -> {
 				cancelTurnTimerTask();
 				gameTimerTask.cancel();
 			});
 			new Timer(true).schedule(gameTimerTask, Duration.ofMinutes(gameDurationMinutes).toMillis());
-
-			jouskaGame.turns().subscribe(point -> runTurnTimer());
 
 			jouskaGame.start();
 			runTurnTimer();
@@ -64,6 +83,8 @@ public class TimedJouskaGame implements JouskaGame {
 		return jouskaGame.isStarted();
 	}
 
+	@CheckStarted
+	@CheckCompleted
 	@Override
 	public void turn(Point point) {
 		Lock lock = jouskaGame.getLock();
@@ -124,16 +145,7 @@ public class TimedJouskaGame implements JouskaGame {
 
 	@Override
 	public void forceCompleteGame(Player winner) {
-		Lock lock = jouskaGame.getLock();
-		try {
-			lock.lock();
-			cancelTurnTimerTask();
-			gameTimerTask.cancel();
-			jouskaGame.forceCompleteGame(winner);
-		}
-		finally {
-			lock.unlock();
-		}
+		jouskaGame.forceCompleteGame(winner);
 	}
 
 	@Override
@@ -146,7 +158,7 @@ public class TimedJouskaGame implements JouskaGame {
 		return jouskaGame.getLock();
 	}
 
-	private void runTurnTimer() {
+	public void runTurnTimer() {
 		lastTurnTimerTask = new TurnTimerTask();
 		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(turnTimeSeconds).toMillis());
 	}

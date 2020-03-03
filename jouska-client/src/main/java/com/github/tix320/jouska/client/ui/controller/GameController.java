@@ -1,17 +1,16 @@
-package com.github.tix320.jouska.client.ui.game;
+package com.github.tix320.jouska.client.ui.controller;
 
 import java.time.LocalTime;
 import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.ui.Controller;
+import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
 import com.github.tix320.jouska.core.game.JouskaGame.PlayerWithPoints;
 import com.github.tix320.jouska.core.game.SimpleJouskaGame;
-import com.github.tix320.jouska.core.game.TimedJouskaGame;
 import com.github.tix320.jouska.core.model.CellInfo;
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.Player;
@@ -97,9 +96,7 @@ public class GameController implements Controller<StartGameCommand> {
 	@Override
 	public void initialize(StartGameCommand startGameCommand) {
 		CURRENT = this;
-		game = TimedJouskaGame.create(
-				SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers()),
-				startGameCommand.getTurnTimeSeconds(), startGameCommand.getGameDurationMinutes());
+		game = SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers());
 		gameId = startGameCommand.getGameId();
 		Player[] players = startGameCommand.getPlayers();
 		myPlayer = startGameCommand.getMyPlayer();
@@ -115,11 +112,6 @@ public class GameController implements Controller<StartGameCommand> {
 		initBoard(matrix.length, matrix[0].length);
 		fillBoard(matrix);
 		initTurnIndicator();
-		Player firstPlayer = startGameCommand.getPlayers()[0];
-		Platform.runLater(() -> turnProperty.set(firstPlayer));
-		if (firstPlayer == myPlayer) {
-			activeBoard.set(true);
-		}
 
 		turnTimeSeconds = startGameCommand.getTurnTimeSeconds();
 		gameDurationMinutes = startGameCommand.getGameDurationMinutes();
@@ -127,7 +119,6 @@ public class GameController implements Controller<StartGameCommand> {
 		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
 		initGameTimer();
 		initTurnTimer();
-		startTurnTimer();
 		JouskaUI.onExit().subscribe(none -> leaveGame());
 	}
 
@@ -165,7 +156,6 @@ public class GameController implements Controller<StartGameCommand> {
 
 		game.turns().subscribe(rootChange -> {
 			animateCellChanges(rootChange).blockUntilComplete();
-			Platform.runLater(this::resetTurn);
 		});
 
 		game.lostPlayers().subscribe(this::handleLose);
@@ -203,6 +193,10 @@ public class GameController implements Controller<StartGameCommand> {
 		gameTimer.play();
 	}
 
+	public void canTurn() {
+		Platform.runLater(this::resetTurn);
+	}
+
 	public void turn(Point point) {
 		Lock lock = game.getLock();
 		try {
@@ -219,6 +213,10 @@ public class GameController implements Controller<StartGameCommand> {
 	public void leave(Player player) {
 		game.kick(player);
 		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+	}
+
+	public void forceComplete(Player winner) {
+		game.forceCompleteGame(winner);
 	}
 
 	public void handleWin(Player player) {

@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
@@ -11,12 +12,13 @@ import com.github.tix320.jouska.core.dto.GameType;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.jouska.core.game.JouskaGame;
 import com.github.tix320.jouska.core.game.SimpleJouskaGame;
-import com.github.tix320.jouska.core.game.TimedJouskaGame;
 import com.github.tix320.jouska.core.model.GameBoard;
 import com.github.tix320.jouska.core.model.GameBoards;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Point;
+import com.github.tix320.jouska.server.game.TimedJouskaGame;
 import com.github.tix320.jouska.server.model.GameInfo;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.util.IDGenerator;
 import com.github.tix320.kiwi.api.util.None;
@@ -140,21 +142,27 @@ public class GameManager {
 		Set<Long> playerIds = gameInfo.getPlayerIds();
 		List<Observable<None>> playersReady = new ArrayList<>();
 		Iterator<Long> playerIdIterator = playerIds.iterator();
-		JouskaGame game = gameInfo.getGame();
+		TimedJouskaGame game = (TimedJouskaGame) gameInfo.getGame();
 		for (Player player : players) {
 			Long playerId = playerIdIterator.next();
 			gameInfo.setPlayerById(playerId, player);
 			Observable<None> playerReady = GAME_SERVICE.startGame(
 					new StartGameCommand(gameId, gameInfo.getName(), player, players,
 							new GameBoard(gameInfo.getBoard()), gameInfo.getTurnDurationSeconds(),
-							gameInfo.getGameDurationMinutes(), GameType.SIMPLE), playerId);
+							gameInfo.getGameDurationMinutes(), GameType.TIMED), playerId);
 			playersReady.add(playerReady);
 		}
 
 		game.turns().subscribe(rootChange -> {
-			for (Long playerId : playerIds) {
-				IN_GAME_SERVICE.turn(rootChange.point, playerId);
-			}
+			List<MonoObservable<None>> observables = playerIds.stream()
+					.map(playerId -> IN_GAME_SERVICE.turn(rootChange.point, playerId))
+					.collect(Collectors.toList());
+			Observable.zip(observables).subscribe(nones -> {
+				List<MonoObservable<None>> responses = playerIds.stream()
+						.map(id -> IN_GAME_SERVICE.canTurn(id))
+						.collect(Collectors.toList());
+				Observable.zip(responses).subscribe(nones1 -> game.runTurnTimer());
+			});
 		});
 
 		game.kickedPlayers().subscribe(playerWithPoints -> {
@@ -170,6 +178,7 @@ public class GameManager {
 			System.out.println(
 					String.format("Game %s(%s) ended: Players %s Winner is %s", gameInfo.getName(), gameId, leftPlayers,
 							winner));
+			playerIds.forEach(id -> IN_GAME_SERVICE.forceComplete(winner, id));
 		});
 
 		Lock lock = game.getLock();
@@ -180,9 +189,11 @@ public class GameManager {
 			Observable.zip(playersReady).subscribe(nones -> {
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameInfo.getName(), gameId));
+				List<MonoObservable<None>> responses = playerIds.stream()
+						.map(id -> IN_GAME_SERVICE.canTurn(id))
+						.collect(Collectors.toList());
+				Observable.zip(responses).subscribe(nones1 -> game.runTurnTimer());
 			});
-
-			game.start();
 		}
 		finally {
 			lock.unlock();

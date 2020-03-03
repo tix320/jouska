@@ -17,7 +17,8 @@ public class JRE {
 			"javafx.fxml",
 			"sonder",
 			"kiwi",
-			"jouska.core"
+			"jouska.core",
+			"net.bytebuddy"
 	};
 
 	public static void main(String[] args)

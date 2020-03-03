@@ -4,8 +4,8 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.Version;
-import com.github.tix320.jouska.client.ui.Controller;
-import com.github.tix320.jouska.client.ui.MenuController;
+import com.github.tix320.jouska.client.ui.controller.Controller;
+import com.github.tix320.jouska.client.ui.controller.MenuController;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -83,18 +83,22 @@ public final class JouskaUI {
 		currentMenuScene = sceneName;
 	}
 
-	private static Parent loadFxml(String path, Object data) {
+	public static Parent loadFxml(String name, Object data) {
 		Parent root;
 		try {
-			FXMLLoader loader = new FXMLLoader(
-					JouskaUI.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", path)));
+			String resourceUrl = "/ui/{name}/{name}.fxml".replace("{name}", name);
+			URL resource = JouskaUI.class.getResource(resourceUrl);
+			if (resource == null) {
+				throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
+			}
+			FXMLLoader loader = new FXMLLoader(resource);
 			root = loader.load();
 			Controller<Object> controller = loader.getController();
 			controller.initialize(data);
 			return root;
 		}
 		catch (IOException e) {
-			throw new IllegalArgumentException(String.format("Scene %s not found", path), e);
+			throw new IllegalArgumentException(String.format("Scene %s not found", name), e);
 		}
 
 	}
