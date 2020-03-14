@@ -7,20 +7,20 @@ import java.time.Duration;
 
 import com.github.tix320.jouska.server.service.ServerGameService;
 import com.github.tix320.jouska.server.service.ServerInGameService;
-import com.github.tix320.sonder.api.server.Sonder;
+import com.github.tix320.sonder.api.server.SonderServer;
 
 public class Services {
+	public static SonderServer SONDER_SERVER;
 	public static ServerGameService GAME_SERVICE;
 	public static ServerInGameService IN_GAME_SERVICE;
-	public static Sonder SONDER;
 
 	public static void initialize(int port) {
-		if (SONDER != null) {
+		if (SONDER_SERVER != null) {
 			throw new IllegalStateException("Server already start, maybe you wish reconnect?");
 		}
 		String servicesPackage = "com.github.tix320.jouska.server.service";
-		SONDER = Sonder.forAddress(new InetSocketAddress(port))
-				.withRPCProtocol(servicesPackage)
+		SONDER_SERVER = SonderServer.forAddress(new InetSocketAddress(port))
+				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
 				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> {
@@ -33,15 +33,15 @@ public class Services {
 
 	public static void stop()
 			throws IOException {
-		if (SONDER == null) {
+		if (SONDER_SERVER == null) {
 			throw new IllegalStateException("Server does not started");
 		}
-		SONDER.close();
+		SONDER_SERVER.close();
 	}
 
 	private static void initServices() {
-		GAME_SERVICE = SONDER.getRPCService(ServerGameService.class);
-		IN_GAME_SERVICE = SONDER.getRPCService(ServerInGameService.class);
+		GAME_SERVICE = SONDER_SERVER.getRPCService(ServerGameService.class);
+		IN_GAME_SERVICE = SONDER_SERVER.getRPCService(ServerInGameService.class);
 	}
 }
 

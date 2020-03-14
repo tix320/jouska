@@ -11,10 +11,16 @@ public class Config {
 
 	private final Path sourcesPath;
 
+	private final String dbHost;
+
+	private final int dbPort;
+
 	public Config(Map<String, String> properties) {
 		this.port = Integer.parseInt(properties.get("port"));
 		this.applicationVersion = properties.get("applicationVersion");
 		this.sourcesPath = Path.of(properties.getOrDefault("sourcesPath", "."));
+		this.dbHost = properties.get("dbHost");
+		this.dbPort = Integer.parseInt(properties.get("dbPort"));
 	}
 
 	public int getPort() {
@@ -27,5 +33,13 @@ public class Config {
 
 	public Path getSourcesPath() {
 		return sourcesPath;
+	}
+
+	public String getDbHost() {
+		return dbHost;
+	}
+
+	public int getDbPort() {
+		return dbPort;
 	}
 }

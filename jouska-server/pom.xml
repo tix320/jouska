@@ -59,5 +59,10 @@
 			<artifactId>sonder</artifactId>
 			<version>${sonder.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>dev.morphia.morphia</groupId>
+			<artifactId>core</artifactId>
+			<version>1.5.8</version>
+		</dependency>
 	</dependencies>
 </project>
