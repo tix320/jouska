@@ -2,7 +2,7 @@ package com.github.tix320.jouska.core.model;
 
 public final class CellInfo {
 
-	private final Player player;
+	private final PlayerColor player;
 
 	private final int points;
 
@@ -10,12 +10,12 @@ public final class CellInfo {
 		this(null, 0);
 	}
 
-	public CellInfo(Player player, int points) {
+	public CellInfo(PlayerColor player, int points) {
 		this.player = player;
 		this.points = points;
 	}
 
-	public Player getPlayer() {
+	public PlayerColor getPlayer() {
 		return player;
 	}
 

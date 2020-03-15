@@ -1,14 +1,14 @@
 package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.core.model.CellInfo;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.model.PlayerColor;
 import com.github.tix320.jouska.core.model.Point;
 
 public final class Bot {
 
-	private final Player player;
+	private final PlayerColor player;
 
-	public Bot(Player player) {
+	public Bot(PlayerColor player) {
 		this.player = player;
 	}
 

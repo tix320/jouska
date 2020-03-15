@@ -1,0 +1,37 @@
+#rootPane {
+    -fx-background-color: linear-gradient(#9BC9FF, #8abe70 80%) no-repeat;
+}
+
+#groupsBox {
+    -fx-spacing: 10px;
+    -fx-alignment: CENTER;
+    -fx-padding: 20px;
+}
+
+.separator {
+    -fx-background-color: #ff9877;
+}
+
+#playOffMembersBox {
+    -fx-alignment: CENTER;
+    -fx-spacing: 50px;
+}
+
+.playOffLabel {
+    -fx-alignment: CENTER;
+    -fx-pref-height: 30px;
+    -fx-font-size: 18px;
+    -fx-font-family: "Comic Sans MS";
+}
+
+.playOffMember {
+    -fx-border-radius: 5px;
+    -fx-border-width: 3px;
+    -fx-border-color: #b9f2ff;
+    -fx-pref-width: 200;
+    -fx-pref-height: 40;
+}
+
+.playOffSeparator {
+    -fx-background-color: #b9f2ff;
+}

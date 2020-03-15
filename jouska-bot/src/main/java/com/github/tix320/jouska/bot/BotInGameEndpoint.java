@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.bot;
 
-import com.github.tix320.jouska.core.game.JouskaGame;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.game.Game;
+import com.github.tix320.jouska.core.model.PlayerColor;
 import com.github.tix320.jouska.core.model.Point;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
@@ -9,30 +9,32 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 public class BotInGameEndpoint {
 
 	@Endpoint("canTurn")
-	public void canTurn() {
+	public void canTurn()
+			throws InterruptedException {
 		long gameId = Context.gameId;
 		Bot bot = Context.bot;
-		JouskaGame game = Context.game;
-		Player myPlayer = Context.myPlayer;
-		if (game.getCurrentPlayer() == myPlayer) {
+		Game game = Context.game;
+		PlayerColor myPlayer = Context.myPlayer;
+		if (game.getCurrentPlayer().getColor() == myPlayer) {
+			Thread.sleep(1000);
 			Point turn = bot.turn(game.getBoard());
-			BotApp.CLONDER.getRPCService(BotInGameService.class).turn(gameId, turn);
+			BotApp.SONDER_CLIENT.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}
 	}
 
 	@Endpoint("turn")
 	public void turn(Point point) {
-		JouskaGame game = Context.game;
+		Game game = Context.game;
 
 		game.turn(point);
 	}
 
 	@Endpoint("lose")
-	public void lose(Player player) {
+	public void lose(PlayerColor player) {
 	}
 
 	@Endpoint("win")
-	public void win(Player player) {
+	public void win(PlayerColor player) {
 	}
 }
 

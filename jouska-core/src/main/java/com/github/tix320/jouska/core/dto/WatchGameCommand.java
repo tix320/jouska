@@ -1,20 +1,20 @@
 package com.github.tix320.jouska.core.dto;
 
 import com.github.tix320.jouska.core.model.GameBoard;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.model.PlayerColor;
 
 public final class WatchGameCommand {
 
 	private final long gameId;
 	private final String name;
-	private final Player[] players;
+	private final PlayerColor[] players;
 	private final GameBoard initialGameBoard;
 
 	public WatchGameCommand() {
 		this(-1, null, null, null);
 	}
 
-	public WatchGameCommand(long gameId, String name, Player[] players, GameBoard initialGameBoard) {
+	public WatchGameCommand(long gameId, String name, PlayerColor[] players, GameBoard initialGameBoard) {
 		this.gameId = gameId;
 		this.name = name;
 		this.players = players;
@@ -29,7 +29,7 @@ public final class WatchGameCommand {
 		return name;
 	}
 
-	public Player[] getPlayers() {
+	public PlayerColor[] getPlayers() {
 		return players;
 	}
 

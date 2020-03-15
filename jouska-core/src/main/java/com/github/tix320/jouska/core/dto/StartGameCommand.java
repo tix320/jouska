@@ -1,67 +1,54 @@
 package com.github.tix320.jouska.core.dto;
 
+import java.util.List;
+
 import com.github.tix320.jouska.core.model.GameBoard;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.model.GameSettings;
+import com.github.tix320.jouska.core.model.InGamePlayer;
+import com.github.tix320.jouska.core.model.PlayerColor;
 
 public final class StartGameCommand {
 
 	private final long gameId;
 
-	private final String name;
+	private final GameSettings gameSettings;
 
-	private final Player myPlayer;
+	private final PlayerColor myPlayer;
 
-	private final Player[] players;
+	private final List<InGamePlayer> players;
 
 	private final GameBoard gameBoard;
 
-	private final int turnTimeSeconds;
-
-	private final int gameDurationMinutes;
-
-	private final GameType gameType;
-
 	private StartGameCommand() {
-		this(-1, null, null, null, null, -1, -1, null);
+		this(-1, null, null, null, null);
 	}
 
-	public StartGameCommand(long gameId, String name, Player myPlayer, Player[] players, GameBoard gameBoard,
-							int turnTimeSeconds, int gameDurationMinutes, GameType gameType) {
+	public StartGameCommand(long gameId, GameSettings gameSettings, PlayerColor myPlayer, List<InGamePlayer> players,
+							GameBoard gameBoard) {
 		this.gameId = gameId;
-		this.name = name;
+		this.gameSettings = gameSettings;
 		this.myPlayer = myPlayer;
 		this.players = players;
 		this.gameBoard = gameBoard;
-		this.turnTimeSeconds = turnTimeSeconds;
-		this.gameDurationMinutes = gameDurationMinutes;
-		this.gameType = gameType;
 	}
 
 	public long getGameId() {
 		return gameId;
 	}
 
-	public String getName() {
-		return name;
+	public GameSettings getGameSettings() {
+		return gameSettings;
 	}
 
-	public Player getMyPlayer() {
+	public PlayerColor getMyPlayer() {
 		return myPlayer;
 	}
 
-	public Player[] getPlayers() {
+	public List<InGamePlayer> getPlayers() {
 		return players;
 	}
 
 	public GameBoard getGameBoard() {
 		return gameBoard;
-	}
-
-	public int getTurnTimeSeconds() {
-		return turnTimeSeconds;
-	}
-
-	public int getGameDurationMinutes() {
-		return gameDurationMinutes;
 	}
 }

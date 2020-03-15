@@ -7,7 +7,18 @@ import java.util.List;
  */
 public final class GameBoards {
 
-	public static GameBoard defaultBoard(Player[] players) {
+	public static GameBoard createByType(BoardType boardType, PlayerColor[] playerColors) {
+		switch (boardType) {
+			case STANDARD:
+				return defaultBoard(playerColors);
+			case TEST:
+				return testBoard(playerColors);
+			default:
+				throw new IllegalArgumentException();
+		}
+	}
+
+	public static GameBoard defaultBoard(PlayerColor[] players) {
 		int height = 8;
 		int width = 12;
 
@@ -40,7 +51,7 @@ public final class GameBoards {
 		}
 	}
 
-	public static GameBoard testBoard(Player[] players) {
+	public static GameBoard testBoard(PlayerColor[] players) {
 		int height = 8;
 		int width = 12;
 

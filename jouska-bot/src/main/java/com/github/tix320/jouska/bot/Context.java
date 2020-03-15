@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.bot;
 
-import com.github.tix320.jouska.core.game.JouskaGame;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.game.Game;
+import com.github.tix320.jouska.core.model.PlayerColor;
 
 public class Context {
 
@@ -9,8 +9,8 @@ public class Context {
 
 	public static Bot bot;
 
-	public static JouskaGame game;
+	public static Game game;
 
-	public static Player myPlayer;
+	public static PlayerColor myPlayer;
 
 }

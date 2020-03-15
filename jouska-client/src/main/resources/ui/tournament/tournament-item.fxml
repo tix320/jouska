@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root styleClass="tournament-item" stylesheets="@tournament-item.css" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
+	<Label fx:id="gameNameLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="86.0" layoutY="14.0" prefHeight="30.0" text="Best game" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0" />
+	<VBox layoutX="13.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0" styleClass="vbox" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+		<HBox styleClass="hbox">
+			<padding>
+				<Insets left="10.0" />
+			</padding>
+			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
+				<Image url="@../../images/player-icon.png" />
+			</ImageView>
+			<Label fx:id="playersCountLabel" text="16">
+				<HBox.margin>
+					<Insets top="5.0" />
+				</HBox.margin>
+			</Label>
+		</HBox>
+	</VBox>
+</fx:root>

@@ -5,16 +5,14 @@ import java.util.*;
 import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
+import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
 import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
-import com.github.tix320.jouska.core.game.JouskaGame;
-import com.github.tix320.jouska.core.game.JouskaGame.CellChange;
-import com.github.tix320.jouska.core.game.JouskaGame.PlayerWithPoints;
-import com.github.tix320.jouska.core.game.SimpleJouskaGame;
-import com.github.tix320.jouska.core.model.CellInfo;
-import com.github.tix320.jouska.core.model.GameBoard;
-import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.Point;
+import com.github.tix320.jouska.core.game.Game;
+import com.github.tix320.jouska.core.game.Game.CellChange;
+import com.github.tix320.jouska.core.game.Game.PlayerWithPoints;
+import com.github.tix320.jouska.core.game.SimpleGame;
+import com.github.tix320.jouska.core.model.*;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
@@ -75,19 +73,19 @@ public class GameController implements Controller<StartGameCommand> {
 
 	private Timeline gameTimer;
 
-	private Map<Player, HBox> statisticsNodes;
+	private Map<PlayerColor, HBox> statisticsNodes;
 
 	private Tile[][] tiles;
 
 	private long gameId;
 
-	private Player myPlayer;
+	private PlayerColor myPlayer;
 
-	private SimpleObjectProperty<Player> turnProperty = new SimpleObjectProperty<>();
+	private SimpleObjectProperty<PlayerColor> turnProperty = new SimpleObjectProperty<>();
 
 	private SimpleBooleanProperty activeBoard = new SimpleBooleanProperty();
 
-	private JouskaGame game;
+	private Game game;
 
 	private int turnTimeSeconds;
 
@@ -96,15 +94,16 @@ public class GameController implements Controller<StartGameCommand> {
 	@Override
 	public void initialize(StartGameCommand startGameCommand) {
 		CURRENT = this;
-		game = SimpleJouskaGame.create(startGameCommand.getGameBoard(), startGameCommand.getPlayers());
+		GameSettings gameSettings = startGameCommand.getGameSettings();
+		game = SimpleGame.create(gameSettings, startGameCommand.getGameBoard(), startGameCommand.getPlayers());
 		gameId = startGameCommand.getGameId();
-		Player[] players = startGameCommand.getPlayers();
+		List<InGamePlayer> players = startGameCommand.getPlayers();
 		myPlayer = startGameCommand.getMyPlayer();
 		myColor.setFill(Color.valueOf(myPlayer.getColorCode()));
-		gameName.setText("Game: " + startGameCommand.getName());
+		gameName.setText("Game: " + gameSettings.getName());
 
 		turnProperty.addListener((observable, oldValue, newValue) -> turnIndicator.setFill(
-				Color.valueOf(game.getCurrentPlayer().getColorCode())));
+				Color.valueOf(game.getCurrentPlayer().getColor().getColorCode())));
 		initStatisticsBoard(players);
 		GameBoard gameBoard = startGameCommand.getGameBoard();
 		CellInfo[][] matrix = gameBoard.getMatrix();
@@ -113,10 +112,10 @@ public class GameController implements Controller<StartGameCommand> {
 		fillBoard(matrix);
 		initTurnIndicator();
 
-		turnTimeSeconds = startGameCommand.getTurnTimeSeconds();
-		gameDurationMinutes = startGameCommand.getGameDurationMinutes();
+		turnTimeSeconds = gameSettings.getTurnDurationSeconds();
+		gameDurationMinutes = gameSettings.getGameDurationMinutes();
 		game.start();
-		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+		game.getStatistics().summaryPoints().asObservable().toMono().subscribe(this::updateStatistics);
 		initGameTimer();
 		initTurnTimer();
 		JouskaUI.onExit().subscribe(none -> leaveGame());
@@ -133,14 +132,14 @@ public class GameController implements Controller<StartGameCommand> {
 		}
 	}
 
-	private void initStatisticsBoard(Player[] players) {
-		statisticsNodes = new EnumMap<>(Player.class);
-		for (Player player : players) {
+	private void initStatisticsBoard(List<InGamePlayer> players) {
+		statisticsNodes = new EnumMap<>(PlayerColor.class);
+		for (InGamePlayer player : players) {
 			HBox hBox = new HBox();
 			hBox.setSpacing(20);
 
 			Circle playerIcon = new Circle(16);
-			playerIcon.setFill(Color.valueOf(player.getColorCode()));
+			playerIcon.setFill(Color.valueOf(player.getColor().getColorCode()));
 			playerIcon.setStroke(Color.BLACK);
 
 			Label pointsLabel = new Label();
@@ -150,17 +149,15 @@ public class GameController implements Controller<StartGameCommand> {
 
 			hBox.getChildren().addAll(playerIcon, pointsLabel);
 
-			statisticsNodes.put(player, hBox);
+			statisticsNodes.put(player.getColor(), hBox);
 			statisticsBoard.getChildren().add(hBox);
 		}
 
-		game.turns().subscribe(rootChange -> {
-			animateCellChanges(rootChange).blockUntilComplete();
-		});
+		game.turns().asObservable().subscribe(rootChange -> animateCellChanges(rootChange).blockUntilComplete());
 
-		game.lostPlayers().subscribe(this::handleLose);
+		game.lostPlayers().asObservable().subscribe(this::handleLose);
 
-		game.kickedPlayers().subscribe(player -> {
+		game.kickedPlayers().asObservable().subscribe(player -> {
 			animateKick(player).blockUntilComplete();
 			Platform.runLater(this::resetTurn);
 		});
@@ -203,7 +200,7 @@ public class GameController implements Controller<StartGameCommand> {
 			lock.lock();
 			activeBoard.set(false);
 			game.turn(point);
-			game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+			game.getStatistics().summaryPoints().asObservable().toMono().subscribe(this::updateStatistics);
 		}
 		finally {
 			lock.unlock();
@@ -212,17 +209,19 @@ public class GameController implements Controller<StartGameCommand> {
 
 	public void leave(Player player) {
 		game.kick(player);
-		game.getStatistics().summaryPoints().toMono().subscribe(this::updateStatistics);
+		game.getStatistics().summaryPoints().asObservable().toMono().subscribe(this::updateStatistics);
 	}
 
 	public void forceComplete(Player winner) {
-		game.forceCompleteGame(winner);
+		if (!game.isCompleted()) {
+			game.forceCompleteGame(winner);
+		}
 	}
 
-	public void handleWin(Player player) {
+	public void handleWin(InGamePlayer player) {
 		activeBoard.set(false);
 		turnIndicator.setFill(Color.GRAY);
-		if (player == myPlayer) {
+		if (player.getColor() == myPlayer) {
 			Platform.runLater(() -> appearLoseWinLabel("You win", Color.valueOf(myPlayer.getColorCode())).play());
 		}
 		currentTurnTimer.stop();
@@ -235,9 +234,9 @@ public class GameController implements Controller<StartGameCommand> {
 		});
 	}
 
-	public void handleLose(Player player) {
-		turnProperty.set(game.getCurrentPlayer());
-		if (player == myPlayer) {
+	public void handleLose(InGamePlayer player) {
+		turnProperty.set(game.getCurrentPlayer().getColor());
+		if (player.getColor() == myPlayer) {
 			activeBoard.set(false);
 			Platform.runLater(() -> {
 				Transition transition = appearLoseWinLabel("You lose", Color.RED);
@@ -273,9 +272,9 @@ public class GameController implements Controller<StartGameCommand> {
 		return transition;
 	}
 
-	private void updateStatistics(Map<Player, Integer> playerSummaryPoints) {
+	private void updateStatistics(Map<InGamePlayer, Integer> playerSummaryPoints) {
 		playerSummaryPoints.forEach((player, points) -> {
-			Label label = (Label) statisticsNodes.get(player).getChildren().get(1);
+			Label label = (Label) statisticsNodes.get(player.getColor()).getChildren().get(1);
 			Platform.runLater(() -> label.setText(points + ""));
 		});
 	}
@@ -284,8 +283,8 @@ public class GameController implements Controller<StartGameCommand> {
 		if (game.isCompleted()) {
 			return;
 		}
-		turnProperty.set(game.getCurrentPlayer());
-		if (game.getCurrentPlayer() == myPlayer) {
+		turnProperty.set(game.getCurrentPlayer().getColor());
+		if (game.getCurrentPlayer().getColor() == myPlayer) {
 			activeBoard.set(true);
 		}
 		startTurnTimer();
@@ -297,8 +296,8 @@ public class GameController implements Controller<StartGameCommand> {
 		gameBoard.disableProperty().bind(activeBoard.not());
 		gameBoard.borderProperty()
 				.bind(Bindings.createObjectBinding(() -> new Border(
-						new BorderStroke(Color.valueOf(game.getCurrentPlayer().getColorCode()), BorderStrokeStyle.SOLID,
-								CornerRadii.EMPTY, new BorderWidths(5))), turnProperty));
+						new BorderStroke(Color.valueOf(game.getCurrentPlayer().getColor().getColorCode()),
+								BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5))), turnProperty));
 		double boardWidth = columns * Tile.PREF_SIZE + 10;
 		double boardHeight = rows * Tile.PREF_SIZE + 10;
 		gameBoard.setPrefWidth(boardWidth);
@@ -315,7 +314,7 @@ public class GameController implements Controller<StartGameCommand> {
 				int y = j;
 				tile.setOnMouseClicked(event -> {
 					Point point = new Point(x, y);
-					if (game.ownerOfPoint(point) == myPlayer) {
+					if (game.ownerOfPoint(point).getColor() == myPlayer) {
 						activeBoard.set(false);
 						IN_GAME_SERVICE.turn(gameId, point);
 					}
@@ -403,7 +402,7 @@ public class GameController implements Controller<StartGameCommand> {
 		int j = point.j;
 		Tile tile = tiles[i][j];
 		int points = cellInfo.getPoints();
-		Player player = cellInfo.getPlayer();
+		PlayerColor player = cellInfo.getPlayer();
 		switch (points) {
 			case 0:
 				return tile.disappearTransition();
@@ -420,7 +419,7 @@ public class GameController implements Controller<StartGameCommand> {
 
 	public void onLeaveClick() {
 		leaveGame();
-		JouskaUI.switchScene("menu");
+		JouskaUI.switchScene(ComponentType.MENU);
 	}
 
 	public void leaveGame() {

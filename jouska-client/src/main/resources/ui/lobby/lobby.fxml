@@ -8,8 +8,8 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<AnchorPane prefHeight="700.0" prefWidth="903.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/11.0.1"
-            xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.LobbyController">
+<AnchorPane prefHeight="700.0" prefWidth="903.0" stylesheets="@lobby.css" xmlns="http://javafx.com/javafx/11.0.1"
+			xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.LobbyController">
 	<children>
 		<ScrollPane id="games-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false"
 					hbarPolicy="NEVER" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
@@ -17,7 +17,7 @@
 			<content>
 				<FlowPane id="games-pane" fx:id="gameItemsPane" alignment="TOP_CENTER" columnHalignment="CENTER"
 						  hgap="20.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-						  minHeight="-Infinity" minWidth="-Infinity" stylesheets="@style.css" vgap="30.0">
+						  minHeight="-Infinity" minWidth="-Infinity" vgap="30.0">
 					<opaqueInsets>
 						<Insets/>
 					</opaqueInsets>
@@ -34,7 +34,7 @@
 					<graphic>
 						<ImageView fitHeight="64.0" fitWidth="64.0" pickOnBounds="true" preserveRatio="true">
 							<image>
-								<Image url="@refresh-button.png"/>
+								<Image url="@../../images/refresh-button.png"/>
 							</image>
 						</ImageView>
 					</graphic>

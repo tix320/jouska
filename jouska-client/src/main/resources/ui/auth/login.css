@@ -1,0 +1,26 @@
+.input {
+    -fx-pref-height: 50px;
+    -fx-border-color: #948fff;
+    -fx-alignment: CENTER;
+    -fx-font-size: 18px;
+}
+
+#loginButton {
+    -fx-pref-height: 50px;
+    -fx-border-color: #948fff;
+    -fx-alignment: CENTER;
+    -fx-font-size: 18px;
+}
+
+#registrationButton {
+    -fx-border-color: #948fff;
+    -fx-border-radius: 5px;
+    -fx-alignment: CENTER;
+    -fx-font-size: 14px;
+}
+
+#errorLabel {
+    -fx-alignment: CENTER;
+    -fx-font-size: 14px;
+    -fx-text-fill: RED;
+}

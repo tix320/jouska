@@ -5,7 +5,6 @@ import java.net.URL;
 
 import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.client.ui.controller.Controller;
-import com.github.tix320.jouska.client.ui.controller.MenuController;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -22,8 +21,6 @@ public final class JouskaUI {
 
 	public static Stage stage;
 
-	private static String currentMenuScene;
-
 	public static void initialize(Stage stage) {
 		if (JouskaUI.stage == null) {
 			JouskaUI.stage = stage;
@@ -35,31 +32,16 @@ public final class JouskaUI {
 		}
 	}
 
-	public static MonoObservable<None> switchScene(String name) {
-		return switchScene(name, null);
+	public static MonoObservable<None> switchScene(ComponentType componentType) {
+		return switchScene(componentType, null);
 	}
 
-	public static MonoObservable<None> switchScene(String name, Object data) {
-		Parent root;
-		try {
-			FXMLLoader loader = new FXMLLoader(
-					JouskaUI.class.getResource("/ui/{name}/{name}.fxml".replace("{name}", name)));
-			root = loader.load();
-			Controller<Object> controller = loader.getController();
-			controller.initialize(data);
-		}
-		catch (IOException e) {
-			throw new IllegalArgumentException(String.format("Scene %s not found", name), e);
-		}
+	public static MonoObservable<None> switchScene(ComponentType componentType, Object data) {
+		Parent root = loadFxml(componentType, data);
 
 		Scene scene = new Scene(root);
-		URL cssResource = JouskaUI.class.getResource(
-				String.format("/ui/{name}/style.css".replace("{name}", name), name));
-		if (cssResource != null) {
-			scene.getStylesheets().add(cssResource.toExternalForm());
-		}
 
-		Publisher<None> switchCompletePublisher = Publisher.buffered(1);
+		Publisher<None> switchCompletePublisher = Publisher.single();
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
@@ -74,19 +56,10 @@ public final class JouskaUI {
 		return switchCompletePublisher.asObservable().toMono();
 	}
 
-	public static void changeMenuScene(String sceneName) {
-		if (sceneName.equals(currentMenuScene)) {
-			return;
-		}
-		Parent content = loadFxml(sceneName, null);
-		MenuController.SELF.changeContent(content);
-		currentMenuScene = sceneName;
-	}
-
-	public static Parent loadFxml(String name, Object data) {
+	public static Parent loadFxml(ComponentType componentType, Object data) {
 		Parent root;
 		try {
-			String resourceUrl = "/ui/{name}/{name}.fxml".replace("{name}", name);
+			String resourceUrl = componentType.fxmlPath;
 			URL resource = JouskaUI.class.getResource(resourceUrl);
 			if (resource == null) {
 				throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
@@ -98,7 +71,7 @@ public final class JouskaUI {
 			return root;
 		}
 		catch (IOException e) {
-			throw new IllegalArgumentException(String.format("Scene %s not found", name), e);
+			throw new IllegalArgumentException(String.format("Scene %s not found", componentType), e);
 		}
 
 	}
@@ -111,8 +84,24 @@ public final class JouskaUI {
 		return onExit.asObservable().toMono();
 	}
 
-	public enum SceneType {
-		MENU,
-		GAME
+	public enum ComponentType {
+		SERVER_CONNECT("/ui/server-connect/server-connect.fxml"),
+		UPDATE_APP("/ui/update-app/update-app.fxml"),
+		LOGIN("/ui/auth/login.fxml"),
+		REGISTRATION("/ui/auth/registration.fxml"),
+		ERROR("/ui/error/error.fxml"),
+		MENU("/ui/menu/menu.fxml"),
+		CREATE_GAME("/ui/game-creating/game-creating.fxml"),
+		LOBBY("/ui/lobby/lobby.fxml"),
+		TOURNAMENT_LOBBY("/ui/tournament/tournament-lobby.fxml"),
+		TOURNAMENT_CREATE("/ui/tournament/tournament-create.fxml"),
+		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-management.fxml"),
+		GAME("/ui/game/game.fxml");
+
+		private final String fxmlPath;
+
+		ComponentType(String fxmlPath) {
+			this.fxmlPath = fxmlPath;
+		}
 	}
 }

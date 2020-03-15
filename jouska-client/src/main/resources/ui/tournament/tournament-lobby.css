@@ -1,0 +1,29 @@
+.root * {
+    -fx-font-family: "Comic Sans MS";
+    -fx-font-size: 18px;
+}
+
+#header {
+    -fx-background-color: #fdffe0;
+}
+
+#games-scroll-pane {
+    -fx-focus-color: transparent;
+}
+
+#games-pane {
+    -fx-background-color: linear-gradient(#7ebf79, #be98a8 80%) no-repeat;
+}
+
+#refresh-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 10px;
+}
+
+#refresh-button:hover {
+    -fx-background-color: #82be3c;
+}
+
+#refresh-button:pressed {
+    -fx-background-color: #ffc023;
+}

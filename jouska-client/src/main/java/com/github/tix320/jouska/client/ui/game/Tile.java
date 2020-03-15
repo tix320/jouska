@@ -2,8 +2,8 @@ package com.github.tix320.jouska.client.ui.game;
 
 import java.util.stream.Stream;
 
-import com.github.tix320.jouska.client.ui.transtion.Transitions;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
+import com.github.tix320.jouska.core.model.PlayerColor;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.animation.*;
 import javafx.fxml.FXML;
@@ -19,28 +19,20 @@ public class Tile extends AnchorPane {
 
 	private static final String[][] jouskas = new String[][]{
 			{
-					"ui/game/blue-jouska-1.png",
-					"ui/game/blue-jouska-2.png",
-					"ui/game/blue-jouska-3.png",
-					"ui/game/blue-jouska-4.png"
+					"images/game-shapes/blue-jouska-1.png", "images/game-shapes/blue-jouska-2.png",
+					"images/game-shapes/blue-jouska-3.png", "images/game-shapes/blue-jouska-4.png"
 			},
 			{
-					"ui/game/green-jouska-1.png",
-					"ui/game/green-jouska-2.png",
-					"ui/game/green-jouska-3.png",
-					"ui/game/green-jouska-4.png"
+					"images/game-shapes/green-jouska-1.png", "images/game-shapes/green-jouska-2.png",
+					"images/game-shapes/green-jouska-3.png", "images/game-shapes/green-jouska-4.png"
 			},
 			{
-					"ui/game/red-jouska-1.png",
-					"ui/game/red-jouska-2.png",
-					"ui/game/red-jouska-3.png",
-					"ui/game/red-jouska-4.png"
+					"images/game-shapes/red-jouska-1.png", "images/game-shapes/red-jouska-2.png",
+					"images/game-shapes/red-jouska-3.png", "images/game-shapes/red-jouska-4.png"
 			},
 			{
-					"ui/game/yellow-jouska-1.png",
-					"ui/game/yellow-jouska-2.png",
-					"ui/game/yellow-jouska-3.png",
-					"ui/game/yellow-jouska-4.png"
+					"images/game-shapes/yellow-jouska-1.png", "images/game-shapes/yellow-jouska-2.png",
+					"images/game-shapes/yellow-jouska-3.png", "images/game-shapes/yellow-jouska-4.png"
 			},
 	};
 
@@ -84,7 +76,7 @@ public class Tile extends AnchorPane {
 		return disappearTransition(Duration.seconds(ANIMATION_SECONDS));
 	}
 
-	public Transition appearTransition(Player player, int points) {
+	public Transition appearTransition(PlayerColor player, int points) {
 		Duration duration = Duration.seconds(ANIMATION_SECONDS);
 		Transition transition = appearTransition(duration);
 
@@ -97,7 +89,7 @@ public class Tile extends AnchorPane {
 				Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath))));
 	}
 
-	public Transition disAppearAndAppearTransition(Player player, int points) {
+	public Transition disAppearAndAppearTransition(PlayerColor player, int points) {
 		Transition backgroundTransition = Transitions.timeLineToTransition(
 				animateBackground(Duration.seconds(ANIMATION_SECONDS), Color.web(player.getColorCode())));
 

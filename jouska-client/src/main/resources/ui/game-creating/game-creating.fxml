@@ -4,7 +4,7 @@
 <?import javafx.scene.layout.*?>
 <AnchorPane prefHeight="459.0" prefWidth="629.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/11.0.1"
             xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.github.tix320.jouska.client.ui.GameCreatingController">
+            fx:controller="com.github.tix320.jouska.client.ui.controller.GameCreatingController">
 	<children>
 		<VBox layoutX="93.0" layoutY="22.0" prefHeight="398.0" prefWidth="443.0" spacing="10.0" styleClass="vbox"
 			  AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0"

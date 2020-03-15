@@ -13,7 +13,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
-<AnchorPane fx:id="mainPane" prefHeight="639.0" prefWidth="1084.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.game.GameController">
+<AnchorPane fx:id="mainPane" prefHeight="639.0" prefWidth="1084.0" stylesheets="@game.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.GameController">
 	<children>
 		<VBox id="statisticsBoard" fx:id="statisticsBoard" layoutX="1335.0" layoutY="75.0" prefHeight="250.0" prefWidth="150.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0" />
 		<Label fx:id="loseWinLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="1344.0" layoutY="455.0" maxHeight="40.0" prefHeight="40.0" prefWidth="200.0" text="Foo" textAlignment="CENTER" textFill="#c61616" visible="false" AnchorPane.rightAnchor="10.0" />
@@ -74,7 +74,7 @@
 		<Button id="fullScreenButton" fx:id="fullScreenButton" layoutX="998.0" layoutY="18.0" mnemonicParsing="false" onAction="#onFullScreenClick" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
 			<graphic>
 				<ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
-					<Image url="@full-screen.png" />
+					<Image url="@../../images/full-screen.png" />
 				</ImageView>
 			</graphic>
 		</Button>

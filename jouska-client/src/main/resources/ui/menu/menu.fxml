@@ -2,38 +2,38 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
 <?import javafx.scene.control.ProgressIndicator?>
-<?import javafx.scene.layout.*?>
-<AnchorPane fx:id="root" prefHeight="738.0" prefWidth="1085.0" stylesheets="@style.css"
-            xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="com.github.tix320.jouska.client.ui.MenuController">
+<?import javafx.scene.image.Image?>
+<?import javafx.scene.image.ImageView?>
+<?import javafx.scene.layout.AnchorPane?>
+<?import javafx.scene.layout.VBox?>
+
+<AnchorPane fx:id="root" prefHeight="900.0" prefWidth="1200.0" stylesheets="@menu.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.MenuController">
 	<children>
-		<AnchorPane id="header-pane" layoutX="443.0" layoutY="-8.0" prefHeight="80.0" prefWidth="835.0"
-					AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+		<AnchorPane id="header-pane" layoutX="443.0" layoutY="-8.0" prefHeight="80.0" prefWidth="835.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
-				<ProgressIndicator id="loading-indicator" fx:id="loadingIndicator" layoutX="769.0" layoutY="14.0"
-								   visible="false" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0"/>
+				<ProgressIndicator id="loading-indicator" fx:id="loadingIndicator" layoutX="769.0" layoutY="14.0" visible="false" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="10.0" />
+            <Label id="nicknameLabel" fx:id="nicknameLabel" layoutX="82.0" layoutY="20.0" text="Tix" AnchorPane.leftAnchor="85.0" AnchorPane.topAnchor="10.0" />
+            <ImageView fitHeight="64.0" fitWidth="64.0" layoutX="-73.0" layoutY="-38.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+               <image>
+                  <Image url="@../../images/menu/player-icon.png" />
+               </image>
+            </ImageView>
+            <Button id="logoutButton" fx:id="logoutButton" focusTraversable="false" layoutX="72.0" layoutY="48.0" mnemonicParsing="false" onAction="#logout" text="Logout" AnchorPane.leftAnchor="85.0" AnchorPane.topAnchor="45.0" />
 			</children>
 		</AnchorPane>
-		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" prefHeight="622.0"
-					prefWidth="835.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0"
-					AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0"/>
-		<AnchorPane id="menu" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
-					prefHeight="493.0" prefWidth="250.0" stylesheets="@style.css" AnchorPane.bottomAnchor="0.0"
-					AnchorPane.topAnchor="0.0">
+		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" prefHeight="622.0" prefWidth="835.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0" />
+		<AnchorPane id="menu" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="493.0" prefWidth="250.0" stylesheets="@menu.css" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
-				<VBox alignment="TOP_CENTER" layoutX="75.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0"
-					  spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-					  AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+				<VBox alignment="TOP_CENTER" layoutX="75.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0" spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 					<children>
-						<Button fx:id="joinGameButton" mnemonicParsing="false" onAction="#joinGame" prefHeight="25.0"
-								prefWidth="167.0" styleClass="game-menu-item" stylesheets="@style.css" text="Lobby"/>
-						<Button fx:id="createGameButton" mnemonicParsing="false" onAction="#createGame"
-								prefHeight="25.0" prefWidth="164.0" styleClass="game-menu-item" stylesheets="@style.css"
-								text="Create Game"/>
+						<Button fx:id="createGameButton" mnemonicParsing="false" onAction="#createGame" prefHeight="25.0" prefWidth="164.0" styleClass="game-menu-item" stylesheets="@menu.css" text="Create Game" />
+						<Button fx:id="joinGameButton" mnemonicParsing="false" onAction="#toLobby" prefHeight="25.0" prefWidth="167.0" styleClass="game-menu-item" stylesheets="@menu.css" text="Lobby" />
+                  <Button fx:id="tournamentButton" layoutX="53.0" layoutY="127.0" mnemonicParsing="false" onAction="#toTournament" prefHeight="25.0" prefWidth="164.0" styleClass="game-menu-item" stylesheets="@menu.css" text="Tournament" />
 					</children>
 					<padding>
-						<Insets top="50.0"/>
+						<Insets top="50.0" />
 					</padding>
 				</VBox>
 			</children>

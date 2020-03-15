@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.ci.jre;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -18,11 +17,11 @@ public class JRE {
 			"sonder",
 			"kiwi",
 			"jouska.core",
-			"net.bytebuddy"
+			"net.bytebuddy",
 	};
 
 	public static void main(String[] args)
-			throws InterruptedException, IOException {
+			throws IOException {
 		Path targetPath = Path.of(args[0]);
 		String jdkPath = args[1];
 		String javaFxJmodsPath = args[2];

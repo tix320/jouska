@@ -5,12 +5,16 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 
-import com.github.tix320.jouska.server.service.ServerGameService;
-import com.github.tix320.jouska.server.service.ServerInGameService;
+import com.github.tix320.jouska.server.service.endpoint.authentication.AuthenticationInterceptor;
+import com.github.tix320.jouska.server.service.endpoint.role.AuthorizationInterceptor;
+import com.github.tix320.jouska.server.service.origin.AuthenticationService;
+import com.github.tix320.jouska.server.service.origin.ServerGameService;
+import com.github.tix320.jouska.server.service.origin.ServerInGameService;
 import com.github.tix320.sonder.api.server.SonderServer;
 
 public class Services {
 	public static SonderServer SONDER_SERVER;
+	public static AuthenticationService AUTHENTICATION_SERVICE;
 	public static ServerGameService GAME_SERVICE;
 	public static ServerInGameService IN_GAME_SERVICE;
 
@@ -20,7 +24,8 @@ public class Services {
 		}
 		String servicesPackage = "com.github.tix320.jouska.server.service";
 		SONDER_SERVER = SonderServer.forAddress(new InetSocketAddress(port))
-				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
+				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage)
+						.registerInterceptor(new AuthenticationInterceptor(), new AuthorizationInterceptor()))
 				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> {
@@ -40,6 +45,7 @@ public class Services {
 	}
 
 	private static void initServices() {
+		AUTHENTICATION_SERVICE = SONDER_SERVER.getRPCService(AuthenticationService.class);
 		GAME_SERVICE = SONDER_SERVER.getRPCService(ServerGameService.class);
 		IN_GAME_SERVICE = SONDER_SERVER.getRPCService(ServerInGameService.class);
 	}

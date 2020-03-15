@@ -5,25 +5,26 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 
-import com.github.tix320.jouska.client.service.ApplicationUpdateService;
-import com.github.tix320.jouska.client.service.ClientGameService;
-import com.github.tix320.jouska.client.service.ClientInGameService;
-import com.github.tix320.sonder.api.client.Clonder;
+import com.github.tix320.jouska.client.service.origin.*;
+import com.github.tix320.sonder.api.client.SonderClient;
 
 public class Services {
+	public static AuthenticationService AUTHENTICATION_SERVICE;
+	public static PlayerService PLAYER_SERVICE;
 	public static ClientGameService GAME_SERVICE;
 	public static ClientInGameService IN_GAME_SERVICE;
+	public static ClientTournamentService TOURNAMENT_SERVICE;
 	public static ApplicationUpdateService APPLICATION_INSTALLER_SERVICE;
 
-	public static Clonder CLONDER;
+	public static SonderClient SONDER_CLIENT;
 
 	public static void initialize(String host, int port) {
-		if (CLONDER != null) {
+		if (SONDER_CLIENT != null) {
 			throw new IllegalStateException("Client already start, maybe you wish reconnect?");
 		}
 		String servicesPackage = "com.github.tix320.jouska.client.service";
-		CLONDER = Clonder.forAddress(new InetSocketAddress(host, port))
-				.withRPCProtocol(servicesPackage)
+		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
+				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
 				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> {
@@ -36,15 +37,18 @@ public class Services {
 
 	public static void stop()
 			throws IOException {
-		if (CLONDER == null) {
+		if (SONDER_CLIENT == null) {
 			throw new IllegalStateException("Client does not started");
 		}
-		CLONDER.close();
+		SONDER_CLIENT.close();
 	}
 
 	private static void initServices() {
-		GAME_SERVICE = CLONDER.getRPCService(ClientGameService.class);
-		IN_GAME_SERVICE = CLONDER.getRPCService(ClientInGameService.class);
-		APPLICATION_INSTALLER_SERVICE = CLONDER.getRPCService(ApplicationUpdateService.class);
+		AUTHENTICATION_SERVICE = SONDER_CLIENT.getRPCService(AuthenticationService.class);
+		PLAYER_SERVICE = SONDER_CLIENT.getRPCService(PlayerService.class);
+		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameService.class);
+		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientInGameService.class);
+		TOURNAMENT_SERVICE = SONDER_CLIENT.getRPCService(ClientTournamentService.class);
+		APPLICATION_INSTALLER_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateService.class);
 	}
 }

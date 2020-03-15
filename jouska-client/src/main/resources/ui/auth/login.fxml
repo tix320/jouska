@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.AnchorPane?>
+
+<AnchorPane prefHeight="350.0" prefWidth="600.0" stylesheets="@login.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.LoginController">
+	<children>
+		<TextField fx:id="nicknameInput" layoutX="195.0" layoutY="107.0" prefWidth="210.0" promptText="Nickname" styleClass="input" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="30.0" />
+		<PasswordField fx:id="passwordInput" layoutX="208.0" layoutY="287.0" promptText="Password" styleClass="input" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="120.0" />
+		<Button id="loginButton" fx:id="loginButton" defaultButton="true" layoutX="274.0" layoutY="306.0" mnemonicParsing="false" onAction="#login" text="Sign in" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="210.0" />
+		<Button id="registrationButton" layoutX="487.0" layoutY="297.0" mnemonicParsing="false" onAction="#registerNewAccount" text="No account? Create one!" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+		<Label id="errorLabel" fx:id="errorLabel" layoutX="286.0" layoutY="276.0" text="Invalid nickname/password" visible="false" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="270.0" />
+	</children>
+</AnchorPane>
