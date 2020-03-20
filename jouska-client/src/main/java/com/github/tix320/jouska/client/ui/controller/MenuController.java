@@ -4,6 +4,11 @@ import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
+import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.api.util.None;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
@@ -20,12 +25,6 @@ import static com.github.tix320.jouska.client.app.Services.PLAYER_SERVICE;
 
 public final class MenuController implements Controller<Object> {
 
-	public static MenuController SELF;
-
-	private ContentType currentContent;
-
-	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
-
 	@FXML
 	private ProgressIndicator loadingIndicator;
 
@@ -35,45 +34,60 @@ public final class MenuController implements Controller<Object> {
 	@FXML
 	private AnchorPane contentPane;
 
-	public MenuController() {
-		SELF = this;
+	private MenuContentType currentMenuContentType;
+
+	private Component currentComponent;
+
+	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
+
+	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+
+	@Override
+	public void init(Object data) {
+		changeContent(MenuContentType.LOBBY);
+		loadingIndicator.visibleProperty().bind(loading);
+		PLAYER_SERVICE.me().subscribe(player -> Platform.runLater(() -> nicknameLabel.setText(player.getNickname())));
+		EventDispatcher.on(MenuContentChangeEvent.class)
+				.takeUntil(destroyPublisher.asObservable())
+				.subscribe(event -> changeContent(event.getMenuContentType()));
 	}
 
 	@Override
-	public void initialize(Object data) {
-		changeContent(ContentType.LOBBY);
-		loadingIndicator.visibleProperty().bind(loading);
-		PLAYER_SERVICE.me().subscribe(player -> {
-			CurrentUserContext.setPlayer(player);
-			Platform.runLater(() -> nicknameLabel.setText(player.getNickname()));
-		});
+	public void destroy() {
+		currentComponent.getController().destroy();
+		destroyPublisher.complete();
 	}
 
 	@FXML
-	void toLobby(ActionEvent event) {
-		changeContent(ContentType.LOBBY);
+	void toLobby() {
+		changeContent(MenuContentType.LOBBY);
 	}
 
 	@FXML
-	void createGame(ActionEvent event) {
-		changeContent(ContentType.CREATE_GAME);
+	void createGame() {
+		changeContent(MenuContentType.CREATE_GAME);
 	}
 
 	@FXML
-	public void toTournament(ActionEvent event) {
-		changeContent(ContentType.TOURNAMENT_LOBBY);
+	public void toTournament() {
+		changeContent(MenuContentType.TOURNAMENT_LOBBY);
 	}
 
-	public void changeContent(ContentType contentType) {
-		changeContent(contentType, null);
+	private void changeContent(MenuContentType menuContentType) {
+		changeContent(menuContentType, null);
 	}
 
-	public void changeContent(ContentType contentType, Object data) {
-		if (contentType == currentContent) {
+	public void changeContent(MenuContentType menuContentType, Object data) {
+		if (menuContentType == currentMenuContentType) {
 			return;
 		}
-		Parent content = JouskaUI.loadFxml(contentType.getComponentType(), data);
 
+		Component component = JouskaUI.loadComponent(menuContentType.getComponentType(), data);
+		if (currentComponent != null) {
+			currentComponent.getController().destroy();
+		}
+
+		Parent content = component.getRoot();
 		Platform.runLater(() -> {
 			AnchorPane.setTopAnchor(content, 0.0);
 			AnchorPane.setRightAnchor(content, 0.0);
@@ -83,22 +97,19 @@ public final class MenuController implements Controller<Object> {
 			children.clear();
 			children.add(content);
 
-			currentContent = contentType;
+			currentMenuContentType = menuContentType;
+			currentComponent = component;
 		});
-	}
-
-	public SimpleBooleanProperty loadingProperty() {
-		return loading;
 	}
 
 	public void logout(ActionEvent event) {
 		CurrentUserContext.setPlayer(null);
 		AUTHENTICATION_SERVICE.logout();
 		Configuration.updateCredentials("", "");
-		JouskaUI.switchScene(ComponentType.LOGIN);
+		JouskaUI.switchComponent(ComponentType.LOGIN);
 	}
 
-	public enum ContentType {
+	public enum MenuContentType {
 		CREATE_GAME {
 			@Override
 			ComponentType getComponentType() {

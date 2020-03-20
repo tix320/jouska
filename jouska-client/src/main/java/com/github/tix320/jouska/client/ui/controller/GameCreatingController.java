@@ -1,11 +1,12 @@
 package com.github.tix320.jouska.client.ui.controller;
 
-import com.github.tix320.jouska.client.ui.controller.MenuController.ContentType;
+import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.model.BoardType;
 import com.github.tix320.jouska.core.model.GameSettings;
 import com.github.tix320.jouska.core.model.GameType;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -37,7 +38,7 @@ public class GameCreatingController implements Controller<Object> {
 	private Button createButton;
 
 	@Override
-	public void initialize(Object data) {
+	public void init(Object data) {
 		gameNameInput.disableProperty().bind(loading);
 		turnDurationInput.disableProperty().bind(loading);
 		gameDurationInput.disableProperty().bind(loading);
@@ -55,7 +56,7 @@ public class GameCreatingController implements Controller<Object> {
 		createButton.disableProperty()
 				.bind(loading.or(gameNameInput.textProperty().isEmpty())
 						.or(turnDurationInput.textProperty().isEmpty())
-						.or(turnDurationBinding.lessThan(5))
+						.or(turnDurationBinding.lessThan(1))
 						.or(gameDurationInput.textProperty().isEmpty())
 						.or(gameDurationBinding.lessThan(1)));
 		playersCountChoice.setItems(FXCollections.observableArrayList(1, 2, 3, 4));
@@ -68,14 +69,19 @@ public class GameCreatingController implements Controller<Object> {
 		gameDurationInput.setText("20");
 	}
 
+	@Override
+	public void destroy() {
+
+	}
+
 	@FXML
 	void create() {
 		loading.set(true);
 		GAME_SERVICE.create(new CreateGameCommand(
-				new GameSettings(gameNameInput.getText(), GameType.TIMED, BoardType.TEST,
+				new GameSettings(gameNameInput.getText(), GameType.TIMED, BoardType.STANDARD,
 						playersCountChoice.getValue(), Integer.parseInt(turnDurationInput.getText()),
 						Integer.parseInt(gameDurationInput.getText()))))
-				.subscribe(gameId -> Platform.runLater(() -> MenuController.SELF.changeContent(ContentType.LOBBY)));
+				.subscribe(gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)));
 	}
 
 	public void makeTextFieldNumeric(TextField textField) {

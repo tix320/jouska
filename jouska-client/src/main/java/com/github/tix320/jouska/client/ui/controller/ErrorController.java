@@ -12,11 +12,16 @@ public class ErrorController implements Controller<String> {
 	TextArea errorTextArea;
 
 	@Override
-	public void initialize(String error) {
+	public void init(String error) {
 		errorTextArea.setText(error);
 	}
 
+	@Override
+	public void destroy() {
+
+	}
+
 	public void returnToGame(ActionEvent event) {
-		JouskaUI.switchScene(ComponentType.MENU);
+		JouskaUI.switchComponent(ComponentType.MENU);
 	}
 }

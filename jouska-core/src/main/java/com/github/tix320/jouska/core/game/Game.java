@@ -1,11 +1,11 @@
 package com.github.tix320.jouska.core.game;
 
 import java.util.List;
-import java.util.concurrent.locks.Lock;
 
 import com.github.tix320.jouska.core.model.*;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.util.None;
 
 public interface Game {
 
@@ -17,7 +17,7 @@ public interface Game {
 
 	CellInfo[][] getBoard();
 
-	ReadOnlyStock<CellChange> turns();
+	Observable<CellChange> turns();
 
 	List<Point> getPointsBelongedToPlayer(Player player);
 
@@ -29,17 +29,17 @@ public interface Game {
 
 	Statistics getStatistics();
 
-	ReadOnlyStock<InGamePlayer> lostPlayers();
+	Observable<InGamePlayer> lostPlayers();
 
-	ReadOnlyStock<PlayerWithPoints> kickedPlayers();
+	MonoObservable<InGamePlayer> winner();
+
+	Observable<PlayerWithPoints> kickedPlayers();
 
 	void kick(Player player);
 
 	void forceCompleteGame(Player winner);
 
-	MonoObservable<List<InGamePlayer>> onComplete();
-
-	Lock getLock();
+	MonoObservable<None> completed();
 
 	boolean isStarted();
 

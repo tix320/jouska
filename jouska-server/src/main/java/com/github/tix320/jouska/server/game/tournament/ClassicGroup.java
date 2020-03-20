@@ -12,11 +12,11 @@ import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.api.util.None;
 
 public class ClassicGroup implements Group {
 
-	private static final int WIN_POINTS = 3;
-	private static final int DRAW_POINTS = 1;
+	private static final int WIN_POINTS = 1;
 
 	private final List<Player> players;
 
@@ -39,13 +39,13 @@ public class ClassicGroup implements Group {
 		}
 
 		this.players = players;
-		this.groupPoints = Property.forMap();
+		this.groupPoints = Property.forObject();
 		this.completed = Property.forObject(false);
 		this.games = generateGames(gameSettings);
 
-		List<MonoObservable<List<InGamePlayer>>> onCompleteObservables = this.games.stream()
+		List<MonoObservable<None>> onCompleteObservables = this.games.stream()
 				.peek(this::listenGame)
-				.map(Game::onComplete)
+				.map(game -> game.completed().toMono())
 				.collect(Collectors.toList());
 
 		Observable.zip(onCompleteObservables).subscribe(ignored -> completed.set(true));
@@ -85,31 +85,18 @@ public class ClassicGroup implements Group {
 	}
 
 	private void listenGame(Game game) {
-		game.onComplete().subscribe(inGamePlayers -> {
-			Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints().get();
-			InGamePlayer firstPlayer = inGamePlayers.get(0);
-			InGamePlayer secondPlayer = inGamePlayers.get(1);
-			Integer firstSummaryPoints = statistics.get(firstPlayer);
-			Integer secondSummaryPoints = statistics.get(secondPlayer);
-			if (firstSummaryPoints.equals(secondSummaryPoints)) {
-				addPointsToPlayer(firstPlayer.getPlayer(), DRAW_POINTS);
-				addPointsToPlayer(secondPlayer.getPlayer(), DRAW_POINTS);
-			}
-			else if (firstSummaryPoints > secondSummaryPoints) {
-				addPointsToPlayer(firstPlayer.getPlayer(), WIN_POINTS);
-			}
-			else {
-				addPointsToPlayer(secondPlayer.getPlayer(), WIN_POINTS);
-			}
+		game.completed().subscribe(ignored -> {
+			InGamePlayer winner = game.winner().get();
+			addPointsToPlayer(winner.getPlayer());
 		});
 	}
 
-	private void addPointsToPlayer(Player player, int points) {
+	private void addPointsToPlayer(Player player) {
 		groupPoints.get().compute(player, (p, playerPoints) -> {
 			if (playerPoints == null) {
 				throw new IllegalStateException();
 			}
-			return playerPoints + points;
+			return playerPoints + ClassicGroup.WIN_POINTS;
 		});
 	}
 }

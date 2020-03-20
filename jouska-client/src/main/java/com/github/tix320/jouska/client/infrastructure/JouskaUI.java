@@ -4,7 +4,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.Version;
+import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
+import com.github.tix320.jouska.client.ui.controller.Component;
 import com.github.tix320.jouska.client.ui.controller.Controller;
+import com.github.tix320.jouska.core.dto.StartGameCommand;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -21,6 +25,8 @@ public final class JouskaUI {
 
 	public static Stage stage;
 
+	public static Component currentComponent;
+
 	public static void initialize(Stage stage) {
 		if (JouskaUI.stage == null) {
 			JouskaUI.stage = stage;
@@ -30,16 +36,20 @@ public final class JouskaUI {
 		else {
 			throw new IllegalStateException("Application already initialized");
 		}
+		initEvents();
 	}
 
-	public static MonoObservable<None> switchScene(ComponentType componentType) {
-		return switchScene(componentType, null);
+	public static MonoObservable<None> switchComponent(ComponentType componentType) {
+		return switchComponent(componentType, null);
 	}
 
-	public static MonoObservable<None> switchScene(ComponentType componentType, Object data) {
-		Parent root = loadFxml(componentType, data);
-
-		Scene scene = new Scene(root);
+	public static MonoObservable<None> switchComponent(ComponentType componentType, Object data) {
+		Component component = loadComponent(componentType, data);
+		if (currentComponent != null) {
+			currentComponent.getController().destroy();
+		}
+		currentComponent = component;
+		Scene scene = new Scene(component.getRoot());
 
 		Publisher<None> switchCompletePublisher = Publisher.single();
 
@@ -51,29 +61,29 @@ public final class JouskaUI {
 			stage.setMinHeight(stage.getHeight());
 			switchCompletePublisher.publish(None.SELF);
 			switchCompletePublisher.complete();
+
 		});
 
 		return switchCompletePublisher.asObservable().toMono();
 	}
 
-	public static Parent loadFxml(ComponentType componentType, Object data) {
+	public static Component loadComponent(ComponentType componentType, Object data) {
+		String resourceUrl = componentType.fxmlPath;
+		URL resource = JouskaUI.class.getResource(resourceUrl);
+		if (resource == null) {
+			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
+		}
+		FXMLLoader loader = new FXMLLoader(resource);
 		Parent root;
 		try {
-			String resourceUrl = componentType.fxmlPath;
-			URL resource = JouskaUI.class.getResource(resourceUrl);
-			if (resource == null) {
-				throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
-			}
-			FXMLLoader loader = new FXMLLoader(resource);
 			root = loader.load();
-			Controller<Object> controller = loader.getController();
-			controller.initialize(data);
-			return root;
 		}
 		catch (IOException e) {
 			throw new IllegalArgumentException(String.format("Scene %s not found", componentType), e);
 		}
-
+		Controller<Object> controller = loader.getController();
+		controller.init(data);
+		return new ComponentImpl(root, controller);
 	}
 
 	public static void close() {
@@ -102,6 +112,35 @@ public final class JouskaUI {
 
 		ComponentType(String fxmlPath) {
 			this.fxmlPath = fxmlPath;
+		}
+	}
+
+	private static void initEvents() {
+		EventDispatcher.on(GameStartedEvent.class).toMono().subscribe(event -> {
+			StartGameCommand startGameCommand = event.getStartGameCommand();
+			JouskaUI.switchComponent(ComponentType.GAME, startGameCommand);
+		});
+	}
+
+	private static final class ComponentImpl implements Component {
+
+		private final Parent root;
+
+		private final Controller<?> controller;
+
+		private ComponentImpl(Parent root, Controller<?> controller) {
+			this.root = root;
+			this.controller = controller;
+		}
+
+		@Override
+		public Parent getRoot() {
+			return root;
+		}
+
+		@Override
+		public Controller<?> getController() {
+			return controller;
 		}
 	}
 }

@@ -3,13 +3,14 @@ package com.github.tix320.jouska.client.ui.controller;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.github.tix320.jouska.client.ui.controller.MenuController.ContentType;
+import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.TextFields;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
 import com.github.tix320.jouska.core.model.BoardType;
 import com.github.tix320.jouska.core.model.GameSettings;
 import com.github.tix320.jouska.core.model.GameType;
-import javafx.application.Platform;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -22,14 +23,6 @@ import javafx.util.converter.NumberStringConverter;
 import static com.github.tix320.jouska.client.app.Services.TOURNAMENT_SERVICE;
 
 public class TournamentCreateController implements Controller<Object> {
-
-	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
-	private final SimpleBooleanProperty validation = new SimpleBooleanProperty(false);
-
-	private final SimpleIntegerProperty groupTurnDuration = new SimpleIntegerProperty(20);
-	private final SimpleIntegerProperty groupGameDuration = new SimpleIntegerProperty(20);
-	private final SimpleIntegerProperty playOffTurnDuration = new SimpleIntegerProperty(20);
-	private final SimpleIntegerProperty playOffGameDuration = new SimpleIntegerProperty(20);
 
 	@FXML
 	private TextField gameNameInput;
@@ -55,8 +48,16 @@ public class TournamentCreateController implements Controller<Object> {
 	@FXML
 	private Button createButton;
 
+	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
+	private final SimpleBooleanProperty validation = new SimpleBooleanProperty(false);
+
+	private final SimpleIntegerProperty groupTurnDuration = new SimpleIntegerProperty(20);
+	private final SimpleIntegerProperty groupGameDuration = new SimpleIntegerProperty(20);
+	private final SimpleIntegerProperty playOffTurnDuration = new SimpleIntegerProperty(20);
+	private final SimpleIntegerProperty playOffGameDuration = new SimpleIntegerProperty(20);
+
 	@Override
-	public void initialize(Object data) {
+	public void init(Object data) {
 		gameNameInput.disableProperty().bind(loading);
 		turnDurationInput.disableProperty().bind(loading);
 		gameDurationInput.disableProperty().bind(loading);
@@ -100,6 +101,11 @@ public class TournamentCreateController implements Controller<Object> {
 		TextFields.makeNumeric(gameDurationInput);
 	}
 
+	@Override
+	public void destroy() {
+
+	}
+
 	private void initInputs() {
 		IntegerBinding turnDurationBinding = Bindings.createIntegerBinding(() -> {
 			String text = turnDurationInput.getText();
@@ -128,7 +134,7 @@ public class TournamentCreateController implements Controller<Object> {
 		TOURNAMENT_SERVICE.create(
 				new CreateTournamentCommand(gameNameInput.getText(), playersCountChoice.getValue(), groupSettings,
 						playOffSettings))
-				.subscribe(gameId -> Platform.runLater(
-						() -> MenuController.SELF.changeContent(ContentType.TOURNAMENT_LOBBY)));
+				.subscribe(
+						gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_LOBBY)));
 	}
 }

@@ -19,12 +19,17 @@ public class TournamentManager {
 		long tournamentId = ID_GENERATOR.next();
 		GameSettings groupGameSettings = createTournamentCommand.getGroupSettings();
 		GameSettings playOffGameSettings = createTournamentCommand.getPlayOffSettings();
-		tournaments.put(tournamentId, new TournamentInfo(tournamentId, createTournamentCommand.getName(), createTournamentCommand.getPlayersCount()));
+		tournaments.put(tournamentId, new TournamentInfo(tournamentId, createTournamentCommand.getName(),
+				createTournamentCommand.getPlayersCount()));
 		return tournamentId;
 	}
 
 	public static List<TournamentInfo> getTournaments() {
 		return new ArrayList<>(tournaments.values());
+	}
+
+	public static TournamentInfo getTournament(long tournamentId) {
+		return tournaments.get(tournamentId);
 	}
 
 }

@@ -13,7 +13,8 @@ public class CompletedInterceptor implements AnnotationInterceptor<Game, ThrowIf
 
 	@Override
 	public Object intercept(ThrowIfCompleted annotation, InterceptionContext<Game> context) {
-		if (context.getProxy().isCompleted()) {
+		Game game = context.getProxy();
+		if (game.isCompleted()) {
 			throw new IllegalStateException("Game already completed");
 		}
 		return None.SELF;

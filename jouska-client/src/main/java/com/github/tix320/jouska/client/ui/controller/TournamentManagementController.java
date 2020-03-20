@@ -20,13 +20,18 @@ public class TournamentManagementController implements Controller<TournamentStru
 	private HBox playOffPane;
 
 	@Override
-	public void initialize(TournamentStructure tournamentStructure) {
+	public void init(TournamentStructure tournamentStructure) {
 		AnchorPane firstColumnsPane = createFirstColumnsPane();
 		AnchorPane secondColumnsPane = createSecondColumnsPane();
 		AnchorPane thirdColumnsPane = createThirdColumnsPane();
 		AnchorPane winnerColumnPane = createWinnerColumnPane();
 		playOffPane.getChildren().addAll(firstColumnsPane, secondColumnsPane, thirdColumnsPane, winnerColumnPane);
 		initStructure(tournamentStructure);
+	}
+
+	@Override
+	public void destroy() {
+
 	}
 
 	private void initStructure(TournamentStructure tournamentStructure) {

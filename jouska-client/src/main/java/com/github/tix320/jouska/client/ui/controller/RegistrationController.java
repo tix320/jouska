@@ -7,7 +7,6 @@ import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
@@ -35,12 +34,17 @@ public class RegistrationController implements Controller<Object> {
 	private Label errorLabel;
 
 	@Override
-	public void initialize(Object data) {
+	public void init(Object data) {
 		registerButton.disableProperty()
 				.bind(nicknameInput.textProperty().isEmpty().or(passwordInput.textProperty().isEmpty()));
 	}
 
-	public void register(ActionEvent event) {
+	@Override
+	public void destroy() {
+
+	}
+
+	public void register() {
 		if (!passwordInput.getText().equals(confirmPasswordInput.getText())) {
 			showError("Passwords do not match");
 			return;
@@ -49,7 +53,7 @@ public class RegistrationController implements Controller<Object> {
 				.subscribe(registrationAnswer -> {
 					switch (registrationAnswer) {
 						case SUCCESS:
-							JouskaUI.switchScene(ComponentType.LOGIN,
+							JouskaUI.switchComponent(ComponentType.LOGIN,
 									new LoginCommand(nicknameInput.getText(), passwordInput.getText()));
 							break;
 						case NICKNAME_ALREADY_EXISTS:
@@ -59,8 +63,8 @@ public class RegistrationController implements Controller<Object> {
 				});
 	}
 
-	public void login(ActionEvent event) {
-		JouskaUI.switchScene(ComponentType.LOGIN);
+	public void login() {
+		JouskaUI.switchComponent(ComponentType.LOGIN);
 	}
 
 	public void showError(String message) {

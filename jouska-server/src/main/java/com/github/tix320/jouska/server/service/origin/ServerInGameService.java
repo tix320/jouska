@@ -18,7 +18,7 @@ public interface ServerInGameService {
 	MonoObservable<None> turn(Point point, @ClientID long clientId);
 
 	@Origin("leave")
-	MonoObservable<None> leave(InGamePlayer player, @ClientID long clientId);
+	MonoObservable<None> leave(Player player, @ClientID long clientId);
 
 	@Origin("forceComplete")
 	MonoObservable<None> forceComplete(Player winner, @ClientID long clientId);

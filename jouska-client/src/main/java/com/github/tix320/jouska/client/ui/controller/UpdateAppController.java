@@ -17,7 +17,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
-import javafx.scene.input.MouseEvent;
 
 import static com.github.tix320.jouska.client.app.Services.APPLICATION_INSTALLER_SERVICE;
 
@@ -35,14 +34,19 @@ public class UpdateAppController implements Controller<String> {
 	Button updateButton;
 
 	@Override
-	public void initialize(String version) {
+	public void init(String version) {
 		messageLabel.setText("The newer version " + version + " is available.\nPlease update.");
 		loadingIndicator.visibleProperty().bind(loading);
 		messageLabel.disableProperty().bind(loading);
 		updateButton.disableProperty().bind(loading);
 	}
 
-	public void updateApp(MouseEvent mouseEvent) {
+	@Override
+	public void destroy() {
+
+	}
+
+	public void updateApp() {
 		loading.set(true);
 		Observable<Transfer> observable;
 		String fileName;

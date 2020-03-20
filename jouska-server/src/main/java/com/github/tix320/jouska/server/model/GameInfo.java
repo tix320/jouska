@@ -1,9 +1,10 @@
 package com.github.tix320.jouska.server.model;
 
-import java.util.Collections;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import com.github.tix320.jouska.core.game.Game;
 import com.github.tix320.jouska.core.model.GameSettings;
@@ -13,13 +14,17 @@ public final class GameInfo {
 
 	private final long id;
 	private final GameSettings settings;
+	private final Lock gameLock;
 	private Game game;
-	private Set<Player> connectedPlayers;
+	private final Set<Player> connectedPlayers;
+	private final Set<Player> players;
 
 	public GameInfo(long id, GameSettings settings) {
 		this.id = id;
 		this.settings = settings;
 		this.connectedPlayers = new HashSet<>();
+		this.players = new HashSet<>();
+		this.gameLock = new ReentrantLock();
 	}
 
 	public long getId() {
@@ -30,8 +35,16 @@ public final class GameInfo {
 		return settings;
 	}
 
+	public Lock getGameLock() {
+		return gameLock;
+	}
+
 	public Set<Player> getConnectedPlayers() {
 		return connectedPlayers;
+	}
+
+	public Set<Player> getPlayers() {
+		return players;
 	}
 
 	public void setGame(Game game) {

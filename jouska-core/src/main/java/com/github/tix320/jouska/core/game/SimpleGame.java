@@ -2,9 +2,6 @@ package com.github.tix320.jouska.core.game;
 
 import java.util.*;
 import java.util.Map.Entry;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
-import java.util.function.Supplier;
 
 import com.github.tix320.jouska.core.game.proxy.CompletedInterceptor;
 import com.github.tix320.jouska.core.game.proxy.StartedInterceptor;
@@ -14,9 +11,10 @@ import com.github.tix320.jouska.core.model.*;
 import com.github.tix320.kiwi.api.proxy.AnnotationBasedProxyCreator;
 import com.github.tix320.kiwi.api.proxy.ProxyCreator;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
+import com.github.tix320.kiwi.api.util.None;
 
 public class SimpleGame implements Game {
 
@@ -31,24 +29,14 @@ public class SimpleGame implements Game {
 
 	private final List<InGamePlayer> players;
 
-	private InGamePlayer currentPlayer;
+	private volatile InGamePlayer currentPlayer;
 
 	private final Stock<CellChange> turns;
 	private final Property<Map<InGamePlayer, Integer>> summaryStatistics;
 	private final Stock<InGamePlayer> lostPlayers;
+	private final Property<InGamePlayer> winner;
 	private final Stock<PlayerWithPoints> kickPlayers;
-	private final Property<List<InGamePlayer>> completed;
-
-	private final Lock lock;
-
-	private boolean isStarted;
-	// private void checkInstantiationSource() {
-	// 	STACK_WALKER.walk(stackFrameStream -> stackFrameStream.filter(
-	// 			stackFrame -> stackFrame.getDeclaringClass() == TestClass.class && stackFrame.getMethodName()
-	// 					.equals("create"))
-	// 			.findFirst()
-	// 			.orElseThrow(() -> new IllegalStateException("Use factory method")));
-	// }
+	private final Property<GameState> gameState;
 
 	public static SimpleGame create(GameSettings gameSettings, GameBoard board, List<InGamePlayer> players) {
 		return PROXY.create(gameSettings, board, players);
@@ -62,55 +50,49 @@ public class SimpleGame implements Game {
 		}
 
 		turns = Stock.forObject();
-		summaryStatistics = Property.forMap(playerSummaryPoints);
+		summaryStatistics = Property.forObject(playerSummaryPoints);
 		lostPlayers = Stock.forObject();
+		winner = Property.forObject();
 		kickPlayers = Stock.forObject();
-		completed = Property.forList();
+		gameState = Property.forObject(GameState.INITIAL);
 
 		this.players = new ArrayList<>(players);
 		this.currentPlayer = players.get(0);
 		this.board = board.getMatrix();
 
-		this.lock = new ReentrantLock();
+		completed().subscribe(state -> closeProperties());
 	}
 
 	@ThrowIfCompleted
 	@Override
 	public void start() {
-		if (isStarted) {
+		if (gameState.get() == GameState.STARTED) {
 			throw new RuntimeException("Already started");
 		}
-		runInLock(() -> {
-			if (isStarted) {
-				throw new RuntimeException("Already started");
-			}
-			isStarted = true;
-			initBoard();
-		});
+		initBoard();
+		gameState.set(GameState.STARTED);
 	}
 
 	@ThrowIfNotStarted
 	@ThrowIfCompleted
 	public void turn(Point point) {
-		runInLock(() -> {
-			int i = point.i;
-			int j = point.j;
-			CellInfo cellInfo = board[i][j];
-			PlayerColor player = cellInfo.getPlayer();
-			InGamePlayer currentPlayer = getCurrentPlayer();
-			if (currentPlayer.getColor() != player) {
-				throw new IllegalStateException(
-						String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
-								currentPlayer, i, j, Objects.requireNonNullElse(player, "None")));
-			}
+		int i = point.i;
+		int j = point.j;
+		CellInfo cellInfo = board[i][j];
+		PlayerColor player = cellInfo.getPlayer();
+		InGamePlayer currentPlayer = getCurrentPlayer();
+		if (currentPlayer.getColor() != player) {
+			throw new IllegalStateException(
+					String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
+							currentPlayer, i, j, Objects.requireNonNullElse(player, "None")));
+		}
 
 
-			CellChange cellChange = turn(point, player);
-			this.currentPlayer = nextPlayer();
-			turns.add(cellChange);
-			checkLoses();
-			checkWinner();
-		});
+		CellChange cellChange = turn(point, player);
+		this.currentPlayer = nextPlayer();
+		turns.add(cellChange);
+		checkLoses();
+		checkWinner();
 	}
 
 	@Override
@@ -122,26 +104,24 @@ public class SimpleGame implements Game {
 		return board;
 	}
 
-	public ReadOnlyStock<CellChange> turns() {
-		return turns.toReadOnly();
+	public Observable<CellChange> turns() {
+		return turns.asObservable();
 	}
 
 	@ThrowIfNotStarted
 	@Override
 	public List<Point> getPointsBelongedToPlayer(Player player) {
 		PlayerColor playerColor = findGamePlayerByPlayer(player).getColor();
-		return runInLock(() -> {
-			List<Point> points = new ArrayList<>();
-			for (int i = 0; i < board.length; i++) {
-				for (int j = 0; j < board[i].length; j++) {
-					if (board[i][j].getPlayer() == playerColor) {
-						points.add(new Point(i, j));
-					}
+		List<Point> points = new ArrayList<>();
+		for (int i = 0; i < board.length; i++) {
+			for (int j = 0; j < board[i].length; j++) {
+				if (board[i][j].getPlayer() == playerColor) {
+					points.add(new Point(i, j));
 				}
 			}
+		}
 
-			return points;
-		});
+		return points;
 	}
 
 	@Override
@@ -156,67 +136,74 @@ public class SimpleGame implements Game {
 
 	@ThrowIfNotStarted
 	public InGamePlayer ownerOfPoint(Point point) {
-		return runInLock(() -> {
-			PlayerColor playerColor = board[point.i][point.j].getPlayer();
-
-			return getPlayerByColor(playerColor);
-		});
+		PlayerColor playerColor = board[point.i][point.j].getPlayer();
+		if (playerColor == null) {
+			return null;
+		}
+		return getPlayerByColor(playerColor);
 	}
 
 	public Statistics getStatistics() {
-		return summaryStatistics::toReadOnly;
+		return summaryStatistics::asObservable;
 	}
 
-	public ReadOnlyStock<InGamePlayer> lostPlayers() {
-		return lostPlayers.toReadOnly();
+	public Observable<InGamePlayer> lostPlayers() {
+		return lostPlayers.asObservable();
 	}
 
 	@Override
-	public ReadOnlyStock<PlayerWithPoints> kickedPlayers() {
-		return kickPlayers.toReadOnly();
+	public MonoObservable<InGamePlayer> winner() {
+		return winner.asObservable().toMono();
+	}
+
+	@Override
+	public Observable<PlayerWithPoints> kickedPlayers() {
+		return kickPlayers.asObservable();
 	}
 
 	@ThrowIfNotStarted
 	@Override
 	public void kick(Player player) {
-		runInLock(() -> {
-			List<Point> pointsBelongedToPlayer = getPointsBelongedToPlayer(player);
-			for (Point point : pointsBelongedToPlayer) {
-				putInfoToPoint(point, new CellInfo(null, 0));
-			}
-			InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
-			lostPlayers.add(gamePlayer);
-			kickPlayers.add(new PlayerWithPoints(gamePlayer, pointsBelongedToPlayer));
-			checkWinner();
-		});
+		List<Point> pointsBelongedToPlayer = getPointsBelongedToPlayer(player);
+		for (Point point : pointsBelongedToPlayer) {
+			putInfoToPoint(point, new CellInfo(null, 0));
+		}
+		InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
+		lostPlayers.add(gamePlayer);
+		kickPlayers.add(new PlayerWithPoints(gamePlayer, pointsBelongedToPlayer));
+		checkWinner();
 	}
 
 	@ThrowIfNotStarted
 	@ThrowIfCompleted
 	@Override
 	public void forceCompleteGame(Player winner) {
-		runInLock(() -> {
-			InGamePlayer winnerPlayer = findGamePlayerByPlayer(winner);
-			List<InGamePlayer> remainingPlayers = getRemainingPlayers();
+		InGamePlayer winnerPlayer = findGamePlayerByPlayer(winner);
+		List<InGamePlayer> remainingPlayers = getRemainingPlayers();
 
-			remainingPlayers.remove(winnerPlayer);
-			lostPlayers.addAll(remainingPlayers);
+		remainingPlayers.remove(winnerPlayer);
+		lostPlayers.addAll(remainingPlayers);
+		this.winner.set(winnerPlayer);
 
-			List<InGamePlayer> lastView = new ArrayList<>(remainingPlayers);
-			lastView.add(winnerPlayer);
-
-			completed.set(lastView);
-		});
+		gameState.set(GameState.COMPLETED);
 	}
 
 	@Override
-	public MonoObservable<List<InGamePlayer>> onComplete() {
-		return completed.asObservable().toMono();
+	public MonoObservable<None> completed() {
+		return gameState.asObservable()
+				.filter(state -> state == GameState.COMPLETED)
+				.map(aBoolean -> None.SELF)
+				.toMono();
 	}
 
 	@Override
-	public Lock getLock() {
-		return lock;
+	public boolean isStarted() {
+		return gameState.get() == GameState.STARTED || gameState.get() == GameState.COMPLETED;
+	}
+
+	@Override
+	public boolean isCompleted() {
+		return gameState.get() == GameState.COMPLETED;
 	}
 
 	private void initBoard() {
@@ -301,7 +288,7 @@ public class SimpleGame implements Game {
 
 	private InGamePlayer getPlayerByColor(PlayerColor playerColor) {
 		return players.stream()
-				.filter(inGamePlayer -> inGamePlayer.getColor() == playerColor)
+				.filter(inGamePlayer -> inGamePlayer.getColor().equals(playerColor))
 				.findFirst()
 				.orElseThrow(IllegalStateException::new);
 	}
@@ -343,14 +330,13 @@ public class SimpleGame implements Game {
 	private void changePointsForPlayer(PlayerColor playerColor, int points) {
 		if (playerColor != null) {
 			InGamePlayer player = getPlayerByColor(playerColor);
-			Map<InGamePlayer, Integer> playerSummaryStatistics = summaryStatistics.get();
-			playerSummaryStatistics.compute(player, (inGamePlayer, currentPoints) -> {
+			summaryStatistics.get().compute(player, (inGamePlayer, currentPoints) -> {
 				if (currentPoints == null) {
 					throw new IllegalStateException();
 				}
 				return currentPoints + points;
 			});
-			summaryStatistics.set(playerSummaryStatistics);
+			summaryStatistics.reset();
 		}
 	}
 
@@ -405,39 +391,18 @@ public class SimpleGame implements Game {
 		return remainingPlayers;
 	}
 
-	@Override
-	public boolean isStarted() {
-		return runInLock(() -> isStarted);
-	}
-
-	@Override
-	public boolean isCompleted() {
-		return runInLock(() -> completed.get() != null);
-	}
-
-	private void runInLock(Runnable runnable) {
-		try {
-			lock.lock();
-			runnable.run();
-		}
-		finally {
-			lock.unlock();
-		}
-	}
-
-	private <T> T runInLock(Supplier<T> supplier) {
-		try {
-			lock.lock();
-			return supplier.get();
-		}
-		finally {
-			lock.unlock();
-		}
+	private void closeProperties() {
+		turns.close();
+		summaryStatistics.close();
+		lostPlayers.close();
+		winner.close();
+		kickPlayers.close();
+		gameState.close();
 	}
 
 	private InGamePlayer findGamePlayerByPlayer(Player player) {
 		return getPlayers().stream()
-				.filter(inGamePlayer -> inGamePlayer.getPlayer() == player)
+				.filter(inGamePlayer -> inGamePlayer.getPlayer().equals(player))
 				.findFirst()
 				.orElseThrow();
 	}

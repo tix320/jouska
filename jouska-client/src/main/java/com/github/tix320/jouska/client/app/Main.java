@@ -32,7 +32,7 @@ public class Main extends Application {
 	@Override
 	public void start(Stage stage) {
 		JouskaUI.initialize(stage);
-		JouskaUI.switchScene(ComponentType.SERVER_CONNECT).subscribe(none -> {
+		JouskaUI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			stage.show();
 
 			new Thread(() -> {
@@ -41,7 +41,7 @@ public class Main extends Application {
 					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION, Version.os.name())
 							.subscribe(lastVersion -> {
 								if (!lastVersion.equals("")) { // update
-									JouskaUI.switchScene(ComponentType.UPDATE_APP, lastVersion);
+									JouskaUI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
 								}
 								else {
 									LoginCommand loginCommand = new LoginCommand(Configuration.getNickname(),
@@ -49,7 +49,7 @@ public class Main extends Application {
 									AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
 										switch (loginAnswer) {
 											case SUCCESS:
-												JouskaUI.switchScene(ComponentType.MENU);
+												JouskaUI.switchComponent(ComponentType.MENU);
 												break;
 											case ALREADY_LOGGED:
 												Platform.runLater(() -> {
@@ -65,10 +65,10 @@ public class Main extends Application {
 																.subscribe(answer -> {
 																	switch (answer) {
 																		case SUCCESS:
-																			JouskaUI.switchScene(ComponentType.MENU);
+																			JouskaUI.switchComponent(ComponentType.MENU);
 																			break;
 																		case INVALID_CREDENTIALS:
-																			JouskaUI.switchScene(ComponentType.LOGIN);
+																			JouskaUI.switchComponent(ComponentType.LOGIN);
 																			break;
 																		default:
 																			throw new IllegalStateException();
@@ -76,12 +76,12 @@ public class Main extends Application {
 																});
 													}
 													else {
-														JouskaUI.switchScene(ComponentType.LOGIN, loginCommand);
+														JouskaUI.switchComponent(ComponentType.LOGIN, loginCommand);
 													}
 												});
 												break;
 											case INVALID_CREDENTIALS:
-												JouskaUI.switchScene(ComponentType.LOGIN);
+												JouskaUI.switchComponent(ComponentType.LOGIN);
 												break;
 											default:
 												throw new IllegalStateException();
@@ -95,7 +95,7 @@ public class Main extends Application {
 					StringWriter out = new StringWriter();
 					PrintWriter stringWriter = new PrintWriter(out);
 					e.printStackTrace(stringWriter);
-					JouskaUI.switchScene(ComponentType.ERROR, out.toString());
+					JouskaUI.switchComponent(ComponentType.ERROR, out.toString());
 				}
 			}).start();
 		});
@@ -105,6 +105,6 @@ public class Main extends Application {
 	public void stop() {
 		JouskaUI.close();
 		AUTHENTICATION_SERVICE.logout()
-				.subscribe(none -> Try.runOrRethrow(Services::stop), () -> Try.runOrRethrow(Services::stop));
+				.subscribe(none -> {}, () -> Try.runOrRethrow(Services::stop));
 	}
 }

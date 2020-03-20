@@ -29,9 +29,7 @@ public class ServerTournamentEndpoint {
 	@Endpoint("structure")
 	@NeedAuthentication
 	public TournamentStructure getStructure(long tournamentId, @ClientID long clientId) {
-		return null;
-		// return new TournamentStructure(List.of(new GroupView(Set.of(new Player(10, "aaa"))),
-		// 		new GroupView(Set.of(new Player(20, "bbb"), new Player(30, "ccc")))));
+		return new TournamentStructure(List.of());//TournamentManager.getTournament(tournamentId);
 	}
 
 	@Endpoint("create")

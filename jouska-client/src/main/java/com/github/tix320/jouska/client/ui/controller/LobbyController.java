@@ -5,11 +5,11 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.client.infrastructure.ControllerCommunicator;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
+import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.api.util.None;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -22,7 +22,6 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.ProgressIndicator;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.util.Duration;
@@ -34,9 +33,6 @@ public class LobbyController implements Controller<Object> {
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
 	@FXML
-	private ProgressIndicator loadingIndicator;
-
-	@FXML
 	private FlowPane gameItemsPane;
 
 	@FXML
@@ -44,21 +40,25 @@ public class LobbyController implements Controller<Object> {
 
 	private Timeline timeline;
 
+	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+
 	@Override
-	public void initialize(Object data) {
+	public void init(Object data) {
 		gameItemsPane.disableProperty().bind(loading);
-		refresh();
-		loading.addListener((observable, oldValue, newValue) -> MenuController.SELF.loadingProperty().set(newValue));
+		subscribeToGames();
 	}
 
-	@FXML
-	void refresh() {
-		fetchGames();
+	@Override
+	public void destroy() {
+		if (timeline != null) {
+			timeline.stop();
+		}
+		destroyPublisher.complete();
 	}
 
-	private void fetchGames() {
+	private void subscribeToGames() {
 		loading.set(true);
-		GAME_SERVICE.getGames().subscribe(gameViews -> {
+		GAME_SERVICE.games().takeUntil(destroyPublisher.asObservable()).subscribe(gameViews -> {
 			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
 			Collections.reverse(gameItems);
 			gameItems.forEach(gameItem -> gameItem.setOnMouseClicked(event -> onItemClick(gameItem, event)));
@@ -71,8 +71,8 @@ public class LobbyController implements Controller<Object> {
 		});
 	}
 
-	private void onItemClick(GameItem gameItem, MouseEvent event) {
-		if (event.getClickCount() == 2) {
+	private void onItemClick(GameItem gameItem, MouseEvent mouseEvent) {
+		if (mouseEvent.getClickCount() == 2) {
 			GameView gameView = gameItem.getGameView();
 			long gameId = gameView.getId();
 			loading.set(true);
@@ -113,13 +113,9 @@ public class LobbyController implements Controller<Object> {
 						});
 						break;
 					case CONNECTED:
-						ControllerCommunicator.startGameCommand().toMono().subscribe(startGameCommand -> {
-							waitingPlayersLabel.setVisible(false);
-							timeline.stop();
-							JouskaUI.switchScene(ComponentType.GAME, startGameCommand);
-						});
 						break;
 					default:
+						throw new IllegalStateException();
 				}
 			});
 		}

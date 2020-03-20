@@ -13,7 +13,8 @@ public final class StartedInterceptor implements AnnotationInterceptor<Game, Thr
 
 	@Override
 	public Object intercept(ThrowIfNotStarted annotation, InterceptionContext<Game> context) {
-		if (!context.getProxy().isStarted()) {
+		Game game = context.getProxy();
+		if (!game.isStarted()) {
 			throw new IllegalStateException("Game does not started");
 		}
 		return None.SELF;

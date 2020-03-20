@@ -6,14 +6,17 @@ import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
 import com.github.tix320.jouska.core.dto.TournamentStructure;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.sonder.api.common.rpc.Origin;
+import com.github.tix320.sonder.api.common.rpc.Subscribe;
 
 @Origin("tournament")
 public interface ClientTournamentService {
 
 	@Origin("list")
-	MonoObservable<List<TournamentView>> getTournaments();
+	@Subscribe
+	Observable<List<TournamentView>> getTournaments();
 
 	@Origin("structure")
 	MonoObservable<TournamentStructure> getStructure(long tournamentId);

@@ -16,10 +16,10 @@ public class AuthenticationService {
 			Alert alert = new Alert(AlertType.WARNING);
 			alert.setTitle("WARNING");
 			alert.setHeaderText("Another logged session found.");
-			alert.setContentText("Other session logged , idi naxuy.");
+			alert.setContentText("Other session logged, good bye.");
 
 			alert.showAndWait();
-			JouskaUI.switchScene(ComponentType.LOGIN);
+			JouskaUI.switchComponent(ComponentType.LOGIN);
 		});
 	}
 }

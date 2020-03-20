@@ -8,7 +8,6 @@ import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
-import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
@@ -31,7 +30,7 @@ public class LoginController implements Controller<LoginCommand> {
 	private Label errorLabel;
 
 	@Override
-	public void initialize(LoginCommand loginCommand) {
+	public void init(LoginCommand loginCommand) {
 		if (loginCommand != null) {
 			nicknameInput.setText(loginCommand.getNickname());
 			passwordInput.setText(loginCommand.getPassword());
@@ -40,13 +39,18 @@ public class LoginController implements Controller<LoginCommand> {
 				.bind(nicknameInput.textProperty().isEmpty().or(passwordInput.textProperty().isEmpty()));
 	}
 
-	public void login(ActionEvent event) {
+	@Override
+	public void destroy() {
+
+	}
+
+	public void login() {
 		LoginCommand loginCommand = new LoginCommand(nicknameInput.getText(), passwordInput.getText());
 		AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
 			switch (loginAnswer) {
 				case SUCCESS:
 					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
-					JouskaUI.switchScene(ComponentType.MENU);
+					JouskaUI.switchComponent(ComponentType.MENU);
 					break;
 				case ALREADY_LOGGED:
 					Platform.runLater(() -> {
@@ -61,7 +65,7 @@ public class LoginController implements Controller<LoginCommand> {
 							AUTHENTICATION_SERVICE.forceLogin(loginCommand).subscribe(answer -> {
 								switch (answer) {
 									case SUCCESS:
-										JouskaUI.switchScene(ComponentType.MENU);
+										JouskaUI.switchComponent(ComponentType.MENU);
 										break;
 									case INVALID_CREDENTIALS:
 										showError("Invalid username/password");
@@ -72,7 +76,7 @@ public class LoginController implements Controller<LoginCommand> {
 							});
 						}
 						else {
-							JouskaUI.switchScene(ComponentType.LOGIN, loginCommand);
+							JouskaUI.switchComponent(ComponentType.LOGIN, loginCommand);
 						}
 					});
 					break;
@@ -85,8 +89,8 @@ public class LoginController implements Controller<LoginCommand> {
 		});
 	}
 
-	public void registerNewAccount(ActionEvent event) {
-		JouskaUI.switchScene(ComponentType.REGISTRATION);
+	public void registerNewAccount() {
+		JouskaUI.switchComponent(ComponentType.REGISTRATION);
 	}
 
 	public void showError(String message) {
