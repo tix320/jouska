@@ -1,9 +1,6 @@
 package com.github.tix320.jouska.server.service.endpoint;
 
-import com.github.tix320.jouska.core.dto.LoginAnswer;
-import com.github.tix320.jouska.core.dto.LoginCommand;
-import com.github.tix320.jouska.core.dto.RegistrationAnswer;
-import com.github.tix320.jouska.core.dto.RegistrationCommand;
+import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.entity.PlayerEntity;

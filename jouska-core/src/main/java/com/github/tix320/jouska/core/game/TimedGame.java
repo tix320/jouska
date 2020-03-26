@@ -1,28 +1,15 @@
 package com.github.tix320.jouska.core.game;
 
 import java.time.Duration;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.*;
+import java.util.Map.Entry;
 
-import com.github.tix320.jouska.core.game.proxy.CompletedInterceptor;
-import com.github.tix320.jouska.core.game.proxy.StartedInterceptor;
-import com.github.tix320.jouska.core.game.proxy.ThrowIfCompleted;
-import com.github.tix320.jouska.core.game.proxy.ThrowIfNotStarted;
-import com.github.tix320.jouska.core.model.*;
-import com.github.tix320.kiwi.api.proxy.AnnotationBasedProxyCreator;
-import com.github.tix320.kiwi.api.proxy.ProxyCreator;
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.kiwi.api.reactive.publisher.SimplePublisher;
 import com.github.tix320.kiwi.api.util.None;
 
 public class TimedGame implements Game {
-
-	private static final ProxyCreator<TimedGame> PROXY = new AnnotationBasedProxyCreator<>(TimedGame.class,
-			List.of(new StartedInterceptor(), new CompletedInterceptor()));
 
 	private final Game game;
 
@@ -31,37 +18,35 @@ public class TimedGame implements Game {
 	private final int gameDurationMinutes;
 
 	private final Timer turnTimer;
-	private volatile TimerTask lastTurnTimerTask;
-	private volatile TimerTask gameTimerTask;
-
-	private SimplePublisher<None> turnTimeExpirationPublisher;
-	private MonoPublisher<None> gameTimeExpirationPublisher;
+	private final Timer gameTimer;
+	private volatile TurnTimerTask lastTurnTimerTask;
+	private volatile GameTimerTask gameTimerTask;
 
 	public static TimedGame create(Game game, int turnTimeSeconds, int gameDurationMinutes) {
-		return PROXY.create(game, turnTimeSeconds, gameDurationMinutes);
+		return new TimedGame(game, turnTimeSeconds, gameDurationMinutes);
 	}
 
-	public TimedGame(Game game, int turnDurationSeconds, int gameDurationMinutes) {
+	private TimedGame(Game game, int turnDurationSeconds, int gameDurationMinutes) {
 		this.game = game;
 		this.turnDurationSeconds = turnDurationSeconds;
 		this.gameDurationMinutes = gameDurationMinutes;
 		this.turnTimer = new Timer(true);
-		gameTimerTask = new GameTimerTask();
-		this.turnTimeExpirationPublisher = Publisher.simple();
-		this.gameTimeExpirationPublisher = Publisher.mono();
+		this.gameTimer = new Timer(true);
+		this.gameTimerTask = new GameTimerTask();
+		this.lastTurnTimerTask = new TurnTimerTask(game.getCurrentPlayer().getRealPlayer());
 	}
 
-	@ThrowIfCompleted
 	@Override
 	public void start() {
 		completed().subscribe(players -> {
-			cancelTurnTimerTask();
+			lastTurnTimerTask.cancel();
 			gameTimerTask.cancel();
-			turnTimeExpirationPublisher.complete();
 		});
-		new Timer(true).schedule(gameTimerTask, Duration.ofMinutes(gameDurationMinutes).toMillis());
 
 		game.start();
+
+		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(turnDurationSeconds).toMillis());
+		gameTimer.schedule(gameTimerTask, Duration.ofMinutes(gameDurationMinutes).toMillis());
 	}
 
 	@Override
@@ -69,29 +54,25 @@ public class TimedGame implements Game {
 		return game.isStarted();
 	}
 
-	@ThrowIfNotStarted
-	@ThrowIfCompleted
 	@Override
-	public void turn(Point point) {
-		cancelTurnTimerTask();
-		game.turn(point);
+	public synchronized CellChange turn(Point point) {
+		lastTurnTimerTask.cancel();
+		CellChange cellChange = game.turn(point);
+		double seconds = calculateApproximateTime(cellChange);
+		Player currentPLayer = getCurrentPlayer().getRealPlayer();
+		int nextTurnSeconds = ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable.
+		runTurnTimer(currentPLayer, nextTurnSeconds);
+		return cellChange;
 	}
 
 	@Override
-	public GameSettings getSettings() {
-		GameSettings settings = game.getSettings();
-		return new GameSettings(settings.getName(), GameType.TIMED, settings.getBoardType(), settings.getPlayersCount(),
-				turnDurationSeconds, gameDurationMinutes);
-	}
-
-	@Override
-	public CellInfo[][] getBoard() {
+	public BoardCell[][] getBoard() {
 		return game.getBoard();
 	}
 
 	@Override
-	public Observable<CellChange> turns() {
-		return game.turns();
+	public Observable<GameChange> changes() {
+		return game.changes();
 	}
 
 	@Override
@@ -105,12 +86,17 @@ public class TimedGame implements Game {
 	}
 
 	@Override
+	public List<InGamePlayer> getActivePlayers() {
+		return game.getActivePlayers();
+	}
+
+	@Override
 	public InGamePlayer getCurrentPlayer() {
 		return game.getCurrentPlayer();
 	}
 
 	@Override
-	public InGamePlayer ownerOfPoint(Point point) {
+	public Optional<InGamePlayer> ownerOfPoint(Point point) {
 		return game.ownerOfPoint(point);
 	}
 
@@ -120,27 +106,27 @@ public class TimedGame implements Game {
 	}
 
 	@Override
-	public Observable<InGamePlayer> lostPlayers() {
-		return game.lostPlayers();
+	public List<InGamePlayer> getLostPlayers() {
+		return game.getLostPlayers();
 	}
 
 	@Override
-	public MonoObservable<InGamePlayer> winner() {
-		return game.winner();
+	public Optional<InGamePlayer> getWinner() {
+		return game.getWinner();
 	}
 
 	@Override
-	public Observable<PlayerWithPoints> kickedPlayers() {
-		return game.kickedPlayers();
+	public List<PlayerWithPoints> getKickedPlayers() {
+		return game.getKickedPlayers();
 	}
 
 	@Override
-	public void kick(Player player) {
-		game.kick(player);
+	public synchronized PlayerWithPoints kick(Player player) {
+		return game.kick(player);
 	}
 
 	@Override
-	public void forceCompleteGame(Player winner) {
+	public synchronized void forceCompleteGame(Player winner) {
 		game.forceCompleteGame(winner);
 	}
 
@@ -149,33 +135,78 @@ public class TimedGame implements Game {
 		return game.completed();
 	}
 
-	public Observable<None> turnTimeExpiration() {
-		return turnTimeExpirationPublisher.asObservable();
-	}
-
-	public MonoObservable<None> gameTimeExpiration() {
-		return gameTimeExpirationPublisher.asObservable();
-	}
-
-	public void runTurnTimer() {
-		lastTurnTimerTask = new TurnTimerTask();
-		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(turnDurationSeconds).toMillis());
-	}
-
-	private void cancelTurnTimerTask() {
-		lastTurnTimerTask.cancel();
-	}
-
 	@Override
 	public boolean isCompleted() {
 		return game.isCompleted();
 	}
 
+	private void runTurnTimer(Player player, int seconds) {
+		lastTurnTimerTask.cancel();
+		lastTurnTimerTask = new TurnTimerTask(player);
+		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(seconds).toMillis());
+	}
+
+	private static double calculateApproximateTime(CellChange root) {
+		double tileAnimationSeconds = Constants.GAME_BOARD_TILE_ANIMATION_SECONDS;
+
+		double animationTime = tileAnimationSeconds;
+
+		if (root.getChildren().isEmpty()) {
+			return animationTime;
+		}
+
+		if (root.getChildren().size() != 1) {
+			throw new IllegalStateException("Illegal size: " + root.getChildren().size());
+		}
+
+		Deque<CellChange> changesStack = new LinkedList<>();
+		changesStack.add(root);
+		while (!changesStack.isEmpty()) {
+			CellChange cellChange = changesStack.removeFirst();
+
+			if (cellChange.getChildren().isEmpty()) {
+				continue;
+			}
+
+			if (cellChange.isCollapse()) {
+				if (cellChange.getChildren().size() != 1) {
+					throw new IllegalStateException("Illegal size: " + cellChange.getChildren().size());
+				}
+
+				CellChange collapsingChange = cellChange.getChildren().get(0);
+				changesStack.addAll(collapsingChange.getChildren());
+				animationTime += tileAnimationSeconds;
+			}
+
+			animationTime += tileAnimationSeconds;
+		}
+
+		return animationTime;
+	}
+
 	private class TurnTimerTask extends TimerTask {
+
+		private final Player player;
+
+		private TurnTimerTask(Player player) {
+			this.player = player;
+		}
 
 		@Override
 		public void run() {
-			turnTimeExpirationPublisher.publish(None.SELF);
+			synchronized (TimedGame.this) {
+				List<Point> points = getPointsBelongedToPlayer(player);
+				int randomIndex = (int) (Math.random() * points.size());
+				Point randomPoint = points.get(randomIndex);
+				try {
+					turn(randomPoint);
+				}
+				catch (IllegalTurnActorException e) { // Real player already made their turn, skip our random turn
+					System.err.println(
+							"Do not pay attention to this error. If you do not have any bugs, then this is normal: " + e
+									.getMessage());
+				}
+			}
 		}
 	}
 
@@ -183,7 +214,20 @@ public class TimedGame implements Game {
 
 		@Override
 		public void run() {
-			gameTimeExpirationPublisher.publish(None.SELF);
+			synchronized (TimedGame.this) {
+				Map<InGamePlayer, Integer> summaryPoints = getStatistics().summaryPoints();
+				Iterator<Entry<InGamePlayer, Integer>> iterator = summaryPoints.entrySet().iterator();
+
+				Map.Entry<InGamePlayer, Integer> maxEntry = iterator.next();
+				while (iterator.hasNext()) {
+					Entry<InGamePlayer, Integer> entry = iterator.next();
+					if (entry.getValue() > maxEntry.getValue()) {
+						maxEntry = entry;
+					}
+				}
+				InGamePlayer winner = maxEntry.getKey();
+				forceCompleteGame(winner.getRealPlayer());
+			}
 		}
 	}
 }

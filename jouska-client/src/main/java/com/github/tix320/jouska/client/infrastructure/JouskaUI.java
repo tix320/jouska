@@ -4,11 +4,11 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.Version;
-import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.ui.controller.Component;
 import com.github.tix320.jouska.client.ui.controller.Controller;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -116,7 +116,7 @@ public final class JouskaUI {
 	}
 
 	private static void initEvents() {
-		EventDispatcher.on(GameStartedEvent.class).toMono().subscribe(event -> {
+		EventDispatcher.on(GameStartedEvent.class).subscribe(event -> {
 			StartGameCommand startGameCommand = event.getStartGameCommand();
 			JouskaUI.switchComponent(ComponentType.GAME, startGameCommand);
 		});

@@ -2,120 +2,149 @@ package com.github.tix320.jouska.core.game;
 
 import java.util.*;
 import java.util.Map.Entry;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.core.game.proxy.CompletedInterceptor;
-import com.github.tix320.jouska.core.game.proxy.StartedInterceptor;
-import com.github.tix320.jouska.core.game.proxy.ThrowIfCompleted;
-import com.github.tix320.jouska.core.game.proxy.ThrowIfNotStarted;
+import com.github.tix320.jouska.core.game.creation.GameBoards;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
 import com.github.tix320.jouska.core.model.*;
-import com.github.tix320.kiwi.api.proxy.AnnotationBasedProxyCreator;
-import com.github.tix320.kiwi.api.proxy.ProxyCreator;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
 import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.kiwi.api.util.collection.Tuple;
+
+import static java.util.stream.Collectors.toMap;
 
 public class SimpleGame implements Game {
 
-	private static final ProxyCreator<SimpleGame> PROXY = new AnnotationBasedProxyCreator<>(SimpleGame.class,
-			List.of(new StartedInterceptor(), new CompletedInterceptor()));
-
 	private static final int MAX_POINTS = 4;
-
-	private final GameSettings settings;
-
-	private final CellInfo[][] board;
 
 	private final List<InGamePlayer> players;
 
-	private volatile InGamePlayer currentPlayer;
+	// ------------ Game State
+	private final BoardCell[][] board;
+	private final List<InGamePlayer> activePlayers;
+	private final AtomicReference<InGamePlayer> currentPlayer;
+	private final Stock<GameChange> changes;
+	private final AtomicReference<GameState> gameState;
+	private final AtomicReference<InGamePlayer> winner;
+	private final List<InGamePlayer> lostPlayers;
+	private final List<PlayerWithPoints> kickPlayers;
+	private final Map<InGamePlayer, Integer> summaryStatistics;
 
-	private final Stock<CellChange> turns;
-	private final Property<Map<InGamePlayer, Integer>> summaryStatistics;
-	private final Stock<InGamePlayer> lostPlayers;
-	private final Property<InGamePlayer> winner;
-	private final Stock<PlayerWithPoints> kickPlayers;
-	private final Property<GameState> gameState;
-
-	public static SimpleGame create(GameSettings gameSettings, GameBoard board, List<InGamePlayer> players) {
-		return PROXY.create(gameSettings, board, players);
+	public static SimpleGame createPredefined(GameBoard board, List<InGamePlayer> players) {
+		if (players.size() < 2) {
+			throw new IllegalArgumentException("Players must be >=2");
+		}
+		return new SimpleGame(board, players);
 	}
 
-	public SimpleGame(GameSettings settings, GameBoard board, List<InGamePlayer> players) {
-		this.settings = settings;
-		Map<InGamePlayer, Integer> playerSummaryPoints = new HashMap<>();
-		for (InGamePlayer player : players) {
-			playerSummaryPoints.put(player, 0);
+	public static SimpleGame createRandom(GameSettings gameSettings, Set<Player> players) {
+		if (players.size() < 2) {
+			throw new IllegalArgumentException("Players must be >=2");
+		}
+		if (gameSettings.getPlayersCount() != players.size()) {
+			throw new IllegalStateException();
 		}
 
-		turns = Stock.forObject();
-		summaryStatistics = Property.forObject(playerSummaryPoints);
-		lostPlayers = Stock.forObject();
-		winner = Property.forObject();
-		kickPlayers = Stock.forObject();
-		gameState = Property.forObject(GameState.INITIAL);
+		Tuple<List<InGamePlayer>, GameBoard> tuple = prepare(gameSettings, players);
+		GameBoard board = tuple.second();
+		List<InGamePlayer> gamePLayers = tuple.first();
 
-		this.players = new ArrayList<>(players);
-		this.currentPlayer = players.get(0);
+		return new SimpleGame(board, gamePLayers);
+	}
+
+	private SimpleGame(GameBoard board, List<InGamePlayer> players) {
+		this.changes = Stock.forObject();
+		this.gameState = new AtomicReference<>(GameState.INITIAL);
+		this.summaryStatistics = new HashMap<>();
+		this.lostPlayers = new ArrayList<>();
+		this.winner = new AtomicReference<>();
+		this.kickPlayers = new ArrayList<>();
+		this.players = List.copyOf(players);
+		this.activePlayers = new ArrayList<>(players);
+		this.currentPlayer = new AtomicReference<>(players.get(0));
 		this.board = board.getMatrix();
-
-		completed().subscribe(state -> closeProperties());
 	}
 
-	@ThrowIfCompleted
-	@Override
-	public void start() {
-		if (gameState.get() == GameState.STARTED) {
-			throw new RuntimeException("Already started");
+	private static Tuple<List<InGamePlayer>, GameBoard> prepare(GameSettings gameSettings, Set<Player> players) {
+		int playersCount = gameSettings.getPlayersCount();
+
+		PlayerColor[] colors = PlayerColor.getRandomPlayers(playersCount);
+
+		List<Player> playersList = players.stream().collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
+			Collections.shuffle(list);
+			return list;
+		}));
+
+		List<InGamePlayer> gamePlayers = new ArrayList<>(playersList.size());
+		for (int i = 0; i < playersList.size(); i++) {
+			Player player = playersList.get(i);
+			PlayerColor playerColor = colors[i];
+			gamePlayers.add(new InGamePlayer(player, playerColor));
 		}
+
+		GameBoard board = GameBoards.createByType(gameSettings.getBoardType(), Arrays.asList(colors));
+		return new Tuple<>(gamePlayers, board);
+	}
+
+	@Override
+	public synchronized void start() {
+		if (gameState.get() != GameState.INITIAL) {
+			throw new RuntimeException("Game Already started");
+		}
+
 		initBoard();
 		gameState.set(GameState.STARTED);
 	}
 
-	@ThrowIfNotStarted
-	@ThrowIfCompleted
-	public void turn(Point point) {
+	public synchronized CellChange turn(Point point) {
+		failIfNotInProgress();
 		int i = point.i;
 		int j = point.j;
-		CellInfo cellInfo = board[i][j];
-		PlayerColor player = cellInfo.getPlayer();
-		InGamePlayer currentPlayer = getCurrentPlayer();
+		BoardCell boardCell = board[i][j];
+		PlayerColor player = boardCell.getColor();
+		InGamePlayer currentPlayer = this.currentPlayer.get();
 		if (currentPlayer.getColor() != player) {
-			throw new IllegalStateException(
+			throw new IllegalTurnActorException(
 					String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
 							currentPlayer, i, j, Objects.requireNonNullElse(player, "None")));
 		}
 
-
 		CellChange cellChange = turn(point, player);
-		this.currentPlayer = nextPlayer();
-		turns.add(cellChange);
-		checkLoses();
-		checkWinner();
+
+		resolveNextPlayer();
+		checkStatistics();
+		boolean needComplete = checkPlayers();
+
+		changes.add(new PlayerTurn(cellChange));
+
+		if (needComplete) {
+			completeGame();
+		}
+
+		return cellChange;
 	}
 
-	@Override
-	public GameSettings getSettings() {
-		return settings;
-	}
-
-	public CellInfo[][] getBoard() {
+	public BoardCell[][] getBoard() {
 		return board;
 	}
 
-	public Observable<CellChange> turns() {
-		return turns.asObservable();
+	public Observable<GameChange> changes() {
+		return changes.asObservable();
 	}
 
-	@ThrowIfNotStarted
 	@Override
-	public List<Point> getPointsBelongedToPlayer(Player player) {
-		PlayerColor playerColor = findGamePlayerByPlayer(player).getColor();
+	public synchronized List<Point> getPointsBelongedToPlayer(Player player) {
+		failIfNotStarted();
+		InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
+
+		PlayerColor playerColor = gamePlayer.getColor();
 		List<Point> points = new ArrayList<>();
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[i].length; j++) {
-				if (board[i][j].getPlayer() == playerColor) {
+				if (board[i][j].getColor() == playerColor) {
 					points.add(new Point(i, j));
 				}
 			}
@@ -129,113 +158,143 @@ public class SimpleGame implements Game {
 		return players;
 	}
 
-	@ThrowIfCompleted
-	public InGamePlayer getCurrentPlayer() {
-		return currentPlayer;
+	@Override
+	public synchronized List<InGamePlayer> getActivePlayers() {
+		return Collections.unmodifiableList(activePlayers);
 	}
 
-	@ThrowIfNotStarted
-	public InGamePlayer ownerOfPoint(Point point) {
-		PlayerColor playerColor = board[point.i][point.j].getPlayer();
-		if (playerColor == null) {
-			return null;
+	public synchronized InGamePlayer getCurrentPlayer() {
+		failIfCompleted();
+		return currentPlayer.get();
+	}
+
+	public synchronized Optional<InGamePlayer> ownerOfPoint(Point point) {
+		failIfNotStarted();
+		PlayerColor color = board[point.i][point.j].getColor();
+		if (color == null) {
+			return Optional.empty();
 		}
-		return getPlayerByColor(playerColor);
+		return Optional.of(getPlayerByColor(color));
 	}
 
-	public Statistics getStatistics() {
-		return summaryStatistics::asObservable;
+	public synchronized Statistics getStatistics() {
+		return () -> Collections.unmodifiableMap(summaryStatistics);
 	}
 
-	public Observable<InGamePlayer> lostPlayers() {
-		return lostPlayers.asObservable();
-	}
-
-	@Override
-	public MonoObservable<InGamePlayer> winner() {
-		return winner.asObservable().toMono();
+	public synchronized List<InGamePlayer> getLostPlayers() {
+		return Collections.unmodifiableList(lostPlayers);
 	}
 
 	@Override
-	public Observable<PlayerWithPoints> kickedPlayers() {
-		return kickPlayers.asObservable();
+	public synchronized Optional<InGamePlayer> getWinner() {
+		return Optional.ofNullable(winner.get());
 	}
 
-	@ThrowIfNotStarted
 	@Override
-	public void kick(Player player) {
+	public synchronized List<PlayerWithPoints> getKickedPlayers() {
+		return Collections.unmodifiableList(kickPlayers);
+	}
+
+	@Override
+	public synchronized PlayerWithPoints kick(Player player) {
+		failIfNotInProgress();
 		List<Point> pointsBelongedToPlayer = getPointsBelongedToPlayer(player);
 		for (Point point : pointsBelongedToPlayer) {
-			putInfoToPoint(point, new CellInfo(null, 0));
+			putInfoToPoint(point, new BoardCell(null, 0));
 		}
 		InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
+		PlayerWithPoints playerWithPoints = new PlayerWithPoints(gamePlayer, pointsBelongedToPlayer);
+		kickPlayers.add(playerWithPoints);
 		lostPlayers.add(gamePlayer);
-		kickPlayers.add(new PlayerWithPoints(gamePlayer, pointsBelongedToPlayer));
-		checkWinner();
+		changes.add(new PlayerKick(playerWithPoints));
+
+		boolean needComplete = checkPlayers();
+
+		if (needComplete) {
+			completeGame();
+		}
+
+		return playerWithPoints;
 	}
 
-	@ThrowIfNotStarted
-	@ThrowIfCompleted
 	@Override
-	public void forceCompleteGame(Player winner) {
+	public synchronized void forceCompleteGame(Player winner) {
+		failIfNotInProgress();
 		InGamePlayer winnerPlayer = findGamePlayerByPlayer(winner);
-		List<InGamePlayer> remainingPlayers = getRemainingPlayers();
+		List<InGamePlayer> remainingPlayers = new ArrayList<>(activePlayers);
 
 		remainingPlayers.remove(winnerPlayer);
+
 		lostPlayers.addAll(remainingPlayers);
 		this.winner.set(winnerPlayer);
-
-		gameState.set(GameState.COMPLETED);
 	}
 
 	@Override
 	public MonoObservable<None> completed() {
-		return gameState.asObservable()
-				.filter(state -> state == GameState.COMPLETED)
+		return changes.asObservable()
+				.filter(change -> change instanceof GameComplete)
 				.map(aBoolean -> None.SELF)
 				.toMono();
 	}
 
 	@Override
-	public boolean isStarted() {
-		return gameState.get() == GameState.STARTED || gameState.get() == GameState.COMPLETED;
+	public synchronized boolean isStarted() {
+		GameState state = gameState.get();
+		return state == GameState.STARTED || state == GameState.COMPLETED;
 	}
 
 	@Override
-	public boolean isCompleted() {
+	public synchronized boolean isCompleted() {
 		return gameState.get() == GameState.COMPLETED;
 	}
 
+	private List<InGamePlayer> resolveActivePlayers() {
+		List<InGamePlayer> activePLayers = new ArrayList<>(this.players);
+		activePLayers.removeAll(this.lostPlayers);
+		activePLayers.removeAll(
+				this.kickPlayers.stream().map(PlayerWithPoints::getPlayer).collect(Collectors.toList()));
+		return activePLayers;
+	}
+
 	private void initBoard() {
+		Map<InGamePlayer, Integer> statistics = players.stream().collect(toMap(player -> player, player -> 0));
 		for (int i = 0; i < board.length; i++) {
 			for (int j = 0; j < board[i].length; j++) {
-				CellInfo cellInfo = board[i][j];
-				PlayerColor player = cellInfo.getPlayer();
-				if (player != null) {
-					changePointsForPlayer(player, cellInfo.getPoints());
+				BoardCell boardCell = board[i][j];
+				PlayerColor color = boardCell.getColor();
+				board[i][j] = boardCell;
+				if (color != null) {
+					InGamePlayer player = getPlayerByColor(boardCell.getColor());
+					statistics.compute(player, (p, points) -> {
+						if (points == null) {
+							throw new IllegalStateException();
+						}
+						return points + boardCell.getPoints();
+					});
 				}
-				board[i][j] = cellInfo;
 			}
 		}
+
+		summaryStatistics.putAll(statistics);
 	}
 
 	private CellChange turn(Point rootPoint, PlayerColor player) {
 		int rootNextPoint = Math.min(MAX_POINTS, getPointsOf(rootPoint) + 1);
 		if (rootNextPoint < MAX_POINTS) {
-			CellInfo cellInfo = new CellInfo(player, rootNextPoint);
-			putInfoToPoint(rootPoint, cellInfo);
-			return new CellChange(rootPoint, cellInfo, false, Collections.emptyList());
+			BoardCell boardCell = new BoardCell(player, rootNextPoint);
+			putInfoToPoint(rootPoint, boardCell);
+			return new CellChange(rootPoint, boardCell, false, Collections.emptyList());
 		}
 		else {
 			Set<Point> waitingCollapses = new HashSet<>();
-			CellInfo rootCollapsingCellInfo = new CellInfo(null, 0);
-			putInfoToPoint(rootPoint, rootCollapsingCellInfo);
+			BoardCell rootCollapsingBoardCell = new BoardCell(null, 0);
+			putInfoToPoint(rootPoint, rootCollapsingBoardCell);
 
-			final CellChange rootFulling = new CellChange(rootPoint, new CellInfo(player, rootNextPoint), true,
+			final CellChange rootFulling = new CellChange(rootPoint, new BoardCell(player, rootNextPoint), true,
 					new ArrayList<>());
-			final CellChange rootCollapsing = new CellChange(rootPoint, rootCollapsingCellInfo, false,
+			final CellChange rootCollapsing = new CellChange(rootPoint, rootCollapsingBoardCell, false,
 					new ArrayList<>());
-			rootFulling.children.add(rootCollapsing);
+			rootFulling.getChildren().add(rootCollapsing);
 
 			Queue<PointWithCellChange> pointsQueue = new LinkedList<>();
 
@@ -244,10 +303,10 @@ public class SimpleGame implements Game {
 			for (Point point : childPoints) {
 				int points = getPointsOf(point);
 				int nextPoint = Math.min(MAX_POINTS, points + 1);
-				CellInfo cellInfo = new CellInfo(player, nextPoint);
-				putInfoToPoint(point, cellInfo);
-				CellChange cellChange = new CellChange(point, cellInfo, nextPoint == MAX_POINTS, new ArrayList<>());
-				rootCollapsing.children.add(cellChange);
+				BoardCell boardCell = new BoardCell(player, nextPoint);
+				putInfoToPoint(point, boardCell);
+				CellChange cellChange = new CellChange(point, boardCell, nextPoint == MAX_POINTS, new ArrayList<>());
+				rootCollapsing.getChildren().add(cellChange);
 				if (nextPoint == MAX_POINTS) {
 					waitingCollapses.add(point);
 					pointsQueue.add(new PointWithCellChange(point, cellChange));
@@ -258,22 +317,22 @@ public class SimpleGame implements Game {
 				PointWithCellChange pointWithCellChange = pointsQueue.remove();
 				waitingCollapses.remove(pointWithCellChange.point);
 
-				CellInfo collapsingCellInfo = new CellInfo(null, 0);
-				putInfoToPoint(pointWithCellChange.point, collapsingCellInfo);
+				BoardCell collapsingBoardCell = new BoardCell(null, 0);
+				putInfoToPoint(pointWithCellChange.point, collapsingBoardCell);
 
-				final CellChange collapsing = new CellChange(pointWithCellChange.point, collapsingCellInfo, false,
+				final CellChange collapsing = new CellChange(pointWithCellChange.point, collapsingBoardCell, false,
 						new ArrayList<>());
-				pointWithCellChange.cellChange.children.add(collapsing);
+				pointWithCellChange.cellChange.getChildren().add(collapsing);
 
 				List<Point> childrenPoints = findNeighbors(pointWithCellChange.point);
 				for (Point childPoint : childrenPoints) {
 					int points = getPointsOf(childPoint);
 					int nextPoint = Math.min(MAX_POINTS, points + 1);
-					CellInfo childCellInfo = new CellInfo(player, nextPoint);
-					putInfoToPoint(childPoint, childCellInfo);
-					CellChange cellChange = new CellChange(childPoint, childCellInfo, nextPoint == MAX_POINTS,
+					BoardCell childBoardCell = new BoardCell(player, nextPoint);
+					putInfoToPoint(childPoint, childBoardCell);
+					CellChange cellChange = new CellChange(childPoint, childBoardCell, nextPoint == MAX_POINTS,
 							new ArrayList<>());
-					collapsing.children.add(cellChange);
+					collapsing.getChildren().add(cellChange);
 					if (nextPoint == MAX_POINTS && !waitingCollapses.contains(childPoint)) {
 						waitingCollapses.add(childPoint);
 						pointsQueue.add(new PointWithCellChange(childPoint, cellChange));
@@ -286,26 +345,95 @@ public class SimpleGame implements Game {
 		}
 	}
 
+	private void resolveNextPlayer() {
+		InGamePlayer currentPlayer = this.currentPlayer.get();
+
+		while (true) {
+			InGamePlayer nextPlayer = getNextPlayerOf(currentPlayer);
+			if (activePlayers.contains(nextPlayer)) {
+				this.currentPlayer.set(nextPlayer);
+				break;
+			}
+			else {
+				currentPlayer = nextPlayer;
+			}
+		}
+	}
+
+	private void checkStatistics() {
+		for (Entry<InGamePlayer, Integer> entry : summaryStatistics.entrySet()) {
+			InGamePlayer player = entry.getKey();
+			Integer points = entry.getValue();
+			if (points == 0) {
+				lostPlayers.add(player);
+			}
+		}
+	}
+
+	private boolean checkPlayers() {
+		activePlayers.clear();
+		activePlayers.addAll(resolveActivePlayers());
+
+		if (activePlayers.size() == 0) {
+			throw new IllegalStateException();
+		}
+
+		return activePlayers.size() == 1;
+	}
+
+	private InGamePlayer getNextPlayerOf(InGamePlayer player) {
+		int index = players.indexOf(player);
+		if (index == players.size() - 1) {
+			return players.get(0);
+		}
+		else {
+			return players.get(index + 1);
+		}
+	}
+
+	private void completeGame() {
+		InGamePlayer winner = activePlayers.get(0);
+		this.winner.set(winner);
+		changes.add(new GameComplete(winner, lostPlayers));
+		gameState.set(GameState.COMPLETED);
+		changes.close();
+	}
+
 	private InGamePlayer getPlayerByColor(PlayerColor playerColor) {
 		return players.stream()
 				.filter(inGamePlayer -> inGamePlayer.getColor().equals(playerColor))
 				.findFirst()
-				.orElseThrow(IllegalStateException::new);
+				.orElseThrow(() -> new IllegalArgumentException(
+						String.format("Color %s does not exists in this game", playerColor)));
 	}
 
 	private int getPointsOf(Point point) {
 		int i = point.i;
 		int j = point.j;
-		CellInfo cellInfo = board[i][j];
-		return cellInfo.getPoints();
+		BoardCell boardCell = board[i][j];
+		return boardCell.getPoints();
 	}
 
-	private void putInfoToPoint(Point point, CellInfo cellInfo) {
-		CellInfo existCellInfo = board[point.i][point.j];
-		changePointsForPlayer(existCellInfo.getPlayer(), -existCellInfo.getPoints());
-		changePointsForPlayer(cellInfo.getPlayer(), cellInfo.getPoints());
+	private void putInfoToPoint(Point point, BoardCell boardCell) {
+		BoardCell existBoardCell = board[point.i][point.j];
+		board[point.i][point.j] = boardCell;
 
-		board[point.i][point.j] = cellInfo;
+		if (existBoardCell.getColor() != null) {
+			changeColorStatistics(existBoardCell.getColor(), -existBoardCell.getPoints());
+		}
+
+		if (boardCell.getColor() != null) {
+			changeColorStatistics(boardCell.getColor(), boardCell.getPoints());
+		}
+	}
+
+	private void changeColorStatistics(PlayerColor color, int change) {
+		summaryStatistics.compute(getPlayerByColor(color), (inGamePlayer, currentPoints) -> {
+			if (currentPoints == null) {
+				throw new IllegalStateException();
+			}
+			return currentPoints + change;
+		});
 	}
 
 	private List<Point> findNeighbors(Point point) {
@@ -327,84 +455,31 @@ public class SimpleGame implements Game {
 		return points;
 	}
 
-	private void changePointsForPlayer(PlayerColor playerColor, int points) {
-		if (playerColor != null) {
-			InGamePlayer player = getPlayerByColor(playerColor);
-			summaryStatistics.get().compute(player, (inGamePlayer, currentPoints) -> {
-				if (currentPoints == null) {
-					throw new IllegalStateException();
-				}
-				return currentPoints + points;
-			});
-			summaryStatistics.reset();
+	private void failIfNotStarted() {
+		GameState state = gameState.get();
+		if (state == GameState.INITIAL) {
+			throw new IllegalStateException("Game does not started");
 		}
 	}
 
-	private void checkLoses() {
-		Iterator<Entry<InGamePlayer, Integer>> iterator = summaryStatistics.get().entrySet().iterator();
-		while (iterator.hasNext()) {
-			Entry<InGamePlayer, Integer> entry = iterator.next();
-			InGamePlayer player = entry.getKey();
-			Integer points = entry.getValue();
-			if (points == 0) {
-				iterator.remove();
-				if (currentPlayer == player) {
-					this.currentPlayer = previousPlayer();
-				}
-				lostPlayers.add(player);
-			}
+	private void failIfCompleted() {
+		if (gameState.get() == GameState.COMPLETED) {
+			throw new IllegalStateException("Game already completed");
 		}
 	}
 
-	private void checkWinner() {
-		if (lostPlayers.list().size() == this.players.size() - 1) { // 1 player left
-			List<InGamePlayer> leftPlayers = new ArrayList<>(this.players);
-			leftPlayers.removeAll(lostPlayers.list());
-			InGamePlayer gamePlayer = leftPlayers.get(0);
-			forceCompleteGame(gamePlayer.getPlayer());
+	private void failIfNotInProgress() {
+		if (gameState.get() != GameState.STARTED) {
+			throw new IllegalStateException("Game does not started or completed");
 		}
-	}
-
-	private InGamePlayer nextPlayer() {
-		int currentPlayerIndex = players.indexOf(this.currentPlayer);
-		if (currentPlayerIndex == players.size() - 1) {
-			return players.get(0);
-		}
-		else {
-			return players.get(currentPlayerIndex + 1);
-		}
-	}
-
-	private InGamePlayer previousPlayer() {
-		int currentPlayerIndex = players.indexOf(this.currentPlayer);
-		if (currentPlayerIndex == 0) {
-			return players.get(players.size() - 1);
-		}
-		else {
-			return players.get(currentPlayerIndex - 1);
-		}
-	}
-
-	private List<InGamePlayer> getRemainingPlayers() {
-		List<InGamePlayer> remainingPlayers = new ArrayList<>(this.players);
-		remainingPlayers.removeAll(this.lostPlayers.list());
-		return remainingPlayers;
-	}
-
-	private void closeProperties() {
-		turns.close();
-		summaryStatistics.close();
-		lostPlayers.close();
-		winner.close();
-		kickPlayers.close();
-		gameState.close();
 	}
 
 	private InGamePlayer findGamePlayerByPlayer(Player player) {
 		return getPlayers().stream()
-				.filter(inGamePlayer -> inGamePlayer.getPlayer().equals(player))
+				.filter(inGamePlayer -> inGamePlayer.getRealPlayer().equals(player))
 				.findFirst()
-				.orElseThrow();
+				.orElseThrow(() -> new IllegalArgumentException(
+						String.format("Player %s does not participating in this game", player)));
 	}
 
 	private static class PointWithCellChange {

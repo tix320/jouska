@@ -11,6 +11,7 @@ import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
 import com.github.tix320.sonder.api.common.communication.Headers;
+import com.github.tix320.sonder.api.common.communication.LimitedReadableByteChannel;
 
 public class Uploader {
 
@@ -25,8 +26,8 @@ public class Uploader {
 		UploaderService uploaderService = sonderClient.getRPCService(UploaderService.class);
 		Path file = Path.of(filePath);
 		long length = Files.size(file);
-		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY, FileChannel.open(file, StandardOpenOption.READ),
-				length);
+		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY,
+				new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
 		switch (os) {
 			case "WINDOWS":
 				uploaderService.uploadWindows(transfer).subscribe(none -> {

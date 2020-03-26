@@ -1,12 +1,12 @@
 package com.github.tix320.jouska.client.ui.controller;
 
-import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
-import com.github.tix320.jouska.core.model.BoardType;
-import com.github.tix320.jouska.core.model.GameSettings;
-import com.github.tix320.jouska.core.model.GameType;
+import com.github.tix320.jouska.core.game.BoardType;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.game.creation.GameType;
 import javafx.beans.binding.Bindings;
 import javafx.beans.binding.IntegerBinding;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -59,7 +59,7 @@ public class GameCreatingController implements Controller<Object> {
 						.or(turnDurationBinding.lessThan(1))
 						.or(gameDurationInput.textProperty().isEmpty())
 						.or(gameDurationBinding.lessThan(1)));
-		playersCountChoice.setItems(FXCollections.observableArrayList(1, 2, 3, 4));
+		playersCountChoice.setItems(FXCollections.observableArrayList(2, 3, 4));
 		playersCountChoice.setValue(2);
 
 		makeTextFieldNumeric(turnDurationInput);

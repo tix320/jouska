@@ -1,35 +1,48 @@
 package com.github.tix320.jouska.server.service.application;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
-import com.github.tix320.jouska.core.model.GameSettings;
-import com.github.tix320.jouska.server.model.TournamentInfo;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.property.MapProperty;
+import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.util.IDGenerator;
 
 public class TournamentManager {
 
 	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
-	private static final Map<Long, TournamentInfo> tournaments = new ConcurrentHashMap<>();
+	private static final MapProperty<Long, TournamentInfo> tournaments = Property.forMap(new ConcurrentHashMap<>());
 
 	public static long createNewTournament(CreateTournamentCommand createTournamentCommand) {
 		long tournamentId = ID_GENERATOR.next();
-		GameSettings groupGameSettings = createTournamentCommand.getGroupSettings();
-		GameSettings playOffGameSettings = createTournamentCommand.getPlayOffSettings();
-		tournaments.put(tournamentId, new TournamentInfo(tournamentId, createTournamentCommand.getName(),
-				createTournamentCommand.getPlayersCount()));
+		tournaments.put(tournamentId,
+				new TournamentInfo(tournamentId, createTournamentCommand.getTournamentSettings()));
 		return tournamentId;
 	}
 
-	public static List<TournamentInfo> getTournaments() {
-		return new ArrayList<>(tournaments.values());
+	public static Observable<Collection<TournamentInfo>> tournaments() {
+		return tournaments.asObservable().map(Map::values);
 	}
 
 	public static TournamentInfo getTournament(long tournamentId) {
-		return tournaments.get(tournamentId);
+		TournamentInfo tournamentInfo = tournaments.get(tournamentId);
+		failIfTournamentNull(tournamentId, tournamentInfo);
+		return tournamentInfo;
+	}
+
+	public static void joinTournament(long tournamentId) {
+		TournamentInfo tournamentInfo = tournaments.get(tournamentId);
+		failIfTournamentNull(tournamentId, tournamentInfo);
+
+		int maxPlayersCount = tournamentInfo.getTournamentSettings().getPlayersCount();
+	}
+
+	private static void failIfTournamentNull(long tournamentId, TournamentInfo tournamentInfo) {
+		if (tournamentInfo == null) {
+			throw new IllegalArgumentException(String.format("Tournament `%s` does not exists", tournamentId));
+		}
 	}
 
 }

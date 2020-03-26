@@ -1,49 +1,32 @@
 package com.github.tix320.jouska.server.service.endpoint;
 
-import java.util.List;
-import java.util.stream.Collectors;
-
-import com.github.tix320.jouska.core.dto.CreateGameCommand;
-import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
-import com.github.tix320.jouska.core.dto.GameView;
-import com.github.tix320.jouska.core.model.GameSettings;
+import com.github.tix320.jouska.core.dto.GameChangeDto;
+import com.github.tix320.jouska.core.game.Game;
+import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.game.Point;
 import com.github.tix320.jouska.server.service.application.GameManager;
-import com.github.tix320.jouska.server.service.application.PlayerService;
-import com.github.tix320.jouska.server.service.endpoint.authentication.NeedAuthentication;
+import com.github.tix320.jouska.server.service.endpoint.auth.CallerUser;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
-import com.github.tix320.sonder.api.common.rpc.Subscribe;
-import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
+import com.github.tix320.sonder.api.common.rpc.Subscription;
 
-@Endpoint("game")
+@Endpoint("in-game")
 public class ServerGameEndpoint {
 
-	@Endpoint("info")
-	@Subscribe
-	@NeedAuthentication
-	public Observable<List<GameView>> getGames(@ClientID long clientId) {
-		return GameManager.games().map(games -> games.stream().map(gameInfo -> {
-			GameSettings settings = gameInfo.getSettings();
-			return new GameView(gameInfo.getId(), settings.getName(), gameInfo.getConnectedPlayers().size(),
-					settings.getPlayersCount(), settings.getTurnDurationSeconds(),
-					settings.getGameDurationMinutes());
-		}).collect(Collectors.toList()));
+	@Endpoint("changes")
+	@Subscription
+	public Observable<GameChangeDto> changes(long gameId, @CallerUser Player player) {
+		Game game = GameManager.getGame(gameId);
+		return game.changes().map(GameChangeDto::fromModel);
 	}
 
-	@Endpoint("connect")
-	@NeedAuthentication
-	public GameConnectionAnswer connect(long gameId, @ClientID long clientId) {
-		return GameManager.connectToGame(gameId, PlayerService.getPlayerByClientId(clientId));
+	@Endpoint("makeTurn")
+	public void turn(long gameId, Point point, @CallerUser Player player) {
+		GameManager.turnInGame(gameId, player, point);
 	}
 
-	@Endpoint("create")
-	@NeedAuthentication
-	public long createGame(CreateGameCommand createGameCommand, @ClientID long clientId) {
-		return GameManager.createNewGame(createGameCommand);
-	}
-
-	@Endpoint("watch")
-	public void watchGame(long gameId, @ClientID long clientId) {
-		GameManager.watchGame(gameId, clientId);
+	@Endpoint("leave")
+	public void leave(long gameId, @CallerUser Player player) {
+		GameManager.leaveFromGame(gameId, player);
 	}
 }

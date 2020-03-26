@@ -3,7 +3,7 @@ package com.github.tix320.jouska.server.game.tournament;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.core.model.GameSettings;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
@@ -99,13 +99,13 @@ public class ClassicTournament implements Tournament {
 					.collect(Collectors.toList());
 
 			ClassicPlayOff classicPlayOff = new ClassicPlayOff(playOffGameSettings, groupWinners);
-			playOff.set(classicPlayOff);
+			playOff.setValue(classicPlayOff);
 		});
 
 	}
 
 	private List<Player> resolveGroupWinners(Group group) {
-		Map<Player, Integer> groupPoints = group.points().get();
+		Map<Player, Integer> groupPoints = group.points().getValue();
 
 		List<Tuple<Player, Integer>> sortedPlayers = groupPoints.entrySet()
 				.stream()

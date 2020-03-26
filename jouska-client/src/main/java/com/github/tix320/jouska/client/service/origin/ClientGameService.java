@@ -1,28 +1,21 @@
 package com.github.tix320.jouska.client.service.origin;
 
-import java.util.List;
-
-import com.github.tix320.jouska.core.dto.CreateGameCommand;
-import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
-import com.github.tix320.jouska.core.dto.GameView;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.jouska.core.dto.GameChangeDto;
+import com.github.tix320.jouska.core.game.Point;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
-import com.github.tix320.sonder.api.common.rpc.Subscribe;
+import com.github.tix320.sonder.api.common.rpc.Subscription;
 
-@Origin("game")
+@Origin("in-game")
 public interface ClientGameService {
 
-	@Origin("info")
-	@Subscribe
-	Observable<List<GameView>> games();
+	@Origin("changes")
+	@Subscription
+	Observable<GameChangeDto> changes(long gameId);
 
-	@Origin("connect")
-	MonoObservable<GameConnectionAnswer> connect(long gameId);
+	@Origin("makeTurn")
+	void turn(long gameId, Point point);
 
-	@Origin("create")
-	MonoObservable<Long> create(CreateGameCommand createGameCommand);
-
-	@Origin("watch")
-	void watch(long gameId);
+	@Origin("leave")
+	void leave(long gameId);
 }

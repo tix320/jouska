@@ -4,12 +4,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -72,10 +72,9 @@ public class UpdateAppController implements Controller<String> {
 		}
 
 		observable.subscribe(transfer -> {
-			long zipLength = transfer.getContentLength();
+			CertainReadableByteChannel channel = transfer.channel();
+			long zipLength = channel.getContentLength();
 			int consumedBytes = 0;
-
-			ReadableByteChannel channel = transfer.channel();
 
 			try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
 					StandardOpenOption.WRITE)) {

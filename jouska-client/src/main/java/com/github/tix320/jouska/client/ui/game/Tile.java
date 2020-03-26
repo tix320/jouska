@@ -3,7 +3,8 @@ package com.github.tix320.jouska.client.ui.game;
 import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
-import com.github.tix320.jouska.core.model.PlayerColor;
+import com.github.tix320.jouska.core.game.Constants;
+import com.github.tix320.jouska.core.game.PlayerColor;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.animation.*;
 import javafx.fxml.FXML;
@@ -17,30 +18,20 @@ import javafx.util.Duration;
 
 public class Tile extends AnchorPane {
 
-	private static final String[][] jouskas = new String[][]{
+	private static final String[][] SHAPE_ICONS = new String[][]{
 			{
 					"images/game-shapes/blue-jouska-1.png", "images/game-shapes/blue-jouska-2.png",
-					"images/game-shapes/blue-jouska-3.png", "images/game-shapes/blue-jouska-4.png"
-			},
-			{
+					"images/game-shapes/blue-jouska-3.png", "images/game-shapes/blue-jouska-4.png"}, {
 					"images/game-shapes/green-jouska-1.png", "images/game-shapes/green-jouska-2.png",
-					"images/game-shapes/green-jouska-3.png", "images/game-shapes/green-jouska-4.png"
-			},
-			{
+					"images/game-shapes/green-jouska-3.png", "images/game-shapes/green-jouska-4.png"}, {
 					"images/game-shapes/red-jouska-1.png", "images/game-shapes/red-jouska-2.png",
-					"images/game-shapes/red-jouska-3.png", "images/game-shapes/red-jouska-4.png"
-			},
-			{
+					"images/game-shapes/red-jouska-3.png", "images/game-shapes/red-jouska-4.png"}, {
 					"images/game-shapes/yellow-jouska-1.png", "images/game-shapes/yellow-jouska-2.png",
-					"images/game-shapes/yellow-jouska-3.png", "images/game-shapes/yellow-jouska-4.png"
-			},
-	};
-
-	public static final double PREF_SIZE = 110;
-
-	private static final double ANIMATION_SECONDS = 0.3;
+					"images/game-shapes/yellow-jouska-3.png", "images/game-shapes/yellow-jouska-4.png"},};
 
 	private static final Color DEFAULT_BORDER_COLOR = Color.GRAY;
+
+	public static final double PREF_SIZE = 110;
 
 	@FXML
 	private ImageView imageHolder;
@@ -72,44 +63,47 @@ public class Tile extends AnchorPane {
 		return timeline;
 	}
 
-	public Transition disappearTransition() {
-		return disappearTransition(Duration.seconds(ANIMATION_SECONDS));
+	public Transition makeDisappearTransition() {
+		return makeDisappearTransition(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS));
 	}
 
-	public Transition appearTransition(PlayerColor player, int points) {
-		Duration duration = Duration.seconds(ANIMATION_SECONDS);
-		Transition transition = appearTransition(duration);
+	public Transition makeAppearTransition(PlayerColor player, int points) {
+		Duration duration = Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS);
+		Transition transition = makeAppearTransition(duration);
 
 		Transition backgroundTransition = Transitions.timeLineToTransition(
 				animateBackground(duration, Color.web(player.getColorCode())));
 
-		String imagePath = jouskas[player.ordinal()][points - 1];
+		String imagePath = SHAPE_ICONS[player.ordinal()][points - 1];
 
 		return new ParallelTransition(backgroundTransition,
 				Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath))));
 	}
 
-	public Transition disAppearAndAppearTransition(PlayerColor player, int points) {
+	public Transition makeDisAppearAndAppearTransition(PlayerColor player, int points) {
 		Transition backgroundTransition = Transitions.timeLineToTransition(
-				animateBackground(Duration.seconds(ANIMATION_SECONDS), Color.web(player.getColorCode())));
+				animateBackground(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS),
+						Color.web(player.getColorCode())));
 
-		String imagePath = jouskas[player.ordinal()][points - 1];
-		Transition disappearTransition = disappearTransition(Duration.seconds(ANIMATION_SECONDS / 2));
-		Transition appearTransition = Transitions.intercept(appearTransition(Duration.seconds(ANIMATION_SECONDS / 2)),
+		String imagePath = SHAPE_ICONS[player.ordinal()][points - 1];
+		Transition disappearTransition = makeDisappearTransition(
+				Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS / 2));
+		Transition appearTransition = Transitions.intercept(
+				makeAppearTransition(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS / 2)),
 				() -> imageHolder.setImage(new Image(imagePath)));
 
 		return new ParallelTransition(backgroundTransition,
 				new SequentialTransition(disappearTransition, appearTransition));
 	}
 
-	private Transition appearTransition(Duration duration) {
+	private Transition makeAppearTransition(Duration duration) {
 		FadeTransition appearTransition = new FadeTransition(duration, imageHolder);
 		appearTransition.setFromValue(0);
 		appearTransition.setToValue(1);
 		return appearTransition;
 	}
 
-	private Transition disappearTransition(Duration duration) {
+	private Transition makeDisappearTransition(Duration duration) {
 		FadeTransition disappearTransition = new FadeTransition(duration, imageHolder);
 		disappearTransition.setFromValue(1);
 		disappearTransition.setToValue(0);

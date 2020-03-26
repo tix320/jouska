@@ -7,7 +7,7 @@
 // import com.github.tix320.jouska.client.ui.controller.Controller;
 // import com.github.tix320.jouska.core.dto.WatchGameCommand;
 // import com.github.tix320.jouska.core.model.CellInfo;
-// import com.github.tix320.jouska.core.model.GameBoard;
+// import com.github.tix320.jouska.core.game.GameBoard;
 // import com.github.tix320.jouska.core.model.Player;
 // import com.github.tix320.jouska.core.model.Turn;
 // import com.github.tix320.kiwi.api.reactive.observable.Observable;

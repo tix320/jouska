@@ -1,13 +1,14 @@
 package com.github.tix320.jouska.client.app;
 
+import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.Optional;
 
+import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
 import com.github.tix320.jouska.core.dto.LoginCommand;
-import com.github.tix320.kiwi.api.check.Try;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -47,8 +48,9 @@ public class Main extends Application {
 									LoginCommand loginCommand = new LoginCommand(Configuration.getNickname(),
 											Configuration.getPassword());
 									AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
-										switch (loginAnswer) {
+										switch (loginAnswer.getLoginResult()) {
 											case SUCCESS:
+												CurrentUserContext.setPlayer(loginAnswer.getPlayer());
 												JouskaUI.switchComponent(ComponentType.MENU);
 												break;
 											case ALREADY_LOGGED:
@@ -56,19 +58,24 @@ public class Main extends Application {
 													Alert alert = new Alert(AlertType.CONFIRMATION);
 													alert.setTitle("Confirmation");
 													alert.setHeaderText("Another logged session found.");
-													alert.setContentText(
-															"You are already logged with other session. Are you sure want to login now? Other session will be stopped.");
+													alert.setContentText(String.format(
+															"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
+															loginAnswer.getPlayer().getNickname()));
 
 													Optional<ButtonType> result = alert.showAndWait();
 													if (result.isPresent() && result.get() == ButtonType.OK) {
 														AUTHENTICATION_SERVICE.forceLogin(loginCommand)
 																.subscribe(answer -> {
-																	switch (answer) {
+																	switch (answer.getLoginResult()) {
 																		case SUCCESS:
-																			JouskaUI.switchComponent(ComponentType.MENU);
+																			JouskaUI.switchComponent(
+																					ComponentType.MENU);
+																			CurrentUserContext.setPlayer(
+																					answer.getPlayer());
 																			break;
 																		case INVALID_CREDENTIALS:
-																			JouskaUI.switchComponent(ComponentType.LOGIN);
+																			JouskaUI.switchComponent(
+																					ComponentType.LOGIN);
 																			break;
 																		default:
 																			throw new IllegalStateException();
@@ -102,9 +109,10 @@ public class Main extends Application {
 	}
 
 	@Override
-	public void stop() {
+	public void stop()
+			throws InterruptedException, IOException {
 		JouskaUI.close();
-		AUTHENTICATION_SERVICE.logout()
-				.subscribe(none -> {}, () -> Try.runOrRethrow(Services::stop));
+		Thread.sleep(1000);
+		Services.stop();
 	}
 }

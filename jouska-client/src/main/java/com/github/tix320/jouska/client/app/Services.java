@@ -9,9 +9,8 @@ import com.github.tix320.sonder.api.client.SonderClient;
 
 public class Services {
 	public static AuthenticationService AUTHENTICATION_SERVICE;
-	public static PlayerService PLAYER_SERVICE;
-	public static ClientGameService GAME_SERVICE;
-	public static ClientInGameService IN_GAME_SERVICE;
+	public static ClientGameManagmentService GAME_SERVICE;
+	public static ClientGameService IN_GAME_SERVICE;
 	public static ClientTournamentService TOURNAMENT_SERVICE;
 	public static ApplicationUpdateService APPLICATION_INSTALLER_SERVICE;
 
@@ -33,17 +32,16 @@ public class Services {
 
 	public static void stop()
 			throws IOException {
-		if (SONDER_CLIENT == null) {
-			throw new IllegalStateException("Client does not started");
+		if (SONDER_CLIENT != null) {
+			SONDER_CLIENT.close();
+			SONDER_CLIENT = null;
 		}
-		SONDER_CLIENT.close();
 	}
 
 	private static void initServices() {
 		AUTHENTICATION_SERVICE = SONDER_CLIENT.getRPCService(AuthenticationService.class);
-		PLAYER_SERVICE = SONDER_CLIENT.getRPCService(PlayerService.class);
-		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameService.class);
-		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientInGameService.class);
+		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameManagmentService.class);
+		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameService.class);
 		TOURNAMENT_SERVICE = SONDER_CLIENT.getRPCService(ClientTournamentService.class);
 		APPLICATION_INSTALLER_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateService.class);
 	}

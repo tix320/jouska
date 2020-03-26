@@ -4,9 +4,9 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.game.Game;
-import com.github.tix320.jouska.core.game.GameFactory;
-import com.github.tix320.jouska.core.model.GameSettings;
-import com.github.tix320.jouska.core.model.InGamePlayer;
+import com.github.tix320.jouska.core.game.creation.GameFactory;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.game.InGamePlayer;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
@@ -48,7 +48,7 @@ public class ClassicGroup implements Group {
 				.map(game -> game.completed().toMono())
 				.collect(Collectors.toList());
 
-		Observable.zip(onCompleteObservables).subscribe(ignored -> completed.set(true));
+		Observable.zip(onCompleteObservables).subscribe(ignored -> completed.setValue(true));
 	}
 
 	@Override
@@ -86,13 +86,13 @@ public class ClassicGroup implements Group {
 
 	private void listenGame(Game game) {
 		game.completed().subscribe(ignored -> {
-			InGamePlayer winner = game.winner().get();
-			addPointsToPlayer(winner.getPlayer());
+			InGamePlayer winner = game.getWinner().get();
+			addPointsToPlayer(winner.getRealPlayer());
 		});
 	}
 
 	private void addPointsToPlayer(Player player) {
-		groupPoints.get().compute(player, (p, playerPoints) -> {
+		groupPoints.getValue().compute(player, (p, playerPoints) -> {
 			if (playerPoints == null) {
 				throw new IllegalStateException();
 			}

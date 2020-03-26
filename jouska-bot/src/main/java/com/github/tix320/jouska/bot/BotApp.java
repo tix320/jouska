@@ -4,6 +4,8 @@ import java.net.InetSocketAddress;
 import java.time.Duration;
 
 import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.sonder.api.client.SonderClient;
 
 public class BotApp {
@@ -17,17 +19,24 @@ public class BotApp {
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
 				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
-				.contentTimeoutDurationFactory(contentLength -> {
-					return Duration.ofSeconds(Integer.MAX_VALUE);
-				})
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
 				.build();
 
 		BotGameService botGameService = SONDER_CLIENT.getRPCService(BotGameService.class);
 
-		botGameService.getGames().subscribe(gameViews -> {
-			GameView gameView = gameViews.get(0);
-			long id = gameView.getId();
-			botGameService.connect(id);
+		AuthenticationService authenticationService = SONDER_CLIENT.getRPCService(AuthenticationService.class);
+
+		authenticationService.forceLogin(new LoginCommand("Bot", "bot")).subscribe(loginAnswer -> {
+			if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
+				botGameService.games().toMono().subscribe(gameViews -> {
+					GameView gameView = gameViews.get(0);
+					long id = gameView.getId();
+					botGameService.connect(id);
+				});
+			}
+			else {
+				throw new IllegalStateException(loginAnswer.toString());
+			}
 		});
 	}
 }

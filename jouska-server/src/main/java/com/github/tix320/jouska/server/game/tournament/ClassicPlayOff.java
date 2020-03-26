@@ -3,8 +3,8 @@ package com.github.tix320.jouska.server.game.tournament;
 import java.util.*;
 
 import com.github.tix320.jouska.core.game.Game;
-import com.github.tix320.jouska.core.game.GameFactory;
-import com.github.tix320.jouska.core.model.GameSettings;
+import com.github.tix320.jouska.core.game.creation.GameFactory;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.MathUtils;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
@@ -62,7 +62,7 @@ public class ClassicPlayOff implements PlayOff {
 
 		Iterator<Player> playersIterator = players.iterator();
 
-		List<GameSpace> tourGames = this.games.get().get(0);
+		List<GameSpace> tourGames = this.games.getValue().get(0);
 		for (int i = 0; i < tourGames.size(); i++) {
 			GameSpace gameSpace;
 			Player firstPlayer = playersIterator.next();
@@ -91,12 +91,12 @@ public class ClassicPlayOff implements PlayOff {
 	}
 
 	private void onGameComplete(int tourIndex, int tourGameIndex, Game game) {
-		Player winner = game.winner().get().getPlayer();
+		Player winner = game.getWinner().get().getRealPlayer();
 
-		List<List<GameSpace>> gameSpaces = games.get();
+		List<List<GameSpace>> gameSpaces = games.getValue();
 		int toursCount = gameSpaces.size();
 		if (tourIndex == toursCount) {
-			completed.set(true);
+			completed.setValue(true);
 		}
 		else {
 			List<GameSpace> nextTourGames = gameSpaces.get(tourIndex + 1);
@@ -119,7 +119,7 @@ public class ClassicPlayOff implements PlayOff {
 				gameSpace.game = newGame;
 			}
 			nextTourGames.set(currentPLayerSpaceInNextTour, gameSpace);
-			games.reset();
+			games.setValue(games.getValue());
 		}
 	}
 

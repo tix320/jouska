@@ -1,49 +1,50 @@
 package com.github.tix320.jouska.server.service.application;
 
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
-import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
 import com.github.tix320.jouska.core.dto.StartGameCommand;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.game.Game;
-import com.github.tix320.jouska.core.game.GameFactory;
-import com.github.tix320.jouska.core.game.TimedGame;
-import com.github.tix320.jouska.core.model.*;
-import com.github.tix320.jouska.server.model.GameInfo;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.jouska.core.game.creation.GameFactory;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.game.InGamePlayer;
+import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.game.Point;
+import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
+import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
+import com.github.tix320.jouska.server.service.ClientPlayerMappingResolver;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.property.MapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.util.IDGenerator;
 import com.github.tix320.kiwi.api.util.None;
 
 import static com.github.tix320.jouska.server.app.Services.GAME_SERVICE;
-import static com.github.tix320.jouska.server.app.Services.IN_GAME_SERVICE;
 
 public class GameManager {
 	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
-	private static final Property<Map<Long, GameInfo>> gamesProperty = Property.forObject(new ConcurrentHashMap<>());
+	private static final MapProperty<Long, GameInfo> games = Property.forMap(new ConcurrentHashMap<>());
 
 	public static long createNewGame(CreateGameCommand createGameCommand) {
 		long gameId = ID_GENERATOR.next();
 		GameSettings gameSettings = createGameCommand.getGameSettings();
 
-		gamesProperty.get().put(gameId, new GameInfo(gameId, gameSettings));
-		gamesProperty.reset();
+		games.put(gameId, new GameInfo(gameId, gameSettings));
 		return gameId;
 	}
 
 	public static Observable<Collection<GameInfo>> games() {
-		return gamesProperty.asObservable().map(Map::values);
+		return games.asObservable().map(Map::values);
 	}
 
 	public static GameConnectionAnswer connectToGame(long gameId, Player player) {
 		AtomicReference<GameConnectionAnswer> answer = new AtomicReference<>(GameConnectionAnswer.GAME_NOT_FOUND);
-		gamesProperty.get().computeIfPresent(gameId, (key, gameInfo) -> {
+		games.computeIfPresent(gameId, (key, gameInfo) -> {
 			int playersCount = gameInfo.getSettings().getPlayersCount();
 			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
 			if (connectedPlayers.size() < playersCount) { // free
@@ -81,20 +82,16 @@ public class GameManager {
 	}
 
 	public static void leaveFromGame(long gameId, Player player) {
-		GameInfo gameInfo = gamesProperty.get().get(gameId);
-		Game game = gameInfo.getGame();
-		Lock lock = gameInfo.getGameLock();
-		try {
-			lock.lock();
-			game.kick(player);
+		GameInfo gameInfo = games.get(gameId);
+		if (gameInfo == null) {
+			throw new IllegalArgumentException(String.format("Game `%s` does not exists", gameId));
 		}
-		finally {
-			lock.unlock();
-		}
+
+		removePLayerFromGame(gameInfo, player);
 	}
 
 	public static void turnInGame(long gameId, Player player, Point point) {
-		GameInfo gameInfo = gamesProperty.get().get(gameId);
+		GameInfo gameInfo = games.get(gameId);
 		if (gameInfo == null) {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
@@ -107,19 +104,26 @@ public class GameManager {
 		turnInGame(gameInfo, player, point);
 	}
 
+	public static Game getGame(long gameId) {
+		GameInfo gameInfo = games.get(gameId);
+		if (gameInfo == null) {
+			throw new IllegalArgumentException(String.format("Game %s not found", gameId));
+		}
+
+		return gameInfo.getGame();
+	}
+
 	private static void turnInGame(GameInfo gameInfo, Player player, Point point) {
 		Lock lock = gameInfo.getGameLock();
+		lock.lock();
 		try {
-			lock.lock();
 			Game game = gameInfo.getGame();
 
 			InGamePlayer currentGamePlayer = game.getCurrentPlayer();
 
-			if (!player.equals(currentGamePlayer.getPlayer())) {
-				InGamePlayer gamePlayer = findGamePlayerByPlayer(game, player);
-				new IllegalStateException(
-						String.format("Now is turn of %s, not %s", currentGamePlayer, gamePlayer)).printStackTrace();
-				return;
+			if (!player.equals(currentGamePlayer.getRealPlayer())) {
+				throw new IllegalStateException(
+						String.format("Now is turn of %s, not %s", currentGamePlayer.getRealPlayer(), player));
 			}
 
 			game.turn(point);
@@ -137,20 +141,9 @@ public class GameManager {
 		Game game = GameFactory.create(gameSettings, connectedPlayers);
 		gameInfo.setGame(game);
 
-		GameBoard board = new GameBoard(game.getBoard());
 		List<InGamePlayer> gamePlayers = game.getPlayers();
 
-		game.turns().subscribe(rootChange -> onTurn(gameInfo, rootChange.point));
-
-		game.kickedPlayers().subscribe(playerWithPoints -> onPlayerKick(gameInfo, playerWithPoints.player.getPlayer()));
-
 		game.completed().subscribe(ignored -> onGameComplete(gameInfo));
-
-		if (game instanceof TimedGame) {
-			TimedGame timedGame = (TimedGame) game;
-			timedGame.turnTimeExpiration().subscribe(none -> onTurnTimeExpiration(gameInfo));
-			timedGame.gameTimeExpiration().subscribe(none -> onGameTimeExpiration(gameInfo));
-		}
 
 		Lock lock = gameInfo.getGameLock();
 		try {
@@ -158,23 +151,32 @@ public class GameManager {
 
 			List<Observable<None>> playersReady = new ArrayList<>();
 			for (InGamePlayer player : gamePlayers) {
-				Observable<None> playerReady = GAME_SERVICE.startGame(
-						new StartGameCommand(gameId, gameSettings, player.getColor(), gamePlayers, board),
-						PlayerService.getClientIdByPlayer(player.getPlayer().getId()));
-				playersReady.add(playerReady);
+				ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
+						.ifPresentOrElse(clientId -> {
+							Observable<None> playerReady = GAME_SERVICE.startGame(
+									new StartGameCommand(gameId, gameSettings, player.getColor(), gamePlayers),
+									clientId);
+							playersReady.add(playerReady);
+						}, () -> logPlayerConnectionNotFound(player.getRealPlayer()));
 			}
+
+			EventDispatcher.on(PlayerLogoutEvent.class).takeUntil(game.completed()).subscribe(event -> {
+				Player logoutPlayer = event.getPlayer();
+				if (containsPlayerInGame(game, logoutPlayer)) {
+					removePLayerFromGame(gameInfo, logoutPlayer);
+				}
+			});
+
+			EventDispatcher.on(PlayerDisconnectedEvent.class).takeUntil(game.completed()).subscribe(event -> {
+				Player disconnectedPlayer = event.getPlayer();
+				if (containsPlayerInGame(game, disconnectedPlayer)) {
+					removePLayerFromGame(gameInfo, disconnectedPlayer);
+				}
+			});
 
 			Observable.zip(playersReady).subscribe(nones -> {
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameSettings.getName(), gameId));
-				List<MonoObservable<None>> responses = connectedPlayers.stream()
-						.map(player -> IN_GAME_SERVICE.canTurn(PlayerService.getClientIdByPlayer(player.getId())))
-						.collect(Collectors.toList());
-				Observable.zip(responses).subscribe(ignored -> {
-					if (game instanceof TimedGame) {
-						((TimedGame) game).runTurnTimer();
-					}
-				});
 			});
 		}
 		finally {
@@ -182,97 +184,43 @@ public class GameManager {
 		}
 	}
 
-	private static void onTurn(GameInfo gameInfo, Point point) {
-		Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-		Set<Player> players = gameInfo.getPlayers();
-		List<MonoObservable<None>> observablesForWait = new ArrayList<>();
-		for (Player connectedPlayer : connectedPlayers) {
-			MonoObservable<None> observable = IN_GAME_SERVICE.turn(point,
-					PlayerService.getClientIdByPlayer(connectedPlayer.getId()));
-			if (players.contains(connectedPlayer)) {
-				observablesForWait.add(observable);
-			}
+	private static void removePLayerFromGame(GameInfo gameInfo, Player player) {
+		Lock gameLock = gameInfo.getGameLock();
+		gameLock.lock();
+		try {
+			Game game = gameInfo.getGame();
+			gameInfo.getConnectedPlayers().remove(player);
+			game.kick(player);
+			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
+			Set<Player> players = gameInfo.getPlayers();
+			players.remove(player);
+			connectedPlayers.remove(player);
 		}
-
-		Observable.zip(observablesForWait).subscribe(nones -> {
-			List<MonoObservable<None>> responses = players.stream()
-					.map(player -> IN_GAME_SERVICE.canTurn(PlayerService.getClientIdByPlayer(player.getId())))
-					.collect(Collectors.toList());
-			Observable.zip(responses).subscribe(ignored -> {
-				Game game = gameInfo.getGame();
-				if (game instanceof TimedGame) {
-					((TimedGame) game).runTurnTimer();
-				}
-			});
-		});
-	}
-
-	private static void onPlayerKick(GameInfo gameInfo, Player kickedPlayer) {
-		Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-		Set<Player> players = gameInfo.getPlayers();
-		players.remove(kickedPlayer);
-		connectedPlayers.forEach(
-				player -> IN_GAME_SERVICE.leave(player, PlayerService.getClientIdByPlayer(player.getId())));
+		finally {
+			gameLock.unlock();
+		}
 	}
 
 	private static void onGameComplete(GameInfo gameInfo) {
 		long gameId = gameInfo.getId();
 		Game game = gameInfo.getGame();
 		GameSettings gameSettings = gameInfo.getSettings();
-		Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-		InGamePlayer winner = game.winner().get();
-		gamesProperty.get().remove(gameId);
-		gamesProperty.reset();
+		InGamePlayer winner = game.getWinner().orElseThrow();
+		games.remove(gameId);
 		System.out.println(String.format("Game %s(%s) ended: Players %s Winner is %s", gameSettings.getName(), gameId,
 				game.getPlayers(), winner));
-		connectedPlayers.forEach(player -> IN_GAME_SERVICE.forceComplete(winner.getPlayer(),
-				PlayerService.getClientIdByPlayer(player.getId())));
 	}
 
-	private static void onTurnTimeExpiration(GameInfo gameInfo) {
-		Lock lock = gameInfo.getGameLock();
-		Game game = gameInfo.getGame();
-		try {
-			lock.lock();
-			InGamePlayer currentPlayer = game.getCurrentPlayer();
-			List<Point> points = game.getPointsBelongedToPlayer(currentPlayer.getPlayer());
-			int randomIndex = (int) (Math.random() * points.size());
-			Point randomPoint = points.get(randomIndex);
-			game.turn(randomPoint);
-		}
-		finally {
-			lock.unlock();
-		}
-	}
-
-	private static void onGameTimeExpiration(GameInfo gameInfo) {
-		Lock lock = gameInfo.getGameLock();
-		Game game = gameInfo.getGame();
-		try {
-			lock.lock();
-			Map<InGamePlayer, Integer> summaryPoints = game.getStatistics().summaryPoints().get();
-			Iterator<Entry<InGamePlayer, Integer>> iterator = summaryPoints.entrySet().iterator();
-
-			Map.Entry<InGamePlayer, Integer> maxEntry = iterator.next();
-			while (iterator.hasNext()) {
-				Entry<InGamePlayer, Integer> entry = iterator.next();
-				if (entry.getValue() > maxEntry.getValue()) {
-					maxEntry = entry;
-				}
+	private static boolean containsPlayerInGame(Game game, Player player) {
+		for (InGamePlayer gamePlayer : game.getPlayers()) {
+			if (player.equals(gamePlayer.getRealPlayer())) {
+				return true;
 			}
-			InGamePlayer winner = maxEntry.getKey();
-			game.forceCompleteGame(winner.getPlayer());
 		}
-		finally {
-			lock.unlock();
-		}
+		return false;
 	}
 
-	private static InGamePlayer findGamePlayerByPlayer(Game game, Player player) {
-		return game.getPlayers()
-				.stream()
-				.filter(inGamePlayer -> inGamePlayer.getPlayer().equals(player))
-				.findFirst()
-				.orElseThrow();
+	private static void logPlayerConnectionNotFound(Player player) {
+		new IllegalStateException(String.format("No connection found for player %s", player)).printStackTrace();
 	}
 }

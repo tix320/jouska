@@ -3,6 +3,7 @@ package com.github.tix320.jouska.client.ui.controller;
 import java.util.Optional;
 
 import com.github.tix320.jouska.client.app.Configuration;
+import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
 import com.github.tix320.jouska.core.dto.LoginCommand;
@@ -47,9 +48,10 @@ public class LoginController implements Controller<LoginCommand> {
 	public void login() {
 		LoginCommand loginCommand = new LoginCommand(nicknameInput.getText(), passwordInput.getText());
 		AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
-			switch (loginAnswer) {
+			switch (loginAnswer.getLoginResult()) {
 				case SUCCESS:
 					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
+					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
 					JouskaUI.switchComponent(ComponentType.MENU);
 					break;
 				case ALREADY_LOGGED:
@@ -57,14 +59,16 @@ public class LoginController implements Controller<LoginCommand> {
 						Alert alert = new Alert(AlertType.CONFIRMATION);
 						alert.setTitle("Confirmation");
 						alert.setHeaderText("Another logged session found.");
-						alert.setContentText(
-								"You are already logged with other session. Are you sure want to login now? Other session will be stopped.");
+						alert.setContentText(String.format(
+								"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
+								loginAnswer.getPlayer().getNickname()));
 
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.isPresent() && result.get() == ButtonType.OK) {
 							AUTHENTICATION_SERVICE.forceLogin(loginCommand).subscribe(answer -> {
-								switch (answer) {
+								switch (answer.getLoginResult()) {
 									case SUCCESS:
+										CurrentUserContext.setPlayer(answer.getPlayer());
 										JouskaUI.switchComponent(ComponentType.MENU);
 										break;
 									case INVALID_CREDENTIALS:

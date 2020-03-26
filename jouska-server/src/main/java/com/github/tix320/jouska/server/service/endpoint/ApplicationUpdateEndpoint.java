@@ -3,18 +3,16 @@ package com.github.tix320.jouska.server.service.endpoint;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
-import java.nio.channels.ReadableByteChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.Configuration;
-import com.github.tix320.jouska.server.service.endpoint.authentication.NeedAuthentication;
-import com.github.tix320.jouska.server.service.endpoint.role.Role;
-import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
-import com.github.tix320.sonder.api.common.communication.Headers;
-import com.github.tix320.sonder.api.common.communication.Transfer;
+import com.github.tix320.jouska.server.service.endpoint.auth.CallerUser;
+import com.github.tix320.jouska.server.service.endpoint.auth.Role;
+import com.github.tix320.sonder.api.common.communication.*;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("application")
@@ -67,25 +65,22 @@ public class ApplicationUpdateEndpoint {
 	}
 
 	@Endpoint("upload-windows")
-	@NeedAuthentication
 	@Role(RoleName.ADMIN)
-	public void uploadWindows(Transfer transfer) {
+	public void uploadWindows(Transfer transfer, @CallerUser Player player) {
 		Path installersPath = Configuration.getSourcesPath();
 		transferToFile(transfer, installersPath + WINDOWS_FILE_NAME);
 	}
 
 	@Endpoint("upload-linux")
-	@NeedAuthentication
 	@Role(RoleName.ADMIN)
-	public void uploadLinux(Transfer transfer) {
+	public void uploadLinux(Transfer transfer, @CallerUser Player player) {
 		Path installersPath = Configuration.getSourcesPath();
 		transferToFile(transfer, installersPath + LINUX_FILE_NAME);
 	}
 
 	@Endpoint("upload-mac")
-	@NeedAuthentication
 	@Role(RoleName.ADMIN)
-	public void uploadMac(Transfer transfer) {
+	public void uploadMac(Transfer transfer, @CallerUser Player player) {
 		Path installersPath = Configuration.getSourcesPath();
 		transferToFile(transfer, installersPath + MAC_FILE_NAME);
 	}
@@ -94,7 +89,8 @@ public class ApplicationUpdateEndpoint {
 		try {
 			Path file = Path.of(filePath);
 			long length = Files.size(file);
-			return new ChannelTransfer(Headers.EMPTY, FileChannel.open(file, StandardOpenOption.READ), length);
+			return new ChannelTransfer(Headers.EMPTY,
+					new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -102,13 +98,13 @@ public class ApplicationUpdateEndpoint {
 	}
 
 	private void transferToFile(Transfer transfer, String filePath) {
-		if (transfer.getContentLength() > Integer.MAX_VALUE) {
+		CertainReadableByteChannel channel = transfer.channel();
+		if (channel.getContentLength() > Integer.MAX_VALUE) {
 			throw new IllegalStateException();
 		}
-		int zipLength = (int) transfer.getContentLength();
+		int zipLength = (int) channel.getContentLength();
 		int consumedBytes = 0;
 
-		ReadableByteChannel channel = transfer.channel();
 		double border = 0.1;
 		try (FileChannel fileChannel = FileChannel.open(Path.of(filePath), StandardOpenOption.CREATE,
 				StandardOpenOption.WRITE)) {

@@ -2,10 +2,9 @@ package com.github.tix320.jouska.core.dto;
 
 import java.util.List;
 
-import com.github.tix320.jouska.core.model.GameBoard;
-import com.github.tix320.jouska.core.model.GameSettings;
-import com.github.tix320.jouska.core.model.InGamePlayer;
-import com.github.tix320.jouska.core.model.PlayerColor;
+import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.game.InGamePlayer;
+import com.github.tix320.jouska.core.game.PlayerColor;
 
 public final class StartGameCommand {
 
@@ -17,19 +16,15 @@ public final class StartGameCommand {
 
 	private final List<InGamePlayer> players;
 
-	private final GameBoard gameBoard;
-
 	private StartGameCommand() {
-		this(-1, null, null, null, null);
+		this(-1, null, null, null);
 	}
 
-	public StartGameCommand(long gameId, GameSettings gameSettings, PlayerColor myPlayer, List<InGamePlayer> players,
-							GameBoard gameBoard) {
+	public StartGameCommand(long gameId, GameSettings gameSettings, PlayerColor myPlayer, List<InGamePlayer> players) {
 		this.gameId = gameId;
 		this.gameSettings = gameSettings;
 		this.myPlayer = myPlayer;
 		this.players = players;
-		this.gameBoard = gameBoard;
 	}
 
 	public long getGameId() {
@@ -46,9 +41,5 @@ public final class StartGameCommand {
 
 	public List<InGamePlayer> getPlayers() {
 		return players;
-	}
-
-	public GameBoard getGameBoard() {
-		return gameBoard;
 	}
 }

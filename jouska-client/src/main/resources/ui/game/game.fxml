@@ -42,7 +42,7 @@
 		</HBox>
 		<HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="10.0" spacing="5.0" styleClass="hbox" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="10.0">
 			<children>
-				<Label fx:id="gameName" maxWidth="300.0" prefHeight="40.0" text="Game name">
+				<Label fx:id="gameNameLabel" maxWidth="300.0" prefHeight="40.0" text="Game name">
 					<font>
 						<Font size="28.0" />
 					</font>
@@ -55,7 +55,7 @@
 				</Label>
 			</children>
 		</HBox>
-		<FlowPane fx:id="gameBoard" layoutX="-12.0" layoutY="87.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="80.0" />
+		<FlowPane fx:id="gameBoardPane" layoutX="-12.0" layoutY="87.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="80.0" />
 		<Button id="fullScreenButton" fx:id="fullScreenButton" layoutX="998.0" layoutY="18.0" mnemonicParsing="false" onAction="#onFullScreenClick" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
 			<graphic>
 				<ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">

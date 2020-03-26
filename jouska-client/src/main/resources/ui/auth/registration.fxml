@@ -6,7 +6,7 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.AnchorPane?>
 
-<?import com.github.tix320.jouska.client.ui.helper.component.PastePreventTextField?>
+<?import com.github.tix320.jouska.client.ui.helper.component.PastePreventPasswordField?>
 <AnchorPane prefHeight="420.0" prefWidth="600.0" stylesheets="@registration.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.RegistrationController">
 	<children>
 		<TextField fx:id="nicknameInput" layoutX="195.0" layoutY="107.0" promptText="Nickname" styleClass="input" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0" />
@@ -14,7 +14,7 @@
 		<Button id="registerButton" fx:id="registerButton" defaultButton="true" layoutX="274.0" layoutY="306.0" mnemonicParsing="false" onAction="#register" text="Register" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="280.0" />
        <Button id="loginButton" layoutX="487.0" layoutY="297.0" mnemonicParsing="false" onAction="#login" text="Already have an account? Sign In" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
 		<Label fx:id="errorLabel" layoutX="286.0" layoutY="369.0" styleClass="errorLabel" text="Nickname already exists" visible="false" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="340.0" />
-      <PastePreventTextField fx:id="confirmPasswordInput" layoutX="187.0" layoutY="198.0" promptText="Confirm password" styleClass="input" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="210.0" />
+      <PastePreventPasswordField fx:id="confirmPasswordInput" layoutX="187.0" layoutY="198.0" promptText="Confirm password" styleClass="input" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="210.0" />
       <Label id="infoLabel" layoutX="265.0" layoutY="6.0" text="New account" AnchorPane.leftAnchor="100.0" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="10.0" />
 	</children>
 </AnchorPane>

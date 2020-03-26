@@ -9,13 +9,13 @@ import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.sonder.api.common.rpc.Origin;
-import com.github.tix320.sonder.api.common.rpc.Subscribe;
+import com.github.tix320.sonder.api.common.rpc.Subscription;
 
 @Origin("tournament")
 public interface ClientTournamentService {
 
 	@Origin("list")
-	@Subscribe
+	@Subscription
 	Observable<List<TournamentView>> getTournaments();
 
 	@Origin("structure")
@@ -23,4 +23,7 @@ public interface ClientTournamentService {
 
 	@Origin("create")
 	MonoObservable<None> create(CreateTournamentCommand createTournamentCommand);
+
+	@Origin("join")
+	MonoObservable<None> join(long tournamentId);
 }

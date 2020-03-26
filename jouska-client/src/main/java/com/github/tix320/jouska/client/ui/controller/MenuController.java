@@ -4,7 +4,7 @@ import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
-import com.github.tix320.jouska.client.infrastructure.event.EventDispatcher;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
@@ -21,7 +21,6 @@ import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 
 import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
-import static com.github.tix320.jouska.client.app.Services.PLAYER_SERVICE;
 
 public final class MenuController implements Controller<Object> {
 
@@ -46,7 +45,7 @@ public final class MenuController implements Controller<Object> {
 	public void init(Object data) {
 		changeContent(MenuContentType.LOBBY);
 		loadingIndicator.visibleProperty().bind(loading);
-		PLAYER_SERVICE.me().subscribe(player -> Platform.runLater(() -> nicknameLabel.setText(player.getNickname())));
+		nicknameLabel.setText(CurrentUserContext.getPlayer().getNickname());
 		EventDispatcher.on(MenuContentChangeEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
 				.subscribe(event -> changeContent(event.getMenuContentType()));
@@ -102,7 +101,7 @@ public final class MenuController implements Controller<Object> {
 		});
 	}
 
-	public void logout(ActionEvent event) {
+	public void logout() {
 		CurrentUserContext.setPlayer(null);
 		AUTHENTICATION_SERVICE.logout();
 		Configuration.updateCredentials("", "");

@@ -4,11 +4,15 @@ import java.util.Optional;
 
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.entity.PlayerEntity;
-import com.github.tix320.kiwi.api.util.collection.BiConcurrentHashMap;
-import com.github.tix320.kiwi.api.util.collection.BiMap;
+import com.github.tix320.jouska.server.event.PlayerLoginEvent;
+import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
+import com.github.tix320.jouska.server.service.ClientPlayerMappingResolver;
+import com.github.tix320.jouska.server.service.endpoint.auth.NotAuthenticatedException;
 import dev.morphia.query.Query;
 import org.bson.types.ObjectId;
 
@@ -16,55 +20,57 @@ import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_SERVIC
 
 public class PlayerService {
 
-	private final static BiMap<Long, String> playerAndClientIds = new BiConcurrentHashMap<>();
+	public static LoginAnswer login(long clientId, LoginCommand loginCommand) {
+		Optional<PlayerEntity> playerByCredentials = findPlayerByCredentials(loginCommand);
+		if (playerByCredentials.isEmpty()) {
+			return new LoginAnswer(LoginResult.INVALID_CREDENTIALS, null);
+		}
 
-	public static synchronized LoginAnswer login(long clientId, LoginCommand loginCommand) {
-		return findPlayerByCredentials(loginCommand).map(playerEntity -> {
-			if (playerAndClientIds.inverseView().containsKey(playerEntity.getId().toHexString())) {
-				return LoginAnswer.ALREADY_LOGGED;
-			}
-			else {
-				playerAndClientIds.put(clientId, playerEntity.getId().toHexString());
-				return LoginAnswer.SUCCESS;
-			}
-		}).orElse(LoginAnswer.INVALID_CREDENTIALS);
+		PlayerEntity playerEntity = playerByCredentials.get();
+
+		Optional<Long> clientIdByPlayer = ClientPlayerMappingResolver.getClientIdByPlayer(
+				playerEntity.getId().toHexString());
+
+		if (clientIdByPlayer.isPresent()) {
+			return new LoginAnswer(LoginResult.ALREADY_LOGGED, entityToModel(playerEntity));
+		}
+		else {
+			ClientPlayerMappingResolver.setMapping(clientId, playerEntity.getId().toHexString());
+
+			Player player = entityToModel(playerEntity);
+			EventDispatcher.fire(new PlayerLoginEvent(player));
+			return new LoginAnswer(LoginResult.SUCCESS, player);
+		}
 	}
 
-	public static synchronized void logout(long clientId) {
-		playerAndClientIds.straightRemove(clientId);
+	public static void logout(long clientId) {
+		String playerId = ClientPlayerMappingResolver.removeByClientId(clientId);
+		if (playerId == null) {
+			throw new NotAuthenticatedException(String.format("Client `%s` not authenticated yet", clientId));
+		}
+		PlayerEntity player = findPlayerEntityById(playerId).orElseThrow();
+		EventDispatcher.fire(new PlayerLogoutEvent(entityToModel(player)));
 	}
 
 	public static synchronized LoginAnswer forceLogin(long clientId, LoginCommand loginCommand) {
-		return findPlayerByCredentials(loginCommand).map(playerEntity -> {
-			String playerId = playerEntity.getId().toHexString();
-			Long existingClientId = playerAndClientIds.inverseView().get(playerId);
-			if (existingClientId != null) {
-				playerAndClientIds.inverseRemove(playerId);
-				AUTHENTICATION_SERVICE.logout(existingClientId);
-			}
-			playerAndClientIds.put(clientId, playerId);
-			return LoginAnswer.SUCCESS;
-		}).orElse(LoginAnswer.INVALID_CREDENTIALS);
-	}
-
-	public static synchronized Player getPlayerByClientId(long clientId) {
-		String playerId = playerAndClientIds.straightView().get(clientId);
-		if (playerId == null) {
-			throw new NotLoggedException(String.format("Client with id `%s` not logged.", clientId));
+		Optional<PlayerEntity> playerByCredentials = findPlayerByCredentials(loginCommand);
+		if (playerByCredentials.isEmpty()) {
+			return new LoginAnswer(LoginResult.INVALID_CREDENTIALS, null);
 		}
 
-		return findPlayerById(playerId).map(
-				playerEntity -> new Player(playerEntity.getId().toHexString(), playerEntity.getNickname(),
-						playerEntity.getRole())).orElseThrow();
-	}
+		PlayerEntity playerEntity = playerByCredentials.get();
 
-	public static synchronized long getClientIdByPlayer(String playerId) {
-		Long clientId = playerAndClientIds.inverseView().get(playerId);
-		if (clientId == null) {
-			throw new NotLoggedException(
-					String.format("Player with id `%s` does not have active logged session.", playerId));
+		String playerId = playerEntity.getId().toHexString();
+
+		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
+		if (existingClientId != null) {
+			AUTHENTICATION_SERVICE.logout(existingClientId);
 		}
-		return clientId;
+
+		ClientPlayerMappingResolver.setMapping(clientId, playerId);
+		Player player = entityToModel(playerEntity);
+		EventDispatcher.fire(new PlayerLoginEvent(player));
+		return new LoginAnswer(LoginResult.SUCCESS, player);
 	}
 
 	private static Optional<PlayerEntity> findPlayerByCredentials(LoginCommand loginCommand) {
@@ -75,8 +81,15 @@ public class PlayerService {
 		return Optional.ofNullable(query.first());
 	}
 
-	private static Optional<PlayerEntity> findPlayerById(String playerId) {
+	public static Optional<Player> findPlayerById(String playerId) {
+		return findPlayerEntityById(playerId).map(PlayerService::entityToModel);
+	}
+
+	public static Optional<PlayerEntity> findPlayerEntityById(String playerId) {
 		return Optional.ofNullable(DataSource.INSTANCE.get(PlayerEntity.class, new ObjectId(playerId)));
 	}
 
+	private static Player entityToModel(PlayerEntity entity) {
+		return new Player(entity.getId().toHexString(), entity.getNickname(), entity.getRole());
+	}
 }

@@ -2,7 +2,7 @@ package com.github.tix320.jouska.client.ui.controller;
 
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
-import com.github.tix320.jouska.client.ui.helper.component.PastePreventTextField;
+import com.github.tix320.jouska.client.ui.helper.component.PastePreventPasswordField;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import javafx.animation.FadeTransition;
@@ -25,7 +25,7 @@ public class RegistrationController implements Controller<Object> {
 	private PasswordField passwordInput;
 
 	@FXML
-	private PastePreventTextField confirmPasswordInput;
+	private PastePreventPasswordField confirmPasswordInput;
 
 	@FXML
 	private Button registerButton;
