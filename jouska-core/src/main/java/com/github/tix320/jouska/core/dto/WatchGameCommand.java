@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.core.dto;
 
-import com.github.tix320.jouska.core.game.GameBoard;
-import com.github.tix320.jouska.core.game.PlayerColor;
+import com.github.tix320.jouska.core.application.game.GameBoard;
+import com.github.tix320.jouska.core.application.game.PlayerColor;
 
 public final class WatchGameCommand {
 

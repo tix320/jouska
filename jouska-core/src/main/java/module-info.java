@@ -6,7 +6,9 @@ open module jouska.core {
 
 	exports com.github.tix320.jouska.core.model;
 	exports com.github.tix320.jouska.core.dto;
-	exports com.github.tix320.jouska.core.game;
+	exports com.github.tix320.jouska.core.application.game;
+	exports com.github.tix320.jouska.core.application.game.creation;
+	exports com.github.tix320.jouska.core.application.tournament;
 	exports com.github.tix320.jouska.core.event;
-	exports com.github.tix320.jouska.core.game.creation;
+	exports com.github.tix320.jouska.core.util;
 }

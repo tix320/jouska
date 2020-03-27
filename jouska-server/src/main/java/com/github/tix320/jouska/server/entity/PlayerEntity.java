@@ -22,6 +22,10 @@ public class PlayerEntity {
 	public PlayerEntity() {
 	}
 
+	public PlayerEntity(ObjectId id) {
+		this.id = id;
+	}
+
 	public PlayerEntity(String nickname, String password, RoleName role) {
 		this.nickname = nickname;
 		this.password = password;

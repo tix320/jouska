@@ -3,10 +3,10 @@ package com.github.tix320.jouska.bot;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.dto.*;
-import com.github.tix320.jouska.core.game.*;
-import com.github.tix320.jouska.core.game.creation.GameBoards;
-import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.GameBoards;
+import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 

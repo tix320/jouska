@@ -3,10 +3,7 @@ package com.github.tix320.jouska.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
-import com.github.tix320.jouska.core.game.GameChange;
-import com.github.tix320.jouska.core.game.GameComplete;
-import com.github.tix320.jouska.core.game.PlayerKick;
-import com.github.tix320.jouska.core.game.PlayerTurn;
+import com.github.tix320.jouska.core.application.game.*;
 
 /**
  * @author Tigran Sargsyan on 25-Mar-20.
@@ -14,7 +11,8 @@ import com.github.tix320.jouska.core.game.PlayerTurn;
 @JsonSubTypes({
 		@JsonSubTypes.Type(value = GameCompleteDto.class, name = "complete"),
 		@JsonSubTypes.Type(value = PlayerLeaveDto.class, name = "leave"),
-		@JsonSubTypes.Type(value = PlayerTurnDto.class, name = "turn")})
+		@JsonSubTypes.Type(value = PlayerTurnDto.class, name = "turn"),
+		@JsonSubTypes.Type(value = GameTimeDrawCompletionDto.class, name = "drawComplete")})
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
 public abstract class GameChangeDto {
 
@@ -30,6 +28,10 @@ public abstract class GameChangeDto {
 		else if (gameChange instanceof GameComplete) {
 			GameComplete gameComplete = (GameComplete) gameChange;
 			return new GameCompleteDto(gameComplete.getWinner());
+		}
+		else if (gameChange instanceof GameTimeDrawCompletion) {
+			GameTimeDrawCompletion drawComplete = (GameTimeDrawCompletion) gameChange;
+			return new GameTimeDrawCompletionDto(drawComplete.getAdditionalSeconds());
 		}
 		else {
 			throw new IllegalArgumentException();

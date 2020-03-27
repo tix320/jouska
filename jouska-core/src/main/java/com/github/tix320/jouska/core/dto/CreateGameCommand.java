@@ -1,20 +1,20 @@
 package com.github.tix320.jouska.core.dto;
 
-import com.github.tix320.jouska.core.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 
 public final class CreateGameCommand {
 
-	private final GameSettings gameSettings;
+	private final TimedGameSettings gameSettings;
 
 	private CreateGameCommand() {
 		this(null);
 	}
 
-	public CreateGameCommand(GameSettings gameSettings) {
+	public CreateGameCommand(TimedGameSettings gameSettings) {
 		this.gameSettings = gameSettings;
 	}
 
-	public GameSettings getGameSettings() {
+	public TimedGameSettings getGameSettings() {
 		return gameSettings;
 	}
 }

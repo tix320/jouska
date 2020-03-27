@@ -13,6 +13,7 @@
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.Font?>
 
+<?import com.github.tix320.jouska.client.ui.helper.component.TimerLabel?>
 <AnchorPane fx:id="mainPane" prefHeight="639.0" prefWidth="1084.0" stylesheets="@game.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.GameController">
 	<children>
 		<VBox id="statisticsBoard" fx:id="statisticsBoard" layoutX="1335.0" layoutY="75.0" prefHeight="250.0" prefWidth="250.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="80.0" />
@@ -22,7 +23,7 @@
 				<Font size="20.0" />
 			</font>
 		</Button>
-		<HBox alignment="CENTER" layoutX="521.0" layoutY="14.0" spacing="5.0" styleClass="hbox" AnchorPane.leftAnchor="500.0" AnchorPane.topAnchor="10.0">
+		<HBox alignment="CENTER" layoutX="521.0" layoutY="14.0" spacing="5.0" styleClass="hbox" AnchorPane.leftAnchor="400.0" AnchorPane.topAnchor="10.0">
 			<children>
 				<Label alignment="CENTER" prefHeight="40.0" prefWidth="78.0" text="Turn:">
 					<font>
@@ -30,14 +31,20 @@
 					</font>
 				</Label>
 				<Circle fx:id="turnIndicator" fill="DODGERBLUE" radius="16.0" stroke="BLACK" strokeType="INSIDE" />
-				<Label fx:id="turnTimeIndicator" text="20">
+				<TimerLabel fx:id="turnTimeIndicator">
 					<font>
 						<Font size="28.0" />
 					</font>
 					<HBox.margin>
 						<Insets left="10.0" />
 					</HBox.margin>
-				</Label>
+				</TimerLabel>
+            <Separator orientation="VERTICAL" />
+            <TimerLabel fx:id="turnTotalTimeIndicator" layoutX="140.0" layoutY="10.0">
+               <font>
+                  <Font size="28.0" />
+               </font>
+            </TimerLabel>
 			</children>
 		</HBox>
 		<HBox alignment="CENTER_RIGHT" layoutX="10.0" layoutY="10.0" spacing="5.0" styleClass="hbox" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="10.0">
@@ -48,11 +55,11 @@
 					</font>
 				</Label>
 				<Separator orientation="VERTICAL" prefHeight="37.0" />
-				<Label fx:id="gameDurationIndicator" prefHeight="40.0" text="20:00">
+				<TimerLabel fx:id="gameDurationIndicator" prefHeight="40.0">
 					<font>
 						<Font size="28.0" />
 					</font>
-				</Label>
+				</TimerLabel>
 			</children>
 		</HBox>
 		<FlowPane fx:id="gameBoardPane" layoutX="-12.0" layoutY="87.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="80.0" />

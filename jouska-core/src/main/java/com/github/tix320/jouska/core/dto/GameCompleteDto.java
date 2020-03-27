@@ -2,7 +2,7 @@ package com.github.tix320.jouska.core.dto;
 
 import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.github.tix320.jouska.core.game.InGamePlayer;
+import com.github.tix320.jouska.core.application.game.InGamePlayer;
 
 /**
  * @author Tigran Sargsyan on 25-Mar-20.

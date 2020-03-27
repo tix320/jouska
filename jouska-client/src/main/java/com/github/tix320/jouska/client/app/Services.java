@@ -8,11 +8,11 @@ import com.github.tix320.jouska.client.service.origin.*;
 import com.github.tix320.sonder.api.client.SonderClient;
 
 public class Services {
-	public static AuthenticationService AUTHENTICATION_SERVICE;
-	public static ClientGameManagmentService GAME_SERVICE;
-	public static ClientGameService IN_GAME_SERVICE;
-	public static ClientTournamentService TOURNAMENT_SERVICE;
-	public static ApplicationUpdateService APPLICATION_INSTALLER_SERVICE;
+	public static AuthenticationOrigin AUTHENTICATION_SERVICE;
+	public static ClientGameManagementOrigin GAME_SERVICE;
+	public static ClientGameOrigin IN_GAME_SERVICE;
+	public static ClientTournamentOrigin TOURNAMENT_SERVICE;
+	public static ApplicationUpdateOrigin APPLICATION_INSTALLER_SERVICE;
 
 	public static SonderClient SONDER_CLIENT;
 
@@ -39,10 +39,10 @@ public class Services {
 	}
 
 	private static void initServices() {
-		AUTHENTICATION_SERVICE = SONDER_CLIENT.getRPCService(AuthenticationService.class);
-		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameManagmentService.class);
-		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameService.class);
-		TOURNAMENT_SERVICE = SONDER_CLIENT.getRPCService(ClientTournamentService.class);
-		APPLICATION_INSTALLER_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateService.class);
+		AUTHENTICATION_SERVICE = SONDER_CLIENT.getRPCService(AuthenticationOrigin.class);
+		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameManagementOrigin.class);
+		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameOrigin.class);
+		TOURNAMENT_SERVICE = SONDER_CLIENT.getRPCService(ClientTournamentOrigin.class);
+		APPLICATION_INSTALLER_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateOrigin.class);
 	}
 }

@@ -1,8 +1,8 @@
 package com.github.tix320.jouska.bot;
 
-import com.github.tix320.jouska.core.game.BoardCell;
-import com.github.tix320.jouska.core.game.PlayerColor;
-import com.github.tix320.jouska.core.game.Point;
+import com.github.tix320.jouska.core.application.game.BoardCell;
+import com.github.tix320.jouska.core.application.game.PlayerColor;
+import com.github.tix320.jouska.core.application.game.Point;
 
 public final class Bot {
 

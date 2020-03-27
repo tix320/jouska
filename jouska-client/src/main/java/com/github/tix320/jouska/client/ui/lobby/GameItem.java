@@ -33,7 +33,7 @@ public class GameItem extends AnchorPane {
 	}
 
 	private void initView(GameView gameView) {
-		setGameName(gameView.getName());
+		setGameName(gameView.getName() + " ( " + gameView.getId() + " )");
 		setPlayersCount(gameView.getPlayersCount() + "/" + gameView.getMaxPlayersCount());
 		setTurnDuration(String.valueOf(gameView.getTurnDurationSeconds()));
 		setGameDuration(String.valueOf(gameView.getGameDurationMinutes()));

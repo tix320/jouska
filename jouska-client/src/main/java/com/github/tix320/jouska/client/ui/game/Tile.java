@@ -3,8 +3,8 @@ package com.github.tix320.jouska.client.ui.game;
 import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
-import com.github.tix320.jouska.core.game.Constants;
-import com.github.tix320.jouska.core.game.PlayerColor;
+import com.github.tix320.jouska.core.application.game.Constants;
+import com.github.tix320.jouska.core.application.game.PlayerColor;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.animation.*;
 import javafx.fxml.FXML;

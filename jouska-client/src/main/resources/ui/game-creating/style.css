@@ -10,7 +10,7 @@
 
 .hbox {
     -fx-spacing: 10px;
-    -fx-alignment: CENTER;
+    -fx-alignment: CENTER_LEFT;
 }
 
 #input {
