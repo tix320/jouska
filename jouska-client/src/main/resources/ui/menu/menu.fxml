@@ -21,6 +21,7 @@
                </image>
             </ImageView>
             <Button id="logoutButton" fx:id="logoutButton" focusTraversable="false" layoutX="72.0" layoutY="48.0" mnemonicParsing="false" onAction="#logout" text="Logout" AnchorPane.leftAnchor="85.0" AnchorPane.topAnchor="45.0" />
+            <AnchorPane fx:id="notificationPane" layoutX="252.0" layoutY="-58.0" prefHeight="80.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="0.0" />
 			</children>
 		</AnchorPane>
 		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" prefHeight="622.0" prefWidth="835.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0" />

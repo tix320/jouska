@@ -17,6 +17,8 @@ public class ClassicTournament implements Tournament {
 
 	private final GameSettings playOffGameSettings;
 
+	private final List<Player> players;
+
 	private final List<Group> groups;
 
 	private final Property<PlayOff> playOff;
@@ -27,9 +29,15 @@ public class ClassicTournament implements Tournament {
 		if (players.size() < 4) {
 			throw new IllegalArgumentException("Tournament players count must be >=4");
 		}
+		this.players = players;
 		this.groups = assembleGroups(players);
 		this.playOff = Property.forObject();
 		listenGroupsCompleteness();
+	}
+
+	@Override
+	public List<Player> getPlayers() {
+		return players;
 	}
 
 	@Override

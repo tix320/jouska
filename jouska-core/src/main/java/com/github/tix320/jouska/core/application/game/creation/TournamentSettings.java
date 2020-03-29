@@ -6,16 +6,16 @@ public final class TournamentSettings {
 
 	private final int playersCount;
 
-	private final GameSettings groupGameSettings;
+	private final TimedGameSettings groupGameSettings;
 
-	private final GameSettings playOffGameSettings;
+	private final TimedGameSettings playOffGameSettings;
 
 	private TournamentSettings() {
 		this(null, -1, null, null);
 	}
 
-	public TournamentSettings(String name, int playersCount, GameSettings groupGameSettings,
-							  GameSettings playOffGameSettings) {
+	public TournamentSettings(String name, int playersCount, TimedGameSettings groupGameSettings,
+							  TimedGameSettings playOffGameSettings) {
 		this.name = name;
 		this.playersCount = playersCount;
 		this.groupGameSettings = groupGameSettings;
@@ -30,11 +30,11 @@ public final class TournamentSettings {
 		return playersCount;
 	}
 
-	public GameSettings getGroupGameSettings() {
+	public TimedGameSettings getGroupGameSettings() {
 		return groupGameSettings;
 	}
 
-	public GameSettings getPlayOffGameSettings() {
+	public TimedGameSettings getPlayOffGameSettings() {
 		return playOffGameSettings;
 	}
 }

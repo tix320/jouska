@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.client.ui.controller;
 
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.ui.helper.component.PastePreventPasswordField;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
@@ -53,7 +53,7 @@ public class RegistrationController implements Controller<Object> {
 				.subscribe(registrationAnswer -> {
 					switch (registrationAnswer) {
 						case SUCCESS:
-							JouskaUI.switchComponent(ComponentType.LOGIN,
+							UI.switchComponent(ComponentType.LOGIN,
 									new LoginCommand(nicknameInput.getText(), passwordInput.getText()));
 							break;
 						case NICKNAME_ALREADY_EXISTS:
@@ -64,7 +64,7 @@ public class RegistrationController implements Controller<Object> {
 	}
 
 	public void login() {
-		JouskaUI.switchComponent(ComponentType.LOGIN);
+		UI.switchComponent(ComponentType.LOGIN);
 	}
 
 	public void showError(String message) {

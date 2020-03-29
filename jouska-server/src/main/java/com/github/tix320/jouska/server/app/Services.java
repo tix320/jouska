@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
 
+import com.github.tix320.jouska.core.application.tournament.Tournament;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
+import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOrigin;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.UserExtraArgExtractor;
 import com.github.tix320.jouska.server.infrastructure.origin.AuthenticationOrigin;
@@ -18,8 +20,9 @@ import com.github.tix320.sonder.api.server.event.ClientConnectionClosedEvent;
 
 public class Services {
 	public static SonderServer SONDER_SERVER;
-	public static AuthenticationOrigin AUTHENTICATION_SERVICE;
-	public static ServerGameOrigin GAME_SERVICE;
+	public static AuthenticationOrigin AUTHENTICATION_ORIGIN;
+	public static ServerGameOrigin GAME_ORIGIN;
+	public static ServerTournamentOrigin TOURNAMENT_ORIGIN;
 
 	public static void initialize(int port) {
 		if (SONDER_SERVER != null) {
@@ -29,7 +32,6 @@ public class Services {
 		SONDER_SERVER = SonderServer.forAddress(new InetSocketAddress(port))
 				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage)
 						.registerEndpointExtraArgExtractor(new UserExtraArgExtractor()))
-				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
 				.build();
@@ -55,8 +57,9 @@ public class Services {
 	}
 
 	private static void initServices() {
-		AUTHENTICATION_SERVICE = SONDER_SERVER.getRPCService(AuthenticationOrigin.class);
-		GAME_SERVICE = SONDER_SERVER.getRPCService(ServerGameOrigin.class);
+		AUTHENTICATION_ORIGIN = SONDER_SERVER.getRPCService(AuthenticationOrigin.class);
+		GAME_ORIGIN = SONDER_SERVER.getRPCService(ServerGameOrigin.class);
+		TOURNAMENT_ORIGIN = SONDER_SERVER.getRPCService(ServerTournamentOrigin.class);
 	}
 }
 

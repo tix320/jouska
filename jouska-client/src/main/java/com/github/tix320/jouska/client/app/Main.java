@@ -6,8 +6,8 @@ import java.io.StringWriter;
 import java.util.Optional;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -32,8 +32,8 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage stage) {
-		JouskaUI.initialize(stage);
-		JouskaUI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
+		UI.initialize(stage);
+		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			stage.show();
 
 			new Thread(() -> {
@@ -42,7 +42,7 @@ public class Main extends Application {
 					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION, Version.os.name())
 							.subscribe(lastVersion -> {
 								if (!lastVersion.equals("")) { // update
-									JouskaUI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
+									UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
 								}
 								else {
 									LoginCommand loginCommand = new LoginCommand(Configuration.getNickname(),
@@ -51,7 +51,7 @@ public class Main extends Application {
 										switch (loginAnswer.getLoginResult()) {
 											case SUCCESS:
 												CurrentUserContext.setPlayer(loginAnswer.getPlayer());
-												JouskaUI.switchComponent(ComponentType.MENU);
+												UI.switchComponent(ComponentType.MENU);
 												break;
 											case ALREADY_LOGGED:
 												Platform.runLater(() -> {
@@ -68,13 +68,13 @@ public class Main extends Application {
 																.subscribe(answer -> {
 																	switch (answer.getLoginResult()) {
 																		case SUCCESS:
-																			JouskaUI.switchComponent(
+																			UI.switchComponent(
 																					ComponentType.MENU);
 																			CurrentUserContext.setPlayer(
 																					answer.getPlayer());
 																			break;
 																		case INVALID_CREDENTIALS:
-																			JouskaUI.switchComponent(
+																			UI.switchComponent(
 																					ComponentType.LOGIN);
 																			break;
 																		default:
@@ -83,12 +83,12 @@ public class Main extends Application {
 																});
 													}
 													else {
-														JouskaUI.switchComponent(ComponentType.LOGIN, loginCommand);
+														UI.switchComponent(ComponentType.LOGIN, loginCommand);
 													}
 												});
 												break;
 											case INVALID_CREDENTIALS:
-												JouskaUI.switchComponent(ComponentType.LOGIN);
+												UI.switchComponent(ComponentType.LOGIN);
 												break;
 											default:
 												throw new IllegalStateException();
@@ -102,7 +102,7 @@ public class Main extends Application {
 					StringWriter out = new StringWriter();
 					PrintWriter stringWriter = new PrintWriter(out);
 					e.printStackTrace(stringWriter);
-					JouskaUI.switchComponent(ComponentType.ERROR, out.toString());
+					UI.switchComponent(ComponentType.ERROR, out.toString());
 				}
 			}).start();
 		});
@@ -111,7 +111,7 @@ public class Main extends Application {
 	@Override
 	public void stop()
 			throws InterruptedException, IOException {
-		JouskaUI.close();
+		UI.close();
 		Thread.sleep(1000);
 		Services.stop();
 	}

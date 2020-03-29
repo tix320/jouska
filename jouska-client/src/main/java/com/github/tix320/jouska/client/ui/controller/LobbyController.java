@@ -6,8 +6,8 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.dto.GamePlayDto;
@@ -84,7 +84,7 @@ public class LobbyController implements Controller<Object> {
 				.conditionalSubscribe(event -> {
 					GamePlayDto gamePlayDto = event.getGamePlayDto();
 					if (gamePlayDto.getGameId() == waitingToConnectGameId.get()) {
-						JouskaUI.switchComponent(ComponentType.GAME, gamePlayDto);
+						UI.switchComponent(ComponentType.GAME, gamePlayDto);
 						return false;
 					}
 
@@ -142,7 +142,7 @@ public class LobbyController implements Controller<Object> {
 							Optional<ButtonType> result = alert.showAndWait();
 							if (result.isPresent() && result.get() == ButtonType.OK) {
 								GAME_SERVICE.watch(gameId)
-										.subscribe(gameWatchDto -> JouskaUI.switchComponent(ComponentType.GAME,
+										.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME,
 												gameWatchDto));
 							}
 							else {

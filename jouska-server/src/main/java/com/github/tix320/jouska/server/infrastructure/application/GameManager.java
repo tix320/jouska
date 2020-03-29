@@ -27,7 +27,7 @@ import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.util.IDGenerator;
 import com.github.tix320.kiwi.api.util.None;
 
-import static com.github.tix320.jouska.server.app.Services.GAME_SERVICE;
+import static com.github.tix320.jouska.server.app.Services.GAME_ORIGIN;
 
 public class GameManager {
 	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
@@ -155,7 +155,7 @@ public class GameManager {
 			for (InGamePlayer player : gamePlayers) {
 				ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
 						.ifPresentOrElse(clientId -> {
-							Observable<None> playerReady = GAME_SERVICE.notifyGameStarted(
+							Observable<None> playerReady = GAME_ORIGIN.notifyGameStarted(
 									new GamePlayDto(gameId, gameSettings, gamePlayers, player.getColor()), clientId);
 							playersReady.add(playerReady);
 						}, () -> logPlayerConnectionNotFound(player.getRealPlayer()));

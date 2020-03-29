@@ -21,8 +21,8 @@ public class BotGameEndpoint {
 
 	private Bot bot;
 
-	@Endpoint("start")
-	public void startGame(GamePlayDto gamePlayDto) {
+	@Endpoint
+	public void notifyGameStarted(GamePlayDto gamePlayDto) {
 		this.gameId = gamePlayDto.getGameId();
 		GameSettings gameSettings = gamePlayDto.getGameSettings();
 		List<InGamePlayer> players = gamePlayDto.getPlayers();
@@ -72,7 +72,7 @@ public class BotGameEndpoint {
 	}
 
 	private void tryTurn() {
-		if (game.getCurrentPlayer().getColor() == myPlayer) {
+		if (!game.isCompleted() && game.getCurrentPlayer().getColor() == myPlayer) {
 			Try.runOrRethrow(() -> Thread.sleep(1000));
 			Point turn = bot.turn(game.getBoard());
 			BotApp.SONDER_CLIENT.getRPCService(BotInGameService.class).turn(gameId, turn);

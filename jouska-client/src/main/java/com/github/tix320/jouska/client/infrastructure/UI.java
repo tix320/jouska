@@ -16,7 +16,7 @@ import javafx.scene.Scene;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
 
-public final class JouskaUI {
+public final class UI {
 
 	private static final Publisher<None> onExit = Publisher.buffered(1);
 
@@ -25,9 +25,9 @@ public final class JouskaUI {
 	public static Component currentComponent;
 
 	public static void initialize(Stage stage) {
-		if (JouskaUI.stage == null) {
-			JouskaUI.stage = stage;
-			stage.getIcons().add(new Image(JouskaUI.class.getResourceAsStream("/installer.ico")));
+		if (UI.stage == null) {
+			UI.stage = stage;
+			stage.getIcons().add(new Image(UI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.VERSION);
 		}
 		else {
@@ -65,7 +65,7 @@ public final class JouskaUI {
 
 	public static Component loadComponent(ComponentType componentType, Object data) {
 		String resourceUrl = componentType.fxmlPath;
-		URL resource = JouskaUI.class.getResource(resourceUrl);
+		URL resource = UI.class.getResource(resourceUrl);
 		if (resource == null) {
 			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
 		}
@@ -102,7 +102,9 @@ public final class JouskaUI {
 		TOURNAMENT_LOBBY("/ui/tournament/tournament-lobby.fxml"),
 		TOURNAMENT_CREATE("/ui/tournament/tournament-create.fxml"),
 		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-management.fxml"),
-		GAME("/ui/game/game.fxml");
+		GAME("/ui/game/game.fxml"),
+
+		TOURNAMENT_ACCEPT_NOTIFICATION("/ui/tournament/accept-player-notification.fxml");
 
 		private final String fxmlPath;
 

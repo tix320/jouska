@@ -5,8 +5,8 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
@@ -75,7 +75,7 @@ public class TournamentLobbyController implements Controller<Object> {
 					EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
 				}
 				else {
-					JouskaUI.switchComponent(ComponentType.ERROR, "Wtf. Tournament not found");
+					UI.switchComponent(ComponentType.ERROR, "Tournament not found");
 				}
 			});
 		}

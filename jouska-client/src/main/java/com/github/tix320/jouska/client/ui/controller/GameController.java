@@ -10,8 +10,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.ui.game.PlayerMode;
 import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.client.ui.helper.component.TimerLabel;
@@ -176,7 +176,12 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private void runBoardChangesConsumer() {
 		AtomicBoolean running = Threads.runLoop(() -> {
-			GameChangeDto gameChange = Try.supplyOrRethrow(() -> changesQueue.take());
+			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
+			GameChangeDto gameChange = Try.supplyOrRethrow(
+					() -> changesQueue.poll(gameSettings.getTurnDurationSeconds(), TimeUnit.SECONDS));
+			if (gameChange == null) {
+				return true;
+			}
 			if (gameChange instanceof PlayerTurnDto) {
 				PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
 				turn(playerTurn);
@@ -215,7 +220,7 @@ public class GameController implements Controller<GameWatchDto> {
 
 	@FXML
 	private void onFullScreenClick() {
-		Stage stage = JouskaUI.stage;
+		Stage stage = UI.stage;
 		if (stage.isFullScreen()) {
 			stage.setFullScreen(false);
 		}
@@ -542,6 +547,6 @@ public class GameController implements Controller<GameWatchDto> {
 		if (!game.isCompleted() && playerMode == PlayerMode.PLAY) {
 			IN_GAME_SERVICE.leave(gameId);
 		}
-		JouskaUI.switchComponent(ComponentType.MENU);
+		UI.switchComponent(ComponentType.MENU);
 	}
 }

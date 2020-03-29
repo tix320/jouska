@@ -4,8 +4,8 @@ import java.util.Optional;
 
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI;
-import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -52,7 +52,7 @@ public class LoginController implements Controller<LoginCommand> {
 				case SUCCESS:
 					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
 					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
-					JouskaUI.switchComponent(ComponentType.MENU);
+					UI.switchComponent(ComponentType.MENU);
 					break;
 				case ALREADY_LOGGED:
 					Platform.runLater(() -> {
@@ -69,7 +69,7 @@ public class LoginController implements Controller<LoginCommand> {
 								switch (answer.getLoginResult()) {
 									case SUCCESS:
 										CurrentUserContext.setPlayer(answer.getPlayer());
-										JouskaUI.switchComponent(ComponentType.MENU);
+										UI.switchComponent(ComponentType.MENU);
 										break;
 									case INVALID_CREDENTIALS:
 										showError("Invalid username/password");
@@ -80,7 +80,7 @@ public class LoginController implements Controller<LoginCommand> {
 							});
 						}
 						else {
-							JouskaUI.switchComponent(ComponentType.LOGIN, loginCommand);
+							UI.switchComponent(ComponentType.LOGIN, loginCommand);
 						}
 					});
 					break;
@@ -94,7 +94,7 @@ public class LoginController implements Controller<LoginCommand> {
 	}
 
 	public void registerNewAccount() {
-		JouskaUI.switchComponent(ComponentType.REGISTRATION);
+		UI.switchComponent(ComponentType.REGISTRATION);
 	}
 
 	public void showError(String message) {

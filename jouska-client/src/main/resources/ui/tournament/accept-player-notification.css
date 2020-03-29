@@ -1,0 +1,36 @@
+.root * {
+    -fx-font-size: 15px;
+    -fx-font-family: "Comic Sans MS";
+}
+
+#notificationTextLabel {
+    -fx-alignment: CENTER;
+}
+
+#acceptButton {
+    -fx-background-color: #31c53a;
+}
+
+#acceptButton:hover {
+    -fx-background-color: #98c52e;
+}
+
+#acceptButton:pressed {
+    -fx-background-color: #31c53a;
+}
+
+#rejectButton {
+    -fx-background-color: #c5373d;
+}
+
+#rejectButton:hover {
+    -fx-background-color: #c56a38;
+}
+
+#rejectButton:pressed {
+    -fx-background-color: #c5373d;
+}
+
+.choiceButton {
+    -fx-background-radius: 10px;
+}

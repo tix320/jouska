@@ -21,7 +21,6 @@ public class Uploader {
 		String os = args[1];
 		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("3.230.34.96", 8888))
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.ci.upload"))
-				.withTopicProtocol()
 				.build();
 		UploaderService uploaderService = sonderClient.getRPCService(UploaderService.class);
 		Path file = Path.of(filePath);

@@ -16,7 +16,7 @@ import com.github.tix320.jouska.server.infrastructure.endpoint.auth.NotAuthentic
 import dev.morphia.query.Query;
 import org.bson.types.ObjectId;
 
-import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_SERVICE;
+import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_ORIGIN;
 
 public class PlayerService {
 
@@ -55,7 +55,7 @@ public class PlayerService {
 
 		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
 		if (existingClientId != null) {
-			AUTHENTICATION_SERVICE.logout(existingClientId);
+			AUTHENTICATION_ORIGIN.logout(existingClientId);
 			EventDispatcher.fire(new PlayerLogoutEvent(entityToModel(playerEntity)));
 		}
 

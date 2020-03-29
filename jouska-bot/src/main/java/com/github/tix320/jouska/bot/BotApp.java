@@ -17,7 +17,6 @@ public class BotApp {
 		int port = 8888;//Integer.parseInt(args[1]);
 		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
-				.withTopicProtocol()
 				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
 				.build();

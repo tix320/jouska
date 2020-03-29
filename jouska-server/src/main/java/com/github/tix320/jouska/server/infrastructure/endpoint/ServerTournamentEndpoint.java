@@ -5,6 +5,7 @@ import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.tournament.TournamentChange;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
+import com.github.tix320.jouska.core.dto.TournamentJoinAnswer;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
@@ -38,11 +39,11 @@ public class ServerTournamentEndpoint {
 	@Endpoint("create")
 	@Role(RoleName.ADMIN)
 	public long create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
-		return TournamentManager.createNewTournament(createTournamentCommand);
+		return TournamentManager.createNewTournament(createTournamentCommand, player);
 	}
 
 	@Endpoint("join")
-	public void join(long tournamentId) {
-		TournamentManager.joinTournament(tournamentId);
+	public TournamentJoinAnswer join(long tournamentId, @CallerUser Player player) {
+		return TournamentManager.joinTournament(tournamentId, player);
 	}
 }
