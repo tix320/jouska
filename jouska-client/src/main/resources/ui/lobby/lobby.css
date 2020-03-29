@@ -11,6 +11,10 @@
     -fx-focus-color: transparent;
 }
 
+#connected-player-pane {
+    -fx-focus-color: transparent;
+}
+
 #games-pane {
     -fx-background-color: linear-gradient(#edff9a, #c2fff5 80%) no-repeat;
 }

@@ -1,13 +1,19 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
 import com.github.tix320.jouska.core.dto.*;
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.entity.PlayerEntity;
+import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
+import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
+import com.github.tix320.sonder.api.common.rpc.Subscription;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 import com.mongodb.DuplicateKeyException;
+
+import java.util.Set;
 
 @Endpoint("auth")
 public class AuthenticationEndpoint {
@@ -38,5 +44,11 @@ public class AuthenticationEndpoint {
 		catch (DuplicateKeyException e) {
 			return RegistrationAnswer.NICKNAME_ALREADY_EXISTS;
 		}
+	}
+
+	@Endpoint("connected-players")
+	@Subscription
+	public Observable<Set<Player>> connectPlayers() {
+		return PlayerService.getConnectedPlayers();
 	}
 }

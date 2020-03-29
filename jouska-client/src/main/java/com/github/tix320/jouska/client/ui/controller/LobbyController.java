@@ -9,10 +9,13 @@ import java.util.stream.Collectors;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
+import com.github.tix320.jouska.client.ui.lobby.ConnectedPlayerItem;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.dto.GamePlayDto;
 import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.event.EventDispatcher;
+import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -30,8 +33,16 @@ import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
+import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.concurrent.atomic.AtomicReference;
+import java.util.stream.Collectors;
+
+import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
 
 public class LobbyController implements Controller<Object> {
@@ -44,6 +55,9 @@ public class LobbyController implements Controller<Object> {
 	@FXML
 	private Label waitingPlayersLabel;
 
+	@FXML
+	private VBox connectedPlayersPane;
+
 	private Timeline timeline;
 
 	private AtomicReference<Long> waitingToConnectGameId = new AtomicReference<>(null);
@@ -54,6 +68,7 @@ public class LobbyController implements Controller<Object> {
 	public void init(Object data) {
 		gameItemsPane.disableProperty().bind(loading);
 		subscribeToGameList();
+		subscribeToConnectedPlayersList();
 
 		timeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ae -> {
 			String text = waitingPlayersLabel.getText();
@@ -109,6 +124,22 @@ public class LobbyController implements Controller<Object> {
 				ObservableList<Node> gameList = gameItemsPane.getChildren();
 				gameList.clear();
 				gameList.addAll(gameItems);
+			});
+		});
+	}
+
+	private void subscribeToConnectedPlayersList() {
+		AUTHENTICATION_SERVICE.connectPlayers().takeUntil(destroyPublisher.asObservable()).subscribe(players -> {
+			List<ConnectedPlayerItem> connectedPlayerItems = players.stream().map(ConnectedPlayerItem::new).collect(Collectors.toList());
+			ConnectedPlayerItem connectedPlayerItem = connectedPlayerItems.get(0);
+			for (int i = 0; i < 50; i++) {
+				connectedPlayerItems.add(new ConnectedPlayerItem(new Player("asd", "ashot "+i, RoleName.ADMIN)));
+			}
+			Collections.reverse(connectedPlayerItems);
+			Platform.runLater(() -> {
+				ObservableList<Node> playersNode = connectedPlayersPane.getChildren();
+				playersNode.clear();
+				playersNode.addAll(connectedPlayerItems);
 			});
 		});
 	}
