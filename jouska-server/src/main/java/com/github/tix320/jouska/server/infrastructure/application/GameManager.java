@@ -13,7 +13,8 @@ import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
-import com.github.tix320.jouska.core.dto.StartGameCommand;
+import com.github.tix320.jouska.core.dto.GamePlayDto;
+import com.github.tix320.jouska.core.dto.GameWatchDto;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
@@ -52,7 +53,6 @@ public class GameManager {
 			if (connectedPlayers.size() < playersCount) { // free
 				answer.set(GameConnectionAnswer.CONNECTED);
 				connectedPlayers.add(player);
-				gameInfo.getPlayers().add(player);
 				if (connectedPlayers.size() == playersCount) { // full
 					startGame(gameInfo);
 				}
@@ -66,21 +66,21 @@ public class GameManager {
 		return answer.get();
 	}
 
-	public static void watchGame(long gameId, long playerId) {
-		// GameInfo gameInfo = games.get(gameId);
-		// Lock lock = gameInfo.getLock();
-		// try {
-		// 	lock.lock();
-		// 	WatchGameCommand watchGameCommand = new WatchGameCommand(gameId, gameInfo.getName(), gameInfo.getPlayers(),
-		// 			new GameBoard(gameInfo.getGame().getBoard()));
-		// 	GAME_SERVICE.watchGame(watchGameCommand, playerId)
-		// 			.subscribe(none -> gameInfo.getGame()
-		// 					.turns()
-		// 					.subscribe(point -> IN_GAME_SERVICE.turn(point, playerId)));
-		// }
-		// finally {
-		// 	lock.unlock();
-		// }
+	public static GameWatchDto watchGame(long gameId) {
+		GameInfo gameInfo = games.get(gameId);
+		if (gameInfo == null || gameInfo.getGame() == null) {
+			throw new IllegalArgumentException(String.format("Game `%s` does not exists", gameId));
+		}
+
+		Lock lock = gameInfo.getGameLock();
+		try {
+			lock.lock();
+			Game game = gameInfo.getGame();
+			return new GameWatchDto(gameId, (TimedGameSettings) gameInfo.getSettings(), game.getPlayers());
+		}
+		finally {
+			lock.unlock();
+		}
 	}
 
 	public static void leaveFromGame(long gameId, Player player) {
@@ -98,8 +98,8 @@ public class GameManager {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
 
-		Set<Player> players = gameInfo.getConnectedPlayers();
-		if (!players.contains(player)) {
+		Game game = gameInfo.getGame();
+		if (!containsPlayerInGame(game, player)) {
 			throw new IllegalStateException(String.format("Player %s is not a player of game %s", player, gameId));
 		}
 
@@ -155,9 +155,8 @@ public class GameManager {
 			for (InGamePlayer player : gamePlayers) {
 				ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
 						.ifPresentOrElse(clientId -> {
-							Observable<None> playerReady = GAME_SERVICE.startGame(
-									new StartGameCommand(gameId, gameSettings, player.getColor(), gamePlayers),
-									clientId);
+							Observable<None> playerReady = GAME_SERVICE.notifyGameStarted(
+									new GamePlayDto(gameId, gameSettings, gamePlayers, player.getColor()), clientId);
 							playersReady.add(playerReady);
 						}, () -> logPlayerConnectionNotFound(player.getRealPlayer()));
 			}
@@ -191,12 +190,7 @@ public class GameManager {
 		gameLock.lock();
 		try {
 			Game game = gameInfo.getGame();
-			gameInfo.getConnectedPlayers().remove(player);
 			game.kick(player);
-			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-			Set<Player> players = gameInfo.getPlayers();
-			players.remove(player);
-			connectedPlayers.remove(player);
 		}
 		finally {
 			gameLock.unlock();

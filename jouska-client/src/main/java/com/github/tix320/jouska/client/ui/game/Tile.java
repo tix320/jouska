@@ -3,7 +3,6 @@ package com.github.tix320.jouska.client.ui.game;
 import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
-import com.github.tix320.jouska.core.application.game.Constants;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.animation.*;
@@ -63,12 +62,7 @@ public class Tile extends AnchorPane {
 		return timeline;
 	}
 
-	public Transition makeDisappearTransition() {
-		return makeDisappearTransition(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS));
-	}
-
-	public Transition makeAppearTransition(PlayerColor player, int points) {
-		Duration duration = Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS);
+	public Transition makeAppearTransition(PlayerColor player, int points, Duration duration) {
 		Transition transition = makeAppearTransition(duration);
 
 		Transition backgroundTransition = Transitions.timeLineToTransition(
@@ -80,20 +74,24 @@ public class Tile extends AnchorPane {
 				Transitions.intercept(transition, () -> imageHolder.setImage(new Image(imagePath))));
 	}
 
-	public Transition makeDisAppearAndAppearTransition(PlayerColor player, int points) {
+	public Transition makeDisAppearAndAppearTransition(PlayerColor player, int points, Duration baseDuration) {
 		Transition backgroundTransition = Transitions.timeLineToTransition(
-				animateBackground(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS),
-						Color.web(player.getColorCode())));
+				animateBackground(baseDuration, Color.web(player.getColorCode())));
 
 		String imagePath = SHAPE_ICONS[player.ordinal()][points - 1];
-		Transition disappearTransition = makeDisappearTransition(
-				Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS / 2));
-		Transition appearTransition = Transitions.intercept(
-				makeAppearTransition(Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS / 2)),
+		Transition disappearTransition = makeDisappearTransition(baseDuration.divide(2));
+		Transition appearTransition = Transitions.intercept(makeAppearTransition(baseDuration.divide(2)),
 				() -> imageHolder.setImage(new Image(imagePath)));
 
 		return new ParallelTransition(backgroundTransition,
 				new SequentialTransition(disappearTransition, appearTransition));
+	}
+
+	public Transition makeDisappearTransition(Duration duration) {
+		FadeTransition disappearTransition = new FadeTransition(duration, imageHolder);
+		disappearTransition.setFromValue(1);
+		disappearTransition.setToValue(0);
+		return disappearTransition;
 	}
 
 	private Transition makeAppearTransition(Duration duration) {
@@ -101,13 +99,6 @@ public class Tile extends AnchorPane {
 		appearTransition.setFromValue(0);
 		appearTransition.setToValue(1);
 		return appearTransition;
-	}
-
-	private Transition makeDisappearTransition(Duration duration) {
-		FadeTransition disappearTransition = new FadeTransition(duration, imageHolder);
-		disappearTransition.setFromValue(1);
-		disappearTransition.setToValue(0);
-		return disappearTransition;
 	}
 
 	private Background createBackground(Paint paint) {

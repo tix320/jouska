@@ -2,12 +2,12 @@ package com.github.tix320.jouska.core.application.game;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.Map.Entry;
 import java.util.concurrent.TimeUnit;
 
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.PauseableTimer;
+import com.github.tix320.jouska.core.util.SingleTaskTimer;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
@@ -20,12 +20,8 @@ public final class TimedGame implements Game {
 	private final Game game;
 
 	private final int turnDurationSeconds;
-	private final int gameDurationMinutes;
 
-	private final Timer turnTimer;
-	private final Timer gameTimer;
-	private volatile TurnTimerTask lastTurnTimerTask;
-	private volatile GameTimerTask gameTimerTask;
+	private final SingleTaskTimer turnTimer;
 
 	private final Map<Player, PlayerTimer> playerTimers;
 
@@ -39,11 +35,7 @@ public final class TimedGame implements Game {
 		this.changes = Stock.forObject();
 		this.game = game;
 		this.turnDurationSeconds = settings.getTurnDurationSeconds();
-		this.gameDurationMinutes = settings.getGameDurationMinutes();
-		this.turnTimer = new Timer(true);
-		this.gameTimer = new Timer(true);
-		this.gameTimerTask = new GameTimerTask();
-		this.lastTurnTimerTask = new TurnTimerTask(game.getCurrentPlayer().getRealPlayer());
+		this.turnTimer = new SingleTaskTimer();
 		this.playerTimers = game.getPlayers()
 				.stream()
 				.map(InGamePlayer::getRealPlayer)
@@ -52,19 +44,17 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
-	public void start() {
+	public synchronized void start() {
 		completed().subscribe(players -> {
-			lastTurnTimerTask.cancel();
-			gameTimerTask.cancel();
+			turnTimer.cancel();
 			playerTimers.values().forEach(PauseableTimer::pause);
 		});
 
 		game.start();
 
-		playerTimers.get(game.getCurrentPlayer().getRealPlayer()).resume();
+		Player firstPlayer = game.getCurrentPlayer().getRealPlayer();
 
-		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(turnDurationSeconds).toMillis());
-		gameTimer.schedule(gameTimerTask, Duration.ofMinutes(gameDurationMinutes).toMillis());
+		runTurnTimer(firstPlayer, turnDurationSeconds);
 	}
 
 	@Override
@@ -76,7 +66,7 @@ public final class TimedGame implements Game {
 	public synchronized CellChange turn(Point point) {
 		Player currentPlayer = game.getCurrentPlayer().getRealPlayer();
 		CellChange cellChange = game.turn(point);
-		lastTurnTimerTask.cancel();
+		turnTimer.cancel();
 		playerTimers.get(currentPlayer).pause();
 		double seconds = calculateApproximateAnimationTime(cellChange);
 		Player currentPLayer = getCurrentPlayer().getRealPlayer();
@@ -141,12 +131,12 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
-	public synchronized PlayerWithPoints kick(Player player) {
+	public PlayerWithPoints kick(Player player) {
 		return game.kick(player);
 	}
 
 	@Override
-	public synchronized void forceCompleteGame(Player winner) {
+	public void forceCompleteGame(Player winner) {
 		game.forceCompleteGame(winner);
 	}
 
@@ -161,9 +151,7 @@ public final class TimedGame implements Game {
 	}
 
 	private void runTurnTimer(Player player, int seconds) {
-		lastTurnTimerTask.cancel();
-		lastTurnTimerTask = new TurnTimerTask(player);
-		turnTimer.schedule(lastTurnTimerTask, Duration.ofSeconds(seconds).toMillis());
+		turnTimer.schedule(new TurnTimerTask(player), Duration.ofSeconds(seconds).toMillis());
 		playerTimers.get(player).resume();
 	}
 
@@ -205,7 +193,7 @@ public final class TimedGame implements Game {
 		return animationTime;
 	}
 
-	private final class TurnTimerTask extends TimerTask {
+	private final class TurnTimerTask implements Runnable {
 
 		private final Player player;
 
@@ -231,38 +219,14 @@ public final class TimedGame implements Game {
 		}
 	}
 
-	private final class GameTimerTask extends TimerTask {
-
-		@Override
-		public void run() {
-			synchronized (TimedGame.this) {
-				Map<InGamePlayer, Integer> summaryPoints = getStatistics().summaryPoints();
-				Iterator<Entry<InGamePlayer, Integer>> iterator = summaryPoints.entrySet().iterator();
-
-				Map.Entry<InGamePlayer, Integer> maxEntry = iterator.next();
-				while (iterator.hasNext()) {
-					Entry<InGamePlayer, Integer> entry = iterator.next();
-					if (entry.getValue() > maxEntry.getValue()) {
-						maxEntry = entry;
-					}
-					else if (entry.getValue().intValue() == maxEntry.getValue()) {
-						gameTimerTask = new GameTimerTask();
-						gameTimer.schedule(gameTimerTask,
-								Duration.ofSeconds(Constants.ADDITIONAL_SECONDS_ON_DRAW).toMillis());
-						changes.add(new GameTimeDrawCompletion(Constants.ADDITIONAL_SECONDS_ON_DRAW));
-						return;
-					}
-				}
-				InGamePlayer winner = maxEntry.getKey();
-				forceCompleteGame(winner.getRealPlayer());
-			}
-		}
-	}
-
 	private final class PlayerTimer extends PauseableTimer {
 
 		private PlayerTimer(Player player, long delaySeconds) {
-			super(delaySeconds, () -> game.kick(player));
+			super(delaySeconds, () -> {
+				synchronized (TimedGame.this) {
+					kick(player);
+				}
+			});
 		}
 	}
 

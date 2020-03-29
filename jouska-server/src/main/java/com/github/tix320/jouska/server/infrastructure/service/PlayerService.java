@@ -56,6 +56,7 @@ public class PlayerService {
 		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
 		if (existingClientId != null) {
 			AUTHENTICATION_SERVICE.logout(existingClientId);
+			EventDispatcher.fire(new PlayerLogoutEvent(entityToModel(playerEntity)));
 		}
 
 		ClientPlayerMappingResolver.setMapping(clientId, playerId);

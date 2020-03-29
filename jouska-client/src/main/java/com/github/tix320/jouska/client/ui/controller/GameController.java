@@ -12,6 +12,7 @@ import java.util.stream.Collectors;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI;
 import com.github.tix320.jouska.client.infrastructure.JouskaUI.ComponentType;
+import com.github.tix320.jouska.client.ui.game.PlayerMode;
 import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.client.ui.helper.component.TimerLabel;
 import com.github.tix320.jouska.core.application.game.*;
@@ -20,6 +21,7 @@ import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.PauseableTimer;
+import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
@@ -28,10 +30,12 @@ import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.animation.*;
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.control.Label;
+import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -42,7 +46,7 @@ import javafx.util.Duration;
 import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
 import static java.util.stream.Collectors.toMap;
 
-public class GameController implements Controller<StartGameCommand> {
+public class GameController implements Controller<GameWatchDto> {
 
 	@FXML
 	private AnchorPane mainPane;
@@ -60,9 +64,6 @@ public class GameController implements Controller<StartGameCommand> {
 	private TimerLabel turnTotalTimeIndicator;
 
 	@FXML
-	private TimerLabel gameDurationIndicator;
-
-	@FXML
 	private Label gameNameLabel;
 
 	@FXML
@@ -70,6 +71,11 @@ public class GameController implements Controller<StartGameCommand> {
 
 	@FXML
 	private Label loseWinLabel;
+
+	@FXML
+	private Slider gameSpeedSlider;
+
+	private PlayerMode playerMode;
 
 	private Map<PlayerColor, PauseableTimer> playerTurnTimers;
 
@@ -81,7 +87,7 @@ public class GameController implements Controller<StartGameCommand> {
 	private TimedGameSettings gameSettings;
 	private InGamePlayer myPlayer;
 
-	private SimpleObjectProperty<PlayerColor> turnProperty = new SimpleObjectProperty<>();
+	private SimpleObjectProperty<InGamePlayer> turnProperty = new SimpleObjectProperty<>();
 
 	private AtomicBoolean turned = new AtomicBoolean();
 
@@ -89,18 +95,43 @@ public class GameController implements Controller<StartGameCommand> {
 
 	private MonoPublisher<None> destroyPublisher = Publisher.mono();
 
-	@Override
-	public void init(StartGameCommand startGameCommand) {
-		this.gameId = startGameCommand.getGameId();
-		this.gameSettings = startGameCommand.getGameSettings();
+	private SimpleObjectProperty<Duration> animationDuration = new SimpleObjectProperty<>(
+			Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS));
 
-		List<InGamePlayer> players = startGameCommand.getPlayers();
+	@Override
+	public void init(GameWatchDto gameWatchDto) {
+		if (gameWatchDto instanceof GamePlayDto) {
+			this.playerMode = PlayerMode.PLAY;
+			gameSpeedSlider.setVisible(false);
+		}
+		else {
+			this.playerMode = PlayerMode.WATCH;
+
+			gameSpeedSlider.setMin(0.1);
+			gameSpeedSlider.setMax(1);
+			gameSpeedSlider.setValue(0.1);
+
+			animationDuration.bind(
+					Bindings.createObjectBinding(() -> Duration.seconds(1.1 - gameSpeedSlider.getValue()),
+							gameSpeedSlider.valueProperty()));
+		}
+
+		this.gameId = gameWatchDto.getGameId();
+		this.gameSettings = gameWatchDto.getGameSettings();
+
+		List<InGamePlayer> players = gameWatchDto.getPlayers();
 		GameBoard gameBoard = GameBoards.createByType(gameSettings.getBoardType(),
 				players.stream().map(InGamePlayer::getColor).collect(Collectors.toList()));
 
 		this.game = SimpleGame.createPredefined(gameBoard, players);
 
-		this.myPlayer = new InGamePlayer(CurrentUserContext.getPlayer(), startGameCommand.getMyPlayer());
+		if (playerMode == PlayerMode.PLAY) {
+			this.myPlayer = new InGamePlayer(CurrentUserContext.getPlayer(),
+					((GamePlayDto) gameWatchDto).getMyPlayer());
+		}
+		else {
+			this.myPlayer = new InGamePlayer(CurrentUserContext.getPlayer(), null);
+		}
 
 		this.gameNameLabel.setText("Game: " + gameSettings.getName());
 		this.changesQueue = new LinkedBlockingQueue<>();
@@ -114,25 +145,23 @@ public class GameController implements Controller<StartGameCommand> {
 		DateTimeFormatter timersFormatter = DateTimeFormatter.ofPattern("mm:ss");
 		turnTimeIndicator.setFormatter(timersFormatter);
 		turnTotalTimeIndicator.setFormatter(timersFormatter);
-		gameDurationIndicator.setFormatter(timersFormatter);
 
 		initTotalTurnTimers(players);
 
 		runBoardChangesConsumer();
-		listenChanges();
+		registerListeners();
 
 		game.start();
 
 		InGamePlayer firstPlayer = players.get(0);
-		turnProperty.set(firstPlayer.getColor());
+		turnProperty.set(firstPlayer);
 		startTurnTimer();
-		runGameTimer();
 
 		updateStatistics(game.getStatistics().summaryPoints());
 		turned.set(false);
 	}
 
-	private void listenChanges() {
+	private void registerListeners() {
 		MonoObservable<?> destroy = destroyPublisher.asObservable();
 
 		game.completed().takeUntil(destroy).subscribe(none -> onGameComplete());
@@ -140,49 +169,40 @@ public class GameController implements Controller<StartGameCommand> {
 		destroy.subscribe(Subscriber.builder().onComplete(completionType -> {
 			turnTimeIndicator.stop();
 			turnTotalTimeIndicator.stop();
-			gameDurationIndicator.stop();
 		}));
 
 		IN_GAME_SERVICE.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
 	}
 
 	private void runBoardChangesConsumer() {
-		new Thread(() -> {
-			while (true) {
-				GameChangeDto gameChange = Try.supplyOrRethrow(() -> changesQueue.take());
-				if (gameChange instanceof PlayerTurnDto) {
-					PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
-					turn(playerTurn);
-					List<InGamePlayer> losers = game.getLostPlayers();
-					if (losers.contains(myPlayer)) {
-						showLose();
-					}
+		AtomicBoolean running = Threads.runLoop(() -> {
+			GameChangeDto gameChange = Try.supplyOrRethrow(() -> changesQueue.take());
+			if (gameChange instanceof PlayerTurnDto) {
+				PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
+				turn(playerTurn);
+				List<InGamePlayer> losers = game.getLostPlayers();
+				if (losers.contains(myPlayer)) {
+					showLose();
 				}
-				else if (gameChange instanceof PlayerLeaveDto) {
-					PlayerLeaveDto playerLeave = (PlayerLeaveDto) gameChange;
-					kickPlayer(playerLeave);
-				}
-				else if (gameChange instanceof GameCompleteDto) {
-					GameCompleteDto gameComplete = (GameCompleteDto) gameChange;
-					if (!game.isCompleted()) {
-						game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
-					}
-				}
-				else if (gameChange instanceof GameTimeDrawCompletionDto) {
-					GameTimeDrawCompletionDto drawComplete = (GameTimeDrawCompletionDto) gameChange;
-					Platform.runLater(() -> {
-						gameDurationIndicator.stop();
-						gameDurationIndicator.setTextFill(Color.RED);
-						gameDurationIndicator.setTime(LocalTime.ofSecondOfDay(drawComplete.getAdditionalSeconds()));
-						gameDurationIndicator.run();
-					});
-				}
-				else {
-					throw new IllegalArgumentException();
-				}
-				turned.set(false);
 			}
-		}).start();
+			else if (gameChange instanceof PlayerLeaveDto) {
+				PlayerLeaveDto playerLeave = (PlayerLeaveDto) gameChange;
+				kickPlayer(playerLeave);
+			}
+			else if (gameChange instanceof GameCompleteDto) {
+				GameCompleteDto gameComplete = (GameCompleteDto) gameChange;
+				if (!game.isCompleted()) {
+					game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
+				}
+				return false;
+			}
+			else {
+				throw new IllegalArgumentException();
+			}
+			turned.set(false);
+			return true;
+		});
+		destroyPublisher.asObservable().subscribe(none -> running.set(false));
 	}
 
 	@Override
@@ -244,11 +264,11 @@ public class GameController implements Controller<StartGameCommand> {
 						TimeUnit.SECONDS.toMillis(gameSettings.getPlayerTurnTotalDurationSeconds()), () -> {
 				})));
 
-		turnProperty.addListener((observable, oldValue, newValue) -> {
-			if (oldValue != null) {
-				playerTurnTimers.get(oldValue).pause();
+		turnProperty.addListener((observable, previousPlayer, currentPlayer) -> {
+			if (previousPlayer != null) {
+				playerTurnTimers.get(previousPlayer.getColor()).pause();
 			}
-			PauseableTimer timer = playerTurnTimers.get(newValue);
+			PauseableTimer timer = playerTurnTimers.get(currentPlayer.getColor());
 			long remainingMilliSeconds = timer.getRemainingMilliSeconds();
 			turnTotalTimeIndicator.setTime(
 					LocalTime.ofSecondOfDay(TimeUnit.MILLISECONDS.toSeconds(remainingMilliSeconds)));
@@ -260,25 +280,21 @@ public class GameController implements Controller<StartGameCommand> {
 	private void startTurnTimer() {
 		Platform.runLater(() -> {
 			int turnDurationSeconds = gameSettings.getTurnDurationSeconds();
-			turnTimeIndicator.setTime(LocalTime.of(0, 0, turnDurationSeconds));
+			turnTimeIndicator.setTime(LocalTime.ofSecondOfDay(turnDurationSeconds));
 			turnTimeIndicator.run();
 		});
 	}
 
-	private void runGameTimer() {
-		int gameDurationMinutes = gameSettings.getGameDurationMinutes();
-		gameDurationIndicator.setTime(LocalTime.of(0, gameDurationMinutes));
-		gameDurationIndicator.run();
-	}
-
 	public void turn(PlayerTurnDto playerTurnDto) {
 		Point point = playerTurnDto.getPoint();
+		InGamePlayer currentPlayer1 = game.getCurrentPlayer();
+		// System.out.println(currentPlayer1 + " - " + point);
 		CellChange rootChange = game.turn(point);
 		animateCellChanges(rootChange);
 		Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
 		updateStatistics(statistics);
 		InGamePlayer currentPlayer = game.getCurrentPlayer();
-		Platform.runLater(() -> turnProperty.set(currentPlayer.getColor()));
+		Platform.runLater(() -> turnProperty.set(currentPlayer));
 		startTurnTimer();
 	}
 
@@ -299,8 +315,13 @@ public class GameController implements Controller<StartGameCommand> {
 
 		resetTimersToZero();
 		Platform.runLater(() -> {
-			if (myPlayer.equals(winner)) {
-				showWin();
+			if (playerMode == PlayerMode.WATCH) {
+				show3PartyWin(winner);
+			}
+			else {
+				if (myPlayer.equals(winner)) {
+					showWin();
+				}
 			}
 		});
 	}
@@ -308,14 +329,11 @@ public class GameController implements Controller<StartGameCommand> {
 	private void resetTimersToZero() {
 		turnTimeIndicator.stop();
 		turnTotalTimeIndicator.stop();
-		gameDurationIndicator.stop();
 		Platform.runLater(() -> {
 			turnTimeIndicator.setTime(LocalTime.MIDNIGHT);
 			turnTimeIndicator.setTextFill(Color.RED);
 			turnTotalTimeIndicator.setTime(LocalTime.MIDNIGHT);
 			turnTotalTimeIndicator.setTextFill(Color.RED);
-			gameDurationIndicator.setTime(LocalTime.MIDNIGHT);
-			gameDurationIndicator.setTextFill(Color.RED);
 		});
 	}
 
@@ -329,6 +347,14 @@ public class GameController implements Controller<StartGameCommand> {
 	public void showWin() {
 		Platform.runLater(() -> {
 			Transition transition = appearLoseWinLabel("You win", Color.valueOf(myPlayer.getColor().getColorCode()));
+			transition.play();
+		});
+	}
+
+	public void show3PartyWin(InGamePlayer winner) {
+		Platform.runLater(() -> {
+			Transition transition = appearLoseWinLabel(winner.getRealPlayer().getNickname() + " wins",
+					Color.valueOf(winner.getColor().getColorCode()));
 			transition.play();
 		});
 	}
@@ -370,9 +396,8 @@ public class GameController implements Controller<StartGameCommand> {
 		gameBoardPane.setBorder(new Border(
 				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(5))));
 		turnProperty.addListener((observable, oldValue, newValue) -> {
-			Border border = new Border(
-					new BorderStroke(Color.valueOf(turnProperty.get().getColorCode()), BorderStrokeStyle.SOLID,
-							CornerRadii.EMPTY, new BorderWidths(5)));
+			Border border = new Border(new BorderStroke(Color.valueOf(turnProperty.get().getColor().getColorCode()),
+					BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5)));
 			gameBoardPane.setBorder(border);
 		});
 		double boardWidth = columns * Tile.PREF_SIZE + 10;
@@ -396,8 +421,8 @@ public class GameController implements Controller<StartGameCommand> {
 	}
 
 	private void initTurnIndicator() {
-		turnProperty.addListener(
-				(observable, oldValue, newValue) -> turnIndicator.setFill(Color.valueOf(newValue.getColorCode())));
+		turnProperty.addListener((observable, oldValue, newValue) -> turnIndicator.setFill(
+				Color.valueOf(newValue.getColor().getColorCode())));
 
 		FadeTransition transition = new FadeTransition(Duration.seconds(0.6), turnIndicator);
 		transition.setFromValue(0.3);
@@ -413,15 +438,15 @@ public class GameController implements Controller<StartGameCommand> {
 			for (int j = 0; j < tiles[i].length; j++) {
 				BoardCell boardCell = board[i][j];
 				if (boardCell.getColor() != null) {
-					tiles[i][j].makeAppearTransition(boardCell.getColor(), boardCell.getPoints()).play();
+					tiles[i][j].makeAppearTransition(boardCell.getColor(), boardCell.getPoints(),
+							animationDuration.get()).play();
 				}
 			}
 		}
 	}
 
 	private void onTileClick(int x, int y) {
-		if (game.isCompleted() || !turnProperty.get().equals(myPlayer.getColor()) || !turned.compareAndSet(false,
-				true)) {
+		if (game.isCompleted() || !turnProperty.get().equals(myPlayer) || !turned.compareAndSet(false, true)) {
 			return;
 		}
 
@@ -499,13 +524,13 @@ public class GameController implements Controller<StartGameCommand> {
 		PlayerColor player = boardCell.getColor();
 		switch (points) {
 			case 0:
-				return tile.makeDisappearTransition();
+				return tile.makeDisappearTransition(animationDuration.get());
 			case 1:
-				return tile.makeAppearTransition(player, points);
+				return tile.makeAppearTransition(player, points, animationDuration.get());
 			case 2:
 			case 3:
 			case 4:
-				return tile.makeDisAppearAndAppearTransition(player, points);
+				return tile.makeDisAppearAndAppearTransition(player, points, animationDuration.get());
 			default:
 				throw new IllegalStateException(points + "");
 		}
@@ -513,7 +538,7 @@ public class GameController implements Controller<StartGameCommand> {
 
 	public void onLeaveClick() {
 		destroyPublisher.complete();
-		if (!game.isCompleted()) {
+		if (!game.isCompleted() && playerMode == PlayerMode.PLAY) {
 			IN_GAME_SERVICE.leave(gameId);
 		}
 		JouskaUI.switchComponent(ComponentType.MENU);

@@ -34,13 +34,6 @@
                   <ChoiceBox fx:id="turnTotalDurationTypeChoice" prefWidth="150.0" />
                </children>
             </HBox>
-				<HBox prefHeight="100.0" prefWidth="200.0" styleClass="hbox">
-					<children>
-						<Label contentDisplay="CENTER" prefHeight="37.0" prefWidth="129.0" text="Game duration:" />
-						<NumberTextField fx:id="gameDurationInput" prefHeight="37.0" prefWidth="99.0" />
-						<Label contentDisplay="CENTER" prefHeight="37.0" prefWidth="92.0" text="minutes" />
-					</children>
-				</HBox>
 				<Button fx:id="createButton" defaultButton="true" mnemonicParsing="false" onAction="#create" prefHeight="37.0" prefWidth="229.0" text="Create" />
 			</children>
 		</VBox>

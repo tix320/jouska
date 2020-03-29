@@ -19,4 +19,9 @@ public class PlayerTurnDto extends GameChangeDto {
 	public Point getPoint() {
 		return point;
 	}
+
+	@Override
+	public String toString() {
+		return "PlayerTurnDto{" + "point=" + point + '}';
+	}
 }

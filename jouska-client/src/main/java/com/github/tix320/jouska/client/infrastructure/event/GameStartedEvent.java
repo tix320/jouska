@@ -1,17 +1,17 @@
 package com.github.tix320.jouska.client.infrastructure.event;
 
-import com.github.tix320.jouska.core.dto.StartGameCommand;
+import com.github.tix320.jouska.core.dto.GamePlayDto;
 import com.github.tix320.jouska.core.event.Event;
 
 public class GameStartedEvent implements Event {
 
-	private final StartGameCommand startGameCommand;
+	private final GamePlayDto gamePlayDto;
 
-	public GameStartedEvent(StartGameCommand startGameCommand) {
-		this.startGameCommand = startGameCommand;
+	public GameStartedEvent(GamePlayDto gamePlayDto) {
+		this.gamePlayDto = gamePlayDto;
 	}
 
-	public StartGameCommand getStartGameCommand() {
-		return startGameCommand;
+	public GamePlayDto getGamePlayDto() {
+		return gamePlayDto;
 	}
 }

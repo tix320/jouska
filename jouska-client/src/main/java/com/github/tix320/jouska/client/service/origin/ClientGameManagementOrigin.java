@@ -5,6 +5,7 @@ import java.util.List;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
 import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.jouska.core.dto.GameWatchDto;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
@@ -17,12 +18,12 @@ public interface ClientGameManagementOrigin {
 	@Subscription
 	Observable<List<GameView>> games();
 
-	@Origin("connect")
-	MonoObservable<GameConnectionAnswer> connect(long gameId);
-
 	@Origin("create")
 	MonoObservable<Long> create(CreateGameCommand createGameCommand);
 
+	@Origin("connect")
+	MonoObservable<GameConnectionAnswer> connect(long gameId);
+
 	@Origin("watch")
-	void watch(long gameId);
+	MonoObservable<GameWatchDto> watch(long gameId);
 }

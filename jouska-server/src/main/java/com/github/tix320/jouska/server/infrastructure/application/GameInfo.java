@@ -19,13 +19,11 @@ public final class GameInfo {
 	private final Lock gameLock;
 	private Game game;
 	private final Set<Player> connectedPlayers;
-	private final Set<Player> players;
 
 	public GameInfo(long id, GameSettings settings) {
 		this.id = id;
 		this.settings = settings;
 		this.connectedPlayers = Collections.newSetFromMap(new ConcurrentHashMap<>());
-		this.players = new HashSet<>();
 		this.gameLock = new ReentrantLock();
 	}
 
@@ -43,10 +41,6 @@ public final class GameInfo {
 
 	public Set<Player> getConnectedPlayers() {
 		return connectedPlayers;
-	}
-
-	public Set<Player> getPlayers() {
-		return players;
 	}
 
 	public void setGame(Game game) {

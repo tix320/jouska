@@ -12,19 +12,20 @@ public class GameView {
 
 	private final int turnDurationSeconds;
 
-	private final int gameDurationMinutes;
+	private final int playerTurTotalDurationSeconds;
 
 	private GameView() {
 		this(-1, null, -1, -1, -1, -1);
 	}
 
-	public GameView(long id, String name, int playersCount, int maxPlayersCount, int turnDurationSeconds, int gameDurationMinutes) {
+	public GameView(long id, String name, int playersCount, int maxPlayersCount, int turnDurationSeconds,
+					int playerTurTotalDurationSeconds) {
 		this.id = id;
 		this.name = name;
 		this.playersCount = playersCount;
 		this.maxPlayersCount = maxPlayersCount;
 		this.turnDurationSeconds = turnDurationSeconds;
-		this.gameDurationMinutes = gameDurationMinutes;
+		this.playerTurTotalDurationSeconds = playerTurTotalDurationSeconds;
 	}
 
 	public long getId() {
@@ -47,7 +48,7 @@ public class GameView {
 		return turnDurationSeconds;
 	}
 
-	public int getGameDurationMinutes() {
-		return gameDurationMinutes;
+	public int getPlayerTurTotalDurationSeconds() {
+		return playerTurTotalDurationSeconds;
 	}
 }

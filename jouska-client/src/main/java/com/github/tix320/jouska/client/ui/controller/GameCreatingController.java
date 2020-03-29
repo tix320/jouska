@@ -3,7 +3,6 @@ package com.github.tix320.jouska.client.ui.controller;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberTextField;
-import com.github.tix320.jouska.client.ui.helper.component.TextFields;
 import com.github.tix320.jouska.core.application.game.BoardType;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
@@ -32,14 +31,10 @@ public class GameCreatingController implements Controller<Object> {
 	private NumberTextField playerTurnTotalDurationInput;
 
 	@FXML
-	private NumberTextField gameDurationInput;
-
-	@FXML
 	private ChoiceBox<Integer> playersCountChoice;
 
 	@FXML
 	private ChoiceBox<String> turnTotalDurationTypeChoice;
-
 
 	@FXML
 	private Button createButton;
@@ -49,21 +44,15 @@ public class GameCreatingController implements Controller<Object> {
 		createButton.disableProperty()
 				.bind(loading.or(gameNameInput.textProperty().isEmpty())
 						.or(turnDurationInput.numberProperty().lessThan(1))
-						.or(playerTurnTotalDurationInput.numberProperty().lessThan(1))
-						.or(gameDurationInput.numberProperty().lessThan(1)));
+						.or(playerTurnTotalDurationInput.numberProperty().lessThan(1)));
 
 		playersCountChoice.setItems(FXCollections.observableArrayList(2, 3, 4));
 		playersCountChoice.setValue(2);
 		turnTotalDurationTypeChoice.setItems(FXCollections.observableArrayList("seconds", "minutes"));
 		turnTotalDurationTypeChoice.setValue("minutes");
 
-		TextFields.makeNumeric(turnDurationInput);
-		TextFields.makeNumeric(playerTurnTotalDurationInput);
-		TextFields.makeNumeric(gameDurationInput);
-
 		turnDurationInput.setNumber(20);
 		playerTurnTotalDurationInput.setNumber(10);
-		gameDurationInput.setNumber(20);
 	}
 
 	@Override
@@ -79,7 +68,7 @@ public class GameCreatingController implements Controller<Object> {
 		int playerTurnTotalDurationSeconds = durationType.equals("seconds") ? number : number * 60;
 		GAME_SERVICE.create(new CreateGameCommand(
 				new TimedGameSettings(gameNameInput.getText(), BoardType.STANDARD, playersCountChoice.getValue(),
-						turnDurationInput.getNumber(), playerTurnTotalDurationSeconds, gameDurationInput.getNumber())))
+						turnDurationInput.getNumber(), playerTurnTotalDurationSeconds)))
 				.subscribe(Subscriber.<Long>builder().onPublish(
 						gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)))
 						.onError(throwable -> {

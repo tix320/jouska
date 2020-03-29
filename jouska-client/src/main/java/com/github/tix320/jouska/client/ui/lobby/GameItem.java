@@ -19,7 +19,7 @@ public class GameItem extends AnchorPane {
 	private Label turnDurationLabel;
 
 	@FXML
-	private Label gameDurationLabel;
+	private Label turnTotalDurationLabel;
 
 	private final GameView gameView;
 
@@ -36,7 +36,7 @@ public class GameItem extends AnchorPane {
 		setGameName(gameView.getName() + " ( " + gameView.getId() + " )");
 		setPlayersCount(gameView.getPlayersCount() + "/" + gameView.getMaxPlayersCount());
 		setTurnDuration(String.valueOf(gameView.getTurnDurationSeconds()));
-		setGameDuration(String.valueOf(gameView.getGameDurationMinutes()));
+		setTurnTotalDuration(String.valueOf(gameView.getPlayerTurTotalDurationSeconds() / 60));
 	}
 
 	private void setGameName(String gameName) {
@@ -48,11 +48,11 @@ public class GameItem extends AnchorPane {
 	}
 
 	private void setTurnDuration(String turnDuration) {
-		this.turnDurationLabel.setText(turnDuration);
+		this.turnDurationLabel.setText(turnDuration + "s");
 	}
 
-	private void setGameDuration(String gameDuration) {
-		this.gameDurationLabel.setText(gameDuration);
+	private void setTurnTotalDuration(String gameDuration) {
+		this.turnTotalDurationLabel.setText(gameDuration + "m");
 	}
 
 	public GameView getGameView() {

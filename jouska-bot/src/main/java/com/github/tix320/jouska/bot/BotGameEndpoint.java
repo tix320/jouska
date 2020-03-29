@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.*;
-import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
@@ -22,14 +22,14 @@ public class BotGameEndpoint {
 	private Bot bot;
 
 	@Endpoint("start")
-	public void startGame(StartGameCommand startGameCommand) {
-		this.gameId = startGameCommand.getGameId();
-		GameSettings gameSettings = startGameCommand.getGameSettings();
-		List<InGamePlayer> players = startGameCommand.getPlayers();
+	public void startGame(GamePlayDto gamePlayDto) {
+		this.gameId = gamePlayDto.getGameId();
+		GameSettings gameSettings = gamePlayDto.getGameSettings();
+		List<InGamePlayer> players = gamePlayDto.getPlayers();
 		GameBoard board = GameBoards.createByType(gameSettings.getBoardType(),
 				players.stream().map(InGamePlayer::getColor).collect(Collectors.toList()));
 		Game game = SimpleGame.createPredefined(board, players);
-		PlayerColor myColor = startGameCommand.getMyPlayer();
+		PlayerColor myColor = gamePlayDto.getMyPlayer();
 		this.bot = new Bot(myColor);
 		this.game = game;
 		this.myPlayer = myColor;

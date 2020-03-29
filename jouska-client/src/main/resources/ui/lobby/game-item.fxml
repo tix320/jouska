@@ -39,7 +39,7 @@
 			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
 				<Image url="@../../images/game-duration-icon.png" />
 			</ImageView>
-			<Label fx:id="gameDurationLabel" text="20">
+			<Label fx:id="turnTotalDurationLabel" text="20">
 				<HBox.margin>
 					<Insets top="5.0" />
 				</HBox.margin>

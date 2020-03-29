@@ -7,13 +7,13 @@ import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
 import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.jouska.core.dto.GameWatchDto;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
-import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 
 @Endpoint("game")
 public class ServerGameManagementEndpoint {
@@ -24,7 +24,8 @@ public class ServerGameManagementEndpoint {
 		return GameManager.games().map(games -> games.stream().map(gameInfo -> {
 			TimedGameSettings settings = (TimedGameSettings) gameInfo.getSettings();
 			return new GameView(gameInfo.getId(), settings.getName(), gameInfo.getConnectedPlayers().size(),
-					settings.getPlayersCount(), settings.getTurnDurationSeconds(), settings.getGameDurationMinutes());
+					settings.getPlayersCount(), settings.getTurnDurationSeconds(),
+					settings.getPlayerTurnTotalDurationSeconds());
 		}).collect(Collectors.toList()));
 	}
 
@@ -39,7 +40,7 @@ public class ServerGameManagementEndpoint {
 	}
 
 	@Endpoint("watch")
-	public void watchGame(long gameId, @ClientID long clientId) {
-		GameManager.watchGame(gameId, clientId);
+	public GameWatchDto watchGame(long gameId) {
+		return GameManager.watchGame(gameId);
 	}
 }
