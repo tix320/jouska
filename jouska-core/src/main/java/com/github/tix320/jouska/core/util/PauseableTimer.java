@@ -1,7 +1,9 @@
 package com.github.tix320.jouska.core.util;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Tigran Sargsyan on 26-Mar-20.
@@ -10,9 +12,9 @@ public class PauseableTimer {
 
 	private final Runnable realTask;
 
-	private final Timer timer;
+	private final ScheduledExecutorService timer;
 
-	private TimerTask task;
+	private ScheduledFuture<?> lastTask;
 
 	private long lastStartTimestamp;
 
@@ -20,12 +22,12 @@ public class PauseableTimer {
 
 	public PauseableTimer(long delayMilliSeconds, Runnable task) {
 		this.realTask = task;
-		this.timer = new Timer(true);
+		this.timer = Executors.newSingleThreadScheduledExecutor(Threads::daemon);
 		this.remainingMilliSeconds = delayMilliSeconds;
 	}
 
 	public final synchronized void resume() {
-		if (task != null) {
+		if (lastTask != null) {
 			return;
 		}
 		createTaskAndSchedule(remainingMilliSeconds);
@@ -33,18 +35,18 @@ public class PauseableTimer {
 	}
 
 	public final synchronized void pause() {
-		if (task == null) {
+		if (lastTask == null) {
 			return;
 		}
 
-		task.cancel();
-		task = null;
+		lastTask.cancel(false);
+		lastTask = null;
 		recalculateRemainingSeconds();
 	}
 
-	public final void destroy() {
+	public final synchronized void destroy() {
 		pause();
-		timer.cancel();
+		timer.shutdownNow();
 	}
 
 	public final synchronized long getRemainingMilliSeconds() {
@@ -57,12 +59,6 @@ public class PauseableTimer {
 	}
 
 	private void createTaskAndSchedule(long delay) {
-		task = new TimerTask() {
-			@Override
-			public void run() {
-				realTask.run();
-			}
-		};
-		timer.schedule(task, delay);
+		lastTask = timer.schedule(realTask, delay, TimeUnit.MILLISECONDS);
 	}
 }

@@ -1,19 +1,21 @@
 package com.github.tix320.jouska.core.util;
 
-import java.util.Timer;
-import java.util.TimerTask;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author Tigran Sargsyan on 27-Mar-20.
  */
 public class SingleTaskTimer {
 
-	private final Timer timer;
+	private final ScheduledExecutorService timer;
 
-	private volatile TimerTask lastTimerTask;
+	private ScheduledFuture<?> lastTask;
 
 	public SingleTaskTimer() {
-		this.timer = new Timer(true);
+		this.timer = Executors.newSingleThreadScheduledExecutor(Threads::daemon);
 	}
 
 	public final synchronized void schedule(Runnable runnable, long delayMillis) {
@@ -23,24 +25,18 @@ public class SingleTaskTimer {
 	}
 
 	public final synchronized void cancel() {
-		if (lastTimerTask != null) {
-			lastTimerTask.cancel();
-			lastTimerTask = null;
+		if (lastTask != null) {
+			lastTask.cancel(false);
+			lastTask = null;
 		}
 	}
 
-	public final void destroy() {
+	public final synchronized void destroy() {
 		cancel();
-		timer.cancel();
+		timer.shutdownNow();
 	}
 
 	private void createTaskAndSchedule(Runnable runnable, long delay) {
-		lastTimerTask = new TimerTask() {
-			@Override
-			public void run() {
-				runnable.run();
-			}
-		};
-		timer.schedule(lastTimerTask, delay);
+		lastTask = timer.schedule(runnable, delay, TimeUnit.MILLISECONDS);
 	}
 }

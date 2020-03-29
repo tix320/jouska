@@ -28,4 +28,10 @@ public final class Threads {
 		thread.start();
 		return running;
 	}
+
+	public static Thread daemon(Runnable runnable) {
+		Thread thread = new Thread(runnable);
+		thread.setDaemon(true);
+		return thread;
+	}
 }
