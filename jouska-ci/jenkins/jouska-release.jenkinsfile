@@ -1,0 +1,94 @@
+def RELEASE_SCOPE = params.RELEASE_SCOPE
+
+def RELEASE_VERSION
+
+node('JDK11') {
+    stage('Checkout') {
+        // for display purposes
+        checkout(
+                [$class: 'GitSCM', branches: [[name: 'origin/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '80614278-f55f-4f66-9787-ef033624e848', refspec: '', url: 'ssh://jenkins@gerrit.synisys.com:29418/techno-battle-jouska']]])
+    }
+
+    stage('Resolve new version') {
+        def LAST_VERSION = sh(returnStdout: true,
+                script: """git tag -l --sort=-version:refname v[[:digit:]]*.[[:digit:]]*.[[:digit:]]* |  head -n 1""").
+                trim()
+
+        print("Last version tag: $LAST_VERSION")
+
+        switch (RELEASE_SCOPE) {
+            case 'patch':
+                RELEASE_VERSION = LAST_VERSION.replaceAll(/\.\d*$/, '.' + (
+                        (
+                                LAST_VERSION.split("\\.")[2] as Integer) + 1))
+                break
+            case 'minor':
+                RELEASE_VERSION = LAST_VERSION.replaceAll(/\.\d*\.\d*$/, '.' + (
+                        (
+                                LAST_VERSION.split("\\.")[1] as Integer) + 1) + '.0')
+                break
+            case 'major':
+                RELEASE_VERSION = 'v' + ((LAST_VERSION.split("\\.")[0][1..-1] as Integer) + 1 + '.0.0')
+                break
+        }
+
+        print("Release version: $RELEASE_VERSION")
+
+        RELEASE_VERSION = RELEASE_VERSION.substring(1)
+
+        sh("./mvnw versions:set -DnewVersion=$RELEASE_VERSION")
+    }
+
+    stage('Build') {
+        sh './mvnw clean install'
+    }
+
+    stage('Server docker image') {
+        def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
+        print("Docker Image name: $IMAGE_NAME")
+
+        sh "docker build -t $IMAGE_NAME ."
+    }
+
+    stage('Download Javafx Jmods'){
+        dir('jouska-ci/target/javafx'){
+//            def windowsStream = new URL ("https://download2.gluonhq.com/openjfx/14/openjfx-14_windows-x64_bin-jmods.zip").openStream()
+//
+//            copyInputStreamToFile(windowsStream, new File("windows.zip"))
+//            sh 'unzip windows.zip'
+
+            def linuxStream = new URL ("https://download2.gluonhq.com/openjfx/14/openjfx-14_linux-x64_bin-jmods.zip").openStream()
+
+            copyInputStreamToFile(linuxStream, new File("linux.zip"))
+            sh 'unzip linux.zip -d /linux'
+
+//            def macStream = new URL ("https://download2.gluonhq.com/openjfx/14/openjfx-14_osx-x64_bin-jmods.zip").openStream()
+//
+//            copyInputStreamToFile(macStream, new File("mac.zip"))
+//            sh 'unzip mac.zip'
+        }
+    }
+
+    stage('Build Client'){
+        def jdkPath = "/Library/Java/JavaVirtualMachines/jdk1.8.0_231.jdk"
+        def javaFxJmodsPath = "jouska-ci/target/linux"
+        sh "sh jouska-ci/unix/linux/linux-build.sh $jdkPath $javaFxJmodsPath"
+
+        archiveArtifacts artifacts: "jouska-client/target/jouska-linux-setup.run",
+                fingerprint: true
+    }
+}
+
+def copyInputStreamToFile(InputStream inputStream, File file)
+        throws IOException {
+
+    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+
+        int read;
+        byte[] bytes = new byte[1024];
+
+        while ((read = inputStream.read(bytes)) != -1) {
+            outputStream.write(bytes, 0, read);
+        }
+    }
+}
