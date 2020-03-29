@@ -82,7 +82,7 @@ node('JDK11') {
 def copyInputStreamToFile(InputStream inputStream, File file)
         throws IOException {
 
-    try (FileOutputStream outputStream = new FileOutputStream(file)) {
+    FileOutputStream outputStream = new FileOutputStream(file)
 
         int read;
         byte[] bytes = new byte[1024];
@@ -90,5 +90,5 @@ def copyInputStreamToFile(InputStream inputStream, File file)
         while ((read = inputStream.read(bytes)) != -1) {
             outputStream.write(bytes, 0, read);
         }
-    }
+
 }
