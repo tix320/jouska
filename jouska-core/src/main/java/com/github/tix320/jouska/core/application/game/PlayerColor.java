@@ -32,7 +32,7 @@ public enum PlayerColor {
 
 	public abstract String getColorCode();
 
-	public static PlayerColor[] getRandomPlayers(int count) {
+	public static PlayerColor[] random(int count) {
 		List<PlayerColor> players = Arrays.asList(PlayerColor.values());
 		if (count > players.size()) {
 			throw new IllegalArgumentException("Count is too long");

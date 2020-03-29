@@ -210,6 +210,7 @@ public class GameController implements Controller<GameWatchDto> {
 		if (!destroyPublisher.isCompleted()) {
 			destroyPublisher.complete();
 		}
+		playerTurnTimers.values().forEach(PauseableTimer::destroy);
 	}
 
 	@FXML

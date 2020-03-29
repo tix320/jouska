@@ -46,8 +46,8 @@ public final class TimedGame implements Game {
 	@Override
 	public synchronized void start() {
 		completed().subscribe(players -> {
-			turnTimer.cancel();
-			playerTimers.values().forEach(PauseableTimer::pause);
+			turnTimer.destroy();
+			playerTimers.values().forEach(PauseableTimer::destroy);
 		});
 
 		game.start();

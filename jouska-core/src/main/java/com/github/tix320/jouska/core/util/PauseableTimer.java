@@ -42,6 +42,11 @@ public class PauseableTimer {
 		recalculateRemainingSeconds();
 	}
 
+	public final void destroy() {
+		pause();
+		timer.cancel();
+	}
+
 	public final synchronized long getRemainingMilliSeconds() {
 		return remainingMilliSeconds;
 	}

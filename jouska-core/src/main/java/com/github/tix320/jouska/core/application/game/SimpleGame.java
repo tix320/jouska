@@ -71,7 +71,7 @@ public final class SimpleGame implements Game {
 	private static Tuple<List<InGamePlayer>, GameBoard> prepare(GameSettings gameSettings, Set<Player> players) {
 		int playersCount = gameSettings.getPlayersCount();
 
-		PlayerColor[] colors = PlayerColor.getRandomPlayers(playersCount);
+		PlayerColor[] colors = PlayerColor.random(playersCount);
 
 		List<Player> playersList = players.stream().collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
 			Collections.shuffle(list);

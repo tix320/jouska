@@ -29,6 +29,11 @@ public class SingleTaskTimer {
 		}
 	}
 
+	public final void destroy() {
+		cancel();
+		timer.cancel();
+	}
+
 	private void createTaskAndSchedule(Runnable runnable, long delay) {
 		lastTimerTask = new TimerTask() {
 			@Override

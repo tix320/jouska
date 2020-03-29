@@ -10,7 +10,7 @@ public final class TournamentSettings {
 
 	private final GameSettings playOffGameSettings;
 
-	public TournamentSettings() {
+	private TournamentSettings() {
 		this(null, -1, null, null);
 	}
 
