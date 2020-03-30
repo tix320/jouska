@@ -83,7 +83,7 @@ node('JAVAFX') {
 
     stage('Push') {
         sh 'git add .'
-        sh "git commit -m \"Update version to $RELEASE_VERSION\""
+        sh "git commit -m \"Release/$RELEASE_VERSION\""
 
         sh "git tag v${RELEASE_VERSION}"
         sh "git push origin HEAD:refs/heads/master --tags"
