@@ -2,6 +2,8 @@
 target/
 *.iml
 
+*pom.xml.versionsBackup
+
 jouska-ci/build/windows/installer/Output
 jouska-ci/build/windows/installer/jouska-installer.iss
 
