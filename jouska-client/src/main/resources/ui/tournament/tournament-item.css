@@ -4,19 +4,11 @@
 }
 
 .tournament-item {
-	-fx-background-color: #82be3c;
+	-fx-background-color: #169abe;
 	-fx-background-radius: 25px;
 	-fx-pref-height: 200;
 	-fx-pref-width: 200;
 	-fx-start-margin: 10px;
-}
-
-.tournament-item:hover {
-	-fx-background-color: #ffc023;
-}
-
-.tournament-item:pressed {
-	-fx-background-color: #ff860b;
 }
 
 .tournament-item .game-name {
@@ -34,4 +26,29 @@
 	-fx-pref-height: 35px;
 	-fx-spacing: 5px;
 	-fx-alignment: CENTER;
+}
+
+
+#joinButton {
+	-fx-background-color: #18e91d;
+}
+
+#joinButton:hover {
+	-fx-background-color: #ace9c0;
+}
+
+#joinButton:pressed {
+	-fx-background-color: #18e91d;
+}
+
+#viewButton {
+	-fx-background-color: #feff0c;
+}
+
+#viewButton:hover {
+	-fx-background-color: #f7ffd6;
+}
+
+#viewButton:pressed {
+	-fx-background-color: #feff0c;
 }

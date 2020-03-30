@@ -5,6 +5,7 @@
 
 #notificationTextLabel {
     -fx-alignment: CENTER;
+    -fx-text-inner-color: red;
 }
 
 #acceptButton {

@@ -2,20 +2,13 @@
     -fx-font-family: "Comic Sans MS";
     -fx-font-size: 18px;
 }
+
 .game-item {
     -fx-background-color: #82be3c;
     -fx-background-radius: 25px;
     -fx-pref-height: 200;
     -fx-pref-width: 200;
     -fx-start-margin: 10px;
-}
-
-.game-item:hover {
-    -fx-background-color: #ffc023;
-}
-
-.game-item:pressed {
-    -fx-background-color: #ff860b;
 }
 
 .game-item .game-name {
@@ -33,4 +26,17 @@
     -fx-pref-height: 35px;
     -fx-spacing: 5px;
     -fx-alignment: CENTER;
+}
+
+#joinButton {
+    -fx-background-color: #0288e9;
+    -fx-background-radius: 25px;
+}
+
+#joinButton:hover {
+    -fx-background-color: #ace9c0;
+}
+
+#joinButton:pressed {
+    -fx-background-color: #0288e9;
 }

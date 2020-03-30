@@ -7,11 +7,11 @@ import java.util.stream.Collectors;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
-import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.tournament.TournamentItem;
 import com.github.tix320.jouska.core.dto.TournamentView;
+import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
@@ -21,7 +21,6 @@ import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 
 import static com.github.tix320.jouska.client.app.Services.TOURNAMENT_SERVICE;
@@ -57,7 +56,10 @@ public class TournamentLobbyController implements Controller<Object> {
 					.collect(Collectors.toList());
 			Collections.reverse(tournamentItems);
 			tournamentItems.forEach(
-					tournamentItem -> tournamentItem.setOnMouseClicked(event -> onItemClick(tournamentItem, event)));
+					tournamentItem -> {
+						tournamentItem.setOnJoinClick(event -> joinTournament(tournamentItem));
+						tournamentItem.setOnViewClick(event -> viewTournament(tournamentItem));
+					});
 			Platform.runLater(() -> {
 				ObservableList<Node> gameList = gameItemsPane.getChildren();
 				gameList.clear();
@@ -66,19 +68,25 @@ public class TournamentLobbyController implements Controller<Object> {
 		});
 	}
 
-	private void onItemClick(TournamentItem tournamentItem, MouseEvent event) {
-		if (event.getClickCount() == 2) {
-			TournamentView tournamentView = tournamentItem.getTournamentView();
-			long tournamentId = tournamentView.getId();
-			TOURNAMENT_SERVICE.getStructure(tournamentId).subscribe(tournamentStructure -> {
-				if (tournamentStructure != null) {
-					EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
-				}
-				else {
-					UI.switchComponent(ComponentType.ERROR, "Tournament not found");
-				}
-			});
-		}
+	private void joinTournament(TournamentItem tournamentItem) {
+		TournamentView tournamentView = tournamentItem.getTournamentView();
+		long tournamentId = tournamentView.getId();
+		TOURNAMENT_SERVICE.join(tournamentId).subscribe(tournamentJoinAnswer -> {
+			System.out.println(tournamentJoinAnswer);
+		});
+	}
+
+	private void viewTournament(TournamentItem tournamentItem) {
+		TournamentView tournamentView = tournamentItem.getTournamentView();
+		long tournamentId = tournamentView.getId();
+		TOURNAMENT_SERVICE.getStructure(tournamentId).subscribe(tournamentStructure -> {
+			if (tournamentStructure != null) {
+				EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
+			}
+			else {
+				UI.switchComponent(ComponentType.ERROR, "Tournament not found");
+			}
+		});
 	}
 
 	public void createTournament() {

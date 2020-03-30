@@ -2,9 +2,12 @@ package com.github.tix320.jouska.client.ui.tournament;
 
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.check.Try;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 public class TournamentItem extends AnchorPane {
@@ -15,6 +18,12 @@ public class TournamentItem extends AnchorPane {
 	@FXML
 	private Label playersCountLabel;
 
+	@FXML
+	private Button joinButton;
+
+	@FXML
+	private Button viewButton;
+
 	private final TournamentView tournamentView;
 
 	public TournamentItem(TournamentView tournamentView) {
@@ -24,6 +33,18 @@ public class TournamentItem extends AnchorPane {
 		Try.runOrRethrow(fxmlLoader::load);
 		this.tournamentView = tournamentView;
 		initView(tournamentView);
+	}
+
+	public TournamentView getTournamentView() {
+		return tournamentView;
+	}
+
+	public void setOnJoinClick(EventHandler<? super MouseEvent> handler) {
+		joinButton.setOnMouseClicked(handler);
+	}
+
+	public void setOnViewClick(EventHandler<? super MouseEvent> handler) {
+		viewButton.setOnMouseClicked(handler);
 	}
 
 	private void initView(TournamentView tournamentView) {
@@ -38,9 +59,4 @@ public class TournamentItem extends AnchorPane {
 	private void setPlayersCount(String playerCount) {
 		this.playersCountLabel.setText(playerCount);
 	}
-
-	public TournamentView getTournamentView() {
-		return tournamentView;
-	}
-
 }

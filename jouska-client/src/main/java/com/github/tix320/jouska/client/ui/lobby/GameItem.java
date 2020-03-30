@@ -2,9 +2,12 @@ package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.kiwi.api.check.Try;
+import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
 public class GameItem extends AnchorPane {
@@ -21,6 +24,9 @@ public class GameItem extends AnchorPane {
 	@FXML
 	private Label turnTotalDurationLabel;
 
+	@FXML
+	private Button joinButton;
+
 	private final GameView gameView;
 
 	public GameItem(GameView gameView) {
@@ -30,6 +36,10 @@ public class GameItem extends AnchorPane {
 		Try.runOrRethrow(fxmlLoader::load);
 		this.gameView = gameView;
 		initView(gameView);
+	}
+
+	public void setOnJoinClick(EventHandler<? super MouseEvent> handler) {
+		joinButton.setOnMouseClicked(handler);
 	}
 
 	private void initView(GameView gameView) {

@@ -10,7 +10,7 @@ import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
-import com.github.tix320.jouska.client.infrastructure.event.NotificationEvent;
+import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.check.Try;
@@ -18,6 +18,7 @@ import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
+import javafx.animation.FadeTransition;
 import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -54,7 +55,7 @@ public final class MenuController implements Controller<Object> {
 
 	private MonoPublisher<None> destroyPublisher = Publisher.mono();
 
-	private BlockingQueue<NotificationEvent> notificationsQueue;
+	private BlockingQueue<NotificationEvent<?, ?>> notificationsQueue;
 
 	@Override
 	public void init(Object data) {
@@ -134,21 +135,19 @@ public final class MenuController implements Controller<Object> {
 	private void runNotificationConsumer() {
 		AtomicBoolean running = Threads.runLoop(() -> {
 			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
-			NotificationEvent notificationEvent = Try.supplyOrRethrow(
+			NotificationEvent<?, ?> notificationEvent = Try.supplyOrRethrow(
 					() -> notificationsQueue.poll(5, TimeUnit.SECONDS));
 			if (notificationEvent == null) {
 				return true;
 			}
 			ComponentType componentType = notificationEvent.getComponentType();
-			Object data = notificationEvent.getData();
-			Component component = UI.loadComponent(componentType, data);
+			Component component = UI.loadComponent(componentType, notificationEvent);
 
 			if (!(component.getController() instanceof NotificationController)) {
 				throw new IllegalStateException("");
 			}
 
-			@SuppressWarnings("unchecked")
-			NotificationController<Object> notificationController = (NotificationController<Object>) component.getController();
+			NotificationController<?, ?> notificationController = (NotificationController<?, ?>) component.getController();
 
 			Parent content = component.getRoot();
 
@@ -158,30 +157,31 @@ public final class MenuController implements Controller<Object> {
 				AnchorPane.setLeftAnchor(content, 0.0);
 				AnchorPane.setBottomAnchor(content, 0.0);
 				ObservableList<Node> children = this.notificationPane.getChildren();
-				children.clear();
 				children.add(content);
 
-				TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(1),
+
+				FadeTransition translateTransition = new FadeTransition(Duration.seconds(1),
 						notificationPane);
 
-				translateTransition.setFromY(-100);
-				translateTransition.setToX(0);
+				translateTransition.setFromValue(0);
+				translateTransition.setToValue(1);
 				translateTransition.play();
 			});
 
 			try {
-				notificationController.resolved().blockUntilComplete(java.time.Duration.ofSeconds(30));
+				notificationEvent.onResolve().blockUntilComplete(java.time.Duration.ofSeconds(30));
 			}
 			catch (TimeoutException ignored) {
-
+				System.out.println("Notification skipped in Menu");
 			}
 			finally {
 				Platform.runLater(() -> {
-					TranslateTransition translateTransition = new TranslateTransition(Duration.seconds(1),
+					FadeTransition translateTransition = new FadeTransition(Duration.seconds(1),
 							notificationPane);
 
-					translateTransition.setFromY(0);
-					translateTransition.setToX(-100);
+					translateTransition.setFromValue(1);
+					translateTransition.setToValue(0);
+					translateTransition.play();
 
 					translateTransition.setOnFinished(event -> {
 						notificationPane.getChildren().clear();

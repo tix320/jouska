@@ -8,7 +8,7 @@ import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 
 @Endpoint("auth")
-public class AuthenticationService {
+public class AuthenticationEndpoint {
 
 	@Endpoint("logout")
 	public void logout() {

@@ -36,12 +36,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
-import java.util.stream.Collectors;
-
 import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
 
@@ -119,7 +113,7 @@ public class LobbyController implements Controller<Object> {
 		GAME_SERVICE.games().takeUntil(destroyPublisher.asObservable()).subscribe(gameViews -> {
 			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
 			Collections.reverse(gameItems);
-			gameItems.forEach(gameItem -> gameItem.setOnMouseClicked(event -> onItemClick(gameItem, event)));
+			gameItems.forEach(gameItem -> gameItem.setOnJoinClick(event -> onItemClick(gameItem, event)));
 			Platform.runLater(() -> {
 				ObservableList<Node> gameList = gameItemsPane.getChildren();
 				gameList.clear();
@@ -130,11 +124,9 @@ public class LobbyController implements Controller<Object> {
 
 	private void subscribeToConnectedPlayersList() {
 		AUTHENTICATION_SERVICE.connectPlayers().takeUntil(destroyPublisher.asObservable()).subscribe(players -> {
-			List<ConnectedPlayerItem> connectedPlayerItems = players.stream().map(ConnectedPlayerItem::new).collect(Collectors.toList());
-			ConnectedPlayerItem connectedPlayerItem = connectedPlayerItems.get(0);
-			for (int i = 0; i < 50; i++) {
-				connectedPlayerItems.add(new ConnectedPlayerItem(new Player("asd", "ashot "+i, RoleName.ADMIN)));
-			}
+			List<ConnectedPlayerItem> connectedPlayerItems = players.stream()
+					.map(ConnectedPlayerItem::new)
+					.collect(Collectors.toList());
 			Collections.reverse(connectedPlayerItems);
 			Platform.runLater(() -> {
 				ObservableList<Node> playersNode = connectedPlayersPane.getChildren();
@@ -145,49 +137,46 @@ public class LobbyController implements Controller<Object> {
 	}
 
 	private void onItemClick(GameItem gameItem, MouseEvent mouseEvent) {
-		if (mouseEvent.getClickCount() == 2) {
-			GameView gameView = gameItem.getGameView();
-			long gameId = gameView.getId();
-			loading.set(true);
+		GameView gameView = gameItem.getGameView();
+		long gameId = gameView.getId();
+		loading.set(true);
 
-			waitingToConnectGameId.set(gameId);
+		waitingToConnectGameId.set(gameId);
 
-			GAME_SERVICE.connect(gameId).subscribe(answer -> {
-				switch (answer) {
-					case GAME_NOT_FOUND:
-						Platform.runLater(() -> {
-							Alert warning = new Alert(AlertType.WARNING);
-							warning.setTitle("Warning");
-							warning.setHeaderText("Game not found.");
-							warning.setContentText("Game deleted or already completed.");
-							warning.showAndWait();
-						});
-						break;
-					case ALREADY_STARTED:
-						Platform.runLater(() -> {
-							Alert alert = new Alert(AlertType.CONFIRMATION);
-							alert.setTitle("Confirmation");
-							alert.setHeaderText("Game is started.");
-							alert.setContentText("Game already started. Do you want to watch it?");
+		GAME_SERVICE.connect(gameId).subscribe(answer -> {
+			switch (answer) {
+				case GAME_NOT_FOUND:
+					Platform.runLater(() -> {
+						Alert warning = new Alert(AlertType.WARNING);
+						warning.setTitle("Warning");
+						warning.setHeaderText("Game not found.");
+						warning.setContentText("Game deleted or already completed.");
+						warning.showAndWait();
+					});
+					break;
+				case ALREADY_STARTED:
+					Platform.runLater(() -> {
+						Alert alert = new Alert(AlertType.CONFIRMATION);
+						alert.setTitle("Confirmation");
+						alert.setHeaderText("Game is started.");
+						alert.setContentText("Game already started. Do you want to watch it?");
 
-							Optional<ButtonType> result = alert.showAndWait();
-							if (result.isPresent() && result.get() == ButtonType.OK) {
-								GAME_SERVICE.watch(gameId)
-										.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME,
-												gameWatchDto));
-							}
-							else {
-								loading.set(false);
-							}
-						});
-						break;
-					case CONNECTED:
-						waitingPlayersLabel.setVisible(true);
-						break;
-					default:
-						throw new IllegalStateException();
-				}
-			});
-		}
+						Optional<ButtonType> result = alert.showAndWait();
+						if (result.isPresent() && result.get() == ButtonType.OK) {
+							GAME_SERVICE.watch(gameId)
+									.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
+						}
+						else {
+							loading.set(false);
+						}
+					});
+					break;
+				case CONNECTED:
+					waitingPlayersLabel.setVisible(true);
+					break;
+				default:
+					throw new IllegalStateException();
+			}
+		});
 	}
 }
