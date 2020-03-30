@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.ci.jre;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -16,13 +17,14 @@ public class JRE {
 	public static void main(String[] args)
 			throws IOException, InterruptedException {
 		Path libPath = Path.of(args[0]);
-		String jdkPath = args[1];
-		String javaFxJmodsPath = args[2];
+		Path jdkPath = Path.of(args[1]);
+		Path javaFxJmodsPath = Path.of(args[2]);
 		Path targetPath = Path.of(args[3]);
 
-		if (!Files.exists(libPath) || !Files.isDirectory(libPath)) {
-			throw new IllegalStateException("Lib directory does not exists");
-		}
+		checkDirectoryExist(libPath);
+		checkDirectoryExist(jdkPath);
+		checkDirectoryExist(javaFxJmodsPath);
+		checkDirectoryExist(targetPath);
 
 		List<Path> jars = Files.walk(libPath, 1).skip(1).collect(Collectors.toList());
 
@@ -37,8 +39,10 @@ public class JRE {
 
 		StringBuilder modulePath = new StringBuilder();
 		for (Path jar : jars) {
-			modulePath.append("lib/").append(jar.getFileName()).append(";");
+			modulePath.append(libPath).append(File.separatorChar).append(jar.getFileName()).append(";");
 		}
+
+		System.out.println("Generating JRE...");
 
 		String jlinkCommand = "jlink --module-path "
 							  + jdkPath
@@ -48,14 +52,28 @@ public class JRE {
 							  + modulePath
 							  + " --add-modules "
 							  + String.join(",", REQUIRED_MODULE_NAMES)
-							  + " --output jre --no-header-files --no-man-pages --strip-debug --compress=2";
+							  + " --output "
+							  + targetPath
+							  + "/jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
-		Process jlinkProcess = Runtime.getRuntime().exec(jlinkCommand, null, targetPath.toFile());
+		Process jlinkProcess = Runtime.getRuntime().exec(jlinkCommand, null);
 		byte[] bytes = jlinkProcess.getInputStream().readAllBytes();
 		String output = new String(bytes);
 		System.out.println(output);
 
 		int exitCode = jlinkProcess.waitFor();
+
+		if (exitCode == 0) {
+			System.out.println("Generated successfully");
+		}
+
 		System.exit(exitCode);
 	}
+
+	private static void checkDirectoryExist(Path path) {
+		if (!Files.exists(path) || !Files.isDirectory(path)) {
+			throw new IllegalStateException("Directory does not exists: " + path);
+		}
+	}
+
 }
