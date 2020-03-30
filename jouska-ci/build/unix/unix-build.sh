@@ -5,3 +5,4 @@
 
 sh jouska-ci/build/base/build.sh "$2 -Dos=$1" "$3" "$4" && \
 cp -R jouska-ci/build/unix/installer/include/* jouska-client/target/output
+
