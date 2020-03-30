@@ -16,23 +16,22 @@ public class JRE {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException {
-		String OS = args[0];
+		String runnerOS = args[0];
 		Path libPath = Path.of(args[1]);
 		Path jdkPath = Path.of(args[2]);
 		Path javaFxJmodsPath = Path.of(args[3]);
 		Path targetPath = Path.of(args[4]);
 
 		char modulePathSeparator;
-		switch (OS.toLowerCase()) {
-			case "linux":
-			case "mac":
+		switch (runnerOS.toLowerCase()) {
+			case "unix":
 				modulePathSeparator = ':';
 				break;
 			case "windows":
 				modulePathSeparator = ';';
 				break;
 			default:
-				throw new IllegalArgumentException("Invalid OS: " + OS);
+				throw new IllegalArgumentException("Invalid OS: " + runnerOS);
 		}
 
 		checkDirectoryExist(libPath);
