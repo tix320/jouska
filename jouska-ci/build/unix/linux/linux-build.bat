@@ -2,6 +2,6 @@ REM: %1 maven post command (now used for properties) (example -Djouska.server.ho
 REM: %2 Linux JDK path
 REM: %3 Linux Javafx Jmods path
 
-cmd /c ""jouska-ci/build/unix/unix-build.bat"" -Dos=LINUX %1 %2 %3 && ^
+cmd /c ""jouska-ci/build/unix/unix-build.bat"" LINUX %1 %2 %3 && ^
 xcopy "jouska-ci\build\unix\linux\include" "jouska-client\target\output" && ^
 start "" "%PROGRAMFILES%\Git\bin\sh.exe" jouska-ci/build/unix/installer/generate-installer.sh jouska-client/target/output jouska-client/target/output/jouska-linux-setup.sh

@@ -4,6 +4,7 @@ WORKDIR /usr/src/app
 
 COPY ./jouska-server/target/jouska-server.jar .
 COPY ./jouska-server/target/classes/config.properties .
+ADD ./client-app ./client-app/
 
 EXPOSE 8888
 

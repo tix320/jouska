@@ -8,6 +8,7 @@ def JAVAFX_PATH_PREFIX = '/opt/javafx'
 node('JAVAFX') {
 
     stage('Checkout') {
+        sh 'java --version'
         // for display purposes
         checkout(
                 [$class: 'GitSCM', branches: [[name: 'origin/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '80614278-f55f-4f66-9787-ef033624e848', refspec: '', url: 'ssh://jenkins@gerrit.synisys.com:29418/techno-battle-jouska']]])
@@ -41,17 +42,6 @@ node('JAVAFX') {
         sh("mvn versions:set -DnewVersion=$RELEASE_VERSION")
     }
 
-    stage('Build') {
-        sh 'mvn clean install'
-    }
-
-    stage('Build Server Image') {
-        def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
-        print("Docker Image name: $IMAGE_NAME")
-
-        sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
-    }
-
     stage('Build Linux Client') {
         def jdkPath = "$JDK_PATH_PREFIX/linux"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
@@ -77,6 +67,17 @@ node('JAVAFX') {
 
         archiveArtifacts artifacts: "jouska-client/target/output/jouska-windows.zip",
                 fingerprint: true
+    }
+
+    stage('Build') {
+        sh 'mvn clean install'
+    }
+
+    stage('Build Server Image') {
+        def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
+        print("Docker Image name: $IMAGE_NAME")
+
+        sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
     }
 
     stage('Push') {

@@ -32,6 +32,6 @@ public class Configuration {
 	}
 
 	public static Path getClientAppPath() {
-		return Path.of(properties.getOrDefault("clientAppPath", "."));
+		return Path.of(properties.getOrDefault("clientAppPath", "client-app"));
 	}
 }

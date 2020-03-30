@@ -6,3 +6,5 @@ jouska-ci/build/windows/installer/Output
 jouska-ci/build/windows/installer/jouska-installer.iss
 
 jouska-client/src/main/java/com/github/tix320/jouska/client/app/Version.java
+
+client-app/

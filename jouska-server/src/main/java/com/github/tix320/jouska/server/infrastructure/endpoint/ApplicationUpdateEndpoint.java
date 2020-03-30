@@ -25,8 +25,8 @@ public class ApplicationUpdateEndpoint {
 	@Endpoint("check-update")
 	public String checkUpdate(String version, String os) {
 		String applicationVersion = Configuration.getApplicationVersion();
-		Path installersPath = Configuration.getClientAppPath();
-		if (installersPath == null) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		if (clientAppPath == null) {
 			throw new IllegalStateException("Sources path not specified");
 		}
 
@@ -36,11 +36,11 @@ public class ApplicationUpdateEndpoint {
 
 		switch (os) {
 			case "WINDOWS":
-				return Files.exists(Path.of(installersPath + WINDOWS_FILE_NAME)) ? applicationVersion : "";
+				return Files.exists(Path.of(clientAppPath + WINDOWS_FILE_NAME)) ? applicationVersion : "";
 			case "LINUX":
-				return Files.exists(Path.of(installersPath + LINUX_FILE_NAME)) ? applicationVersion : "";
+				return Files.exists(Path.of(clientAppPath + LINUX_FILE_NAME)) ? applicationVersion : "";
 			case "MAC":
-				return Files.exists(Path.of(installersPath + MAC_FILE_NAME)) ? applicationVersion : "";
+				return Files.exists(Path.of(clientAppPath + MAC_FILE_NAME)) ? applicationVersion : "";
 			default:
 				throw new IllegalArgumentException(os);
 		}

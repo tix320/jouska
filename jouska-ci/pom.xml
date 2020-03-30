@@ -70,8 +70,8 @@
 					</execution>
 				</executions>
 				<configuration>
-					<file>windows/installer/jouska-installer-template.iss</file>
-					<outputFile>windows/installer/jouska-installer.iss</outputFile>
+					<file>build/windows/installer/jouska-installer-template.iss</file>
+					<outputFile>build/windows/installer/jouska-installer.iss</outputFile>
 					<replacements>
 						<replacement>
 							<token>@version@</token>
