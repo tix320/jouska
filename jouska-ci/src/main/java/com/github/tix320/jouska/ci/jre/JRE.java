@@ -56,6 +56,8 @@ public class JRE {
 							  + targetPath
 							  + "/jre --no-header-files --no-man-pages --strip-debug --compress=2";
 
+		System.out.println(jlinkCommand);
+
 		Process jlinkProcess = Runtime.getRuntime().exec(jlinkCommand, null);
 		byte[] bytes = jlinkProcess.getInputStream().readAllBytes();
 		String output = new String(bytes);
