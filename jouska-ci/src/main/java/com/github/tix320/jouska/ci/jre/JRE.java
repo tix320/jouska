@@ -56,8 +56,6 @@ public class JRE {
 		System.out.println(output);
 
 		int exitCode = jlinkProcess.waitFor();
-		if (exitCode != 0) {
-			System.exit(exitCode);
-		}
+		System.exit(exitCode);
 	}
 }
