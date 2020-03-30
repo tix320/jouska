@@ -25,7 +25,7 @@ public class ApplicationUpdateEndpoint {
 	@Endpoint("check-update")
 	public String checkUpdate(String version, String os) {
 		String applicationVersion = Configuration.getApplicationVersion();
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		if (installersPath == null) {
 			throw new IllegalStateException("Sources path not specified");
 		}
@@ -48,40 +48,40 @@ public class ApplicationUpdateEndpoint {
 
 	@Endpoint("windows-latest")
 	public Transfer downloadWindowsLatest() {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		return fileToTransfer(installersPath + WINDOWS_FILE_NAME);
 	}
 
 	@Endpoint("linux-latest")
 	public Transfer downloadLinuxLatest() {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		return fileToTransfer(installersPath + LINUX_FILE_NAME);
 	}
 
 	@Endpoint("mac-latest")
 	public Transfer downloadMacLatest() {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		return fileToTransfer(installersPath + MAC_FILE_NAME);
 	}
 
 	@Endpoint("upload-windows")
 	@Role(RoleName.ADMIN)
 	public void uploadWindows(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		transferToFile(transfer, installersPath + WINDOWS_FILE_NAME);
 	}
 
 	@Endpoint("upload-linux")
 	@Role(RoleName.ADMIN)
 	public void uploadLinux(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		transferToFile(transfer, installersPath + LINUX_FILE_NAME);
 	}
 
 	@Endpoint("upload-mac")
 	@Role(RoleName.ADMIN)
 	public void uploadMac(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getSourcesPath();
+		Path installersPath = Configuration.getClientAppPath();
 		transferToFile(transfer, installersPath + MAC_FILE_NAME);
 	}
 

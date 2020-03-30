@@ -10,6 +10,12 @@
 		<version>1.6.3</version>
 	</parent>
 
+	<properties>
+		<os>WINDOWS</os>
+		<jouska.server.host>localhost</jouska.server.host>
+		<jouska.server.port>8888</jouska.server.port>
+	</properties>
+
 	<artifactId>jouska-client</artifactId>
 	<packaging>jar</packaging>
 
@@ -34,16 +40,16 @@
 			<artifactId>sonder</artifactId>
 			<version>${sonder.version}</version>
 		</dependency>
-
-		<dependency>
-			<groupId>org.junit.jupiter</groupId>
-			<artifactId>junit-jupiter-api</artifactId>
-			<version>5.5.2</version>
-			<scope>test</scope>
-		</dependency>
 	</dependencies>
 
 	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>com.google.code.maven-replacer-plugin</groupId>
@@ -51,26 +57,28 @@
 				<version>1.4.0</version>
 				<executions>
 					<execution>
+						<id>Version.java</id>
 						<phase>process-sources</phase>
 						<goals>
 							<goal>replace</goal>
 						</goals>
+						<configuration>
+							<file>src/template/Version.java</file>
+							<outputFile>src/main/java/com/github/tix320/jouska/client/app/Version.java</outputFile>
+							<replacements>
+								<replacement>
+									<token>@version@</token>
+									<value>${parent.version}</value>
+								</replacement>
+								<replacement>
+									<token>@os@</token>
+									<value>${os}</value>
+								</replacement>
+							</replacements>
+						</configuration>
 					</execution>
 				</executions>
-				<configuration>
-					<file>src/Version.java</file>
-					<outputFile>src/main/java/com/github/tix320/jouska/client/app/Version.java</outputFile>
-					<replacements>
-						<replacement>
-							<token>@version@</token>
-							<value>${parent.version}</value>
-						</replacement>
-						<replacement>
-							<token>@os@</token>
-							<value>${os}</value>
-						</replacement>
-					</replacements>
-				</configuration>
+
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

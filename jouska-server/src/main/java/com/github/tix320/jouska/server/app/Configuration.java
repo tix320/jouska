@@ -31,7 +31,7 @@ public class Configuration {
 		return properties.get("applicationVersion");
 	}
 
-	public static Path getSourcesPath() {
-		return Path.of(properties.getOrDefault("sourcesPath", "."));
+	public static Path getClientAppPath() {
+		return Path.of(properties.getOrDefault("clientAppPath", "."));
 	}
 }

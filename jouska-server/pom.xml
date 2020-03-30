@@ -12,6 +12,11 @@
 
 	<artifactId>jouska-server</artifactId>
 
+	<properties>
+		<jouska.server.port>8888</jouska.server.port>
+		<jouska.client-app.path>.</jouska.client-app.path>
+	</properties>
+
 	<build>
 		<resources>
 			<resource>
