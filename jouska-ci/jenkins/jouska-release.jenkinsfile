@@ -2,7 +2,10 @@ def RELEASE_SCOPE = params.RELEASE_SCOPE
 
 def RELEASE_VERSION
 
-node('JDK11') {
+def JDK_PATH_PREFIX = '/opt/jdk'
+def JAVAFX_PATH_PREFIX = '/opt/javafx'
+
+node('JAVAFX') {
 
     stage('Checkout') {
         // for display purposes
@@ -42,30 +45,46 @@ node('JDK11') {
         sh 'mvn clean install'
     }
 
-    stage('Server docker image') {
+    stage('Build Server Image') {
         def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
         print("Docker Image name: $IMAGE_NAME")
 
         sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
     }
 
-    stage('Download Javafx Jmods') {
-        dir("$WORKSPACE/javafx") {
-            //            sh 'curl https://download2.gluonhq.com/openjfx/14/openjfx-14_windows-x64_bin-jmods.zip --output windows.zip'
-            //            sh 'unzip linux.zip -d ./linux'
-
-            sh 'curl https://download2.gluonhq.com/openjfx/14/openjfx-14_linux-x64_bin-jmods.zip --output linux.zip'
-            sh 'unzip linux.zip -d ./linux'
-        }
-    }
-
-    stage('Build Client') {
-
-        def jdkPath = sh(returnStdout: true, script: 'echo $JAVA_HOME').trim()
-        def javaFxJmodsPath = "$WORKSPACE/javafx/linux/javafx-jmods-14"
-        sh "sh jouska-ci/unix/linux/linux-build.sh $jdkPath $javaFxJmodsPath"
+    stage('Build Linux Client') {
+        def jdkPath = "$JDK_PATH_PREFIX/linux"
+        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
+        sh "sh jouska-ci/build/unix/linux/linux-build.sh $jdkPath $javaFxJmodsPath"
 
         archiveArtifacts artifacts: "jouska-client/target/output/jouska-linux-setup.sh",
                 fingerprint: true
+    }
+
+    stage('Build Mac Client') {
+        def jdkPath = "$JDK_PATH_PREFIX/mac"
+        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
+        sh "sh jouska-ci/build/unix/mac/mac-build.sh $jdkPath $javaFxJmodsPath"
+
+        archiveArtifacts artifacts: "jouska-client/target/output/jouska-mac-setup.sh",
+                fingerprint: true
+    }
+
+    stage('Build Windows Client') {
+        def jdkPath = "$JDK_PATH_PREFIX/windows"
+        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
+        sh "sh jouska-ci/build/windows/windows-build.sh $jdkPath $javaFxJmodsPath"
+
+        archiveArtifacts artifacts: "jouska-client/target/output/jouska-windows.zip",
+                fingerprint: true
+    }
+
+    stage('Push') {
+        sh 'git add .'
+        sh "git commit -m \"Update version to $RELEASE_VERSION\""
+        sh "git push origin master"
+
+        sh "git tag ${RELEASE_VERSION}"
+        sh "git push origin ${RELEASE_VERSION}"
     }
 }
