@@ -19,8 +19,8 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 public class ApplicationUpdateEndpoint {
 
 	private static final String WINDOWS_FILE_NAME = "/jouska-windows.zip";
-	private static final String LINUX_FILE_NAME = "/jouska-linux-setup.run";
-	private static final String MAC_FILE_NAME = "/jouska-mac-setup.run";
+	private static final String LINUX_FILE_NAME = "/jouska-linux-setup.sh";
+	private static final String MAC_FILE_NAME = "/jouska-mac-setup.sh";
 
 	@Endpoint("check-update")
 	public String checkUpdate(String version, String os) {

@@ -1,1 +1,1 @@
-sleep 5 && sh jouska-mac-setup.run
+sleep 5 && sh jouska-mac-setup.sh

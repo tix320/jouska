@@ -1,1 +1,1 @@
-sleep 5 && sh jouska-linux-setup.run
+sleep 5 && sh jouska-linux-setup.sh

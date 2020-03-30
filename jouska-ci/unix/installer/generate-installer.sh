@@ -1,1 +1,1 @@
-sh "jouska-ci/unix/installer/makeself/makeself.sh" --current --nox11 --nomd5 --nocrc jouska-client/target "$1" "Jouska installer" ./message.sh
+sh "jouska-ci/unix/installer/makeself/makeself.sh" --current --nox11 --nomd5 --nocrc "$1" "$2" "Jouska" ./message.sh

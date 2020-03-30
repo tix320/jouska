@@ -46,11 +46,11 @@ node('JDK11') {
         def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
         print("Docker Image name: $IMAGE_NAME")
 
-        sh "docker build -t $IMAGE_NAME ."
+        sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
     }
 
     stage('Download Javafx Jmods') {
-        dir('jouska-ci/target/javafx') {
+        dir("$WORKSPACE/javafx") {
             //            sh 'curl https://download2.gluonhq.com/openjfx/14/openjfx-14_windows-x64_bin-jmods.zip --output windows.zip'
             //            sh 'unzip linux.zip -d ./linux'
 
@@ -60,11 +60,12 @@ node('JDK11') {
     }
 
     stage('Build Client') {
+
         def jdkPath = sh(returnStdout: true, script: 'echo $JAVA_HOME').trim()
-        def javaFxJmodsPath = "jouska-ci/target/javafx/linux"
+        def javaFxJmodsPath = "$WORKSPACE/javafx/linux/javafx-jmods-14"
         sh "sh jouska-ci/unix/linux/linux-build.sh $jdkPath $javaFxJmodsPath"
 
-        archiveArtifacts artifacts: "jouska-client/target/jouska-linux-setup.run",
+        archiveArtifacts artifacts: "jouska-client/target/output/jouska-linux-setup.sh",
                 fingerprint: true
     }
 }
