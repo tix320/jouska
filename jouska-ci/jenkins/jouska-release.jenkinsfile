@@ -46,7 +46,7 @@ node('JAVAFX') {
     stage('Build Linux Client') {
         def jdkPath = "$JDK_PATH_PREFIX/linux"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
-        sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath"
+        sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
         archiveArtifacts artifacts: "jouska-client/target/output/jouska-linux-setup.sh",
                 fingerprint: true
@@ -55,7 +55,7 @@ node('JAVAFX') {
     stage('Build Mac Client') {
         def jdkPath = "$JDK_PATH_PREFIX/mac"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
-        sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath"
+        sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath clinet-app"
 
         archiveArtifacts artifacts: "jouska-client/target/output/jouska-mac-setup.sh",
                 fingerprint: true
@@ -64,7 +64,7 @@ node('JAVAFX') {
     stage('Build Windows Client') {
         def jdkPath = "$JDK_PATH_PREFIX/windows"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
-        sh "sh jouska-ci/build/windows/windows-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath"
+        sh "sh jouska-ci/build/windows/windows-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
         archiveArtifacts artifacts: "jouska-client/target/output/jouska-windows.zip",
                 fingerprint: true
