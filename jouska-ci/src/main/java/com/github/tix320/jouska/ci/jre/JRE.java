@@ -10,23 +10,15 @@ import java.util.stream.Collectors;
 public class JRE {
 
 	private static final String[] REQUIRED_MODULE_NAMES = {
-			"javafx.base",
-			"javafx.graphics",
-			"javafx.controls",
-			"javafx.fxml",
-			"sonder",
-			"kiwi",
-			"jouska.core",
-			"net.bytebuddy",
-	};
+			"javafx.base", "javafx.graphics", "javafx.controls", "javafx.fxml", "sonder", "kiwi", "jouska.core",
+			"net.bytebuddy",};
 
 	public static void main(String[] args)
-			throws IOException {
-		Path targetPath = Path.of(args[0]);
+			throws IOException, InterruptedException {
+		Path libPath = Path.of(args[0]);
 		String jdkPath = args[1];
 		String javaFxJmodsPath = args[2];
-
-		Path libPath = Path.of(targetPath.toString() + "/lib");
+		Path targetPath = Path.of(args[3]);
 
 		if (!Files.exists(libPath) || !Files.isDirectory(libPath)) {
 			throw new IllegalStateException("Lib directory does not exists");
@@ -63,6 +55,9 @@ public class JRE {
 		String output = new String(bytes);
 		System.out.println(output);
 
-
+		int exitCode = jlinkProcess.waitFor();
+		if (exitCode != 0) {
+			System.exit(exitCode);
+		}
 	}
 }
