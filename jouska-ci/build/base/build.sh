@@ -5,4 +5,5 @@
 mvn clean install -B "$1" && \
 mkdir jouska-client/target/output && \
 sh jouska-ci/target/appassembler/bin/jre.sh unix jouska-client/target/lib "$2" "$3" jouska-client/target/output && \
-cp "jouska-client/target/classes/config.properties" "jouska-client/target/output/config.properties"
+cp jouska-client/target/classes/config.properties jouska-client/target/output/config.properties && \
+cp jouska-client/target/classes/jouska-app.jar jouska-client/target/output/jouska-app.jar
