@@ -5,4 +5,4 @@
 
 sh jouska-ci/build/base/build.sh "$1 -Dos=WINDOWS" "$2" "$3" && \
 cp -R jouska-ci/build/windows/installer/include/* jouska-client/target/output && \
-zip -r "$4"/jouska-windows.zip jouska-client/target/output/*
+cd jouska-client/target/output && zip -r ../../../"$4"/jouska-windows.zip *
