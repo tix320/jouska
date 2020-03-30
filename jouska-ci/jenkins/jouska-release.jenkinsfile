@@ -1,6 +1,6 @@
 def RELEASE_SCOPE = params.RELEASE_SCOPE
-def JOUSKA_SERVER_HOST = parms.JOUSKA_SERVER_HOST
-def JOUSKA_SERVER_PORT = parms.JOUSKA_SERVER_PORT
+def JOUSKA_SERVER_HOST = params.JOUSKA_SERVER_HOST
+def JOUSKA_SERVER_PORT = params.JOUSKA_SERVER_PORT
 
 def RELEASE_VERSION
 
@@ -86,7 +86,7 @@ node('JAVAFX') {
         sh "git commit -m \"Update version to $RELEASE_VERSION\""
         sh "git push origin master"
 
-        sh "git tag ${RELEASE_VERSION}"
-        sh "git push origin ${RELEASE_VERSION}"
+        sh "git tag v${RELEASE_VERSION}"
+        sh "git push origin v${RELEASE_VERSION}"
     }
 }
