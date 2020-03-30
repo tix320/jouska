@@ -11,7 +11,7 @@
     -fx-focus-color: transparent;
 }
 
-#connected-player-pane {
+#players-scroll-pane {
     -fx-focus-color: transparent;
 }
 
@@ -19,15 +19,6 @@
     -fx-background-color: linear-gradient(#edff9a, #c2fff5 80%) no-repeat;
 }
 
-#refresh-button {
-    -fx-background-color: transparent;
-    -fx-background-radius: 10px;
-}
-
-#refresh-button:hover {
-    -fx-background-color: #82be3c;
-}
-
-#refresh-button:pressed {
-    -fx-background-color: #ffc023;
+#connected-players-pane{
+    -fx-background-color: linear-gradient(#a0ffbd, #c2fff5 80%) no-repeat;
 }
