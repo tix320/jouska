@@ -60,7 +60,8 @@ public class JRE {
 
 		String jlinkCommand = "jlink --module-path "
 							  + jdkPath
-							  + "/jmods;"
+							  + "/jmods"
+							  + modulePathSeparator
 							  + javaFxJmodsPath
 							  + modulePathSeparator
 							  + modulePath
