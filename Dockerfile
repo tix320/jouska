@@ -1,6 +1,9 @@
 FROM maven:3.6.3-jdk-11
 
-COPY ./jouska-server/target/jouska-server.jar /usr/src/app/
+WORKDIR /usr/src/app
+
+COPY ./jouska-server/target/jouska-server.jar .
+COPY ./jouska-server/target/classes/config.properties .
 
 EXPOSE 8888
 
