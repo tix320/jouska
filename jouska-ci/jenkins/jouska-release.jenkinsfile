@@ -41,6 +41,8 @@ node('JAVAFX') {
         RELEASE_VERSION = RELEASE_VERSION.substring(1)
 
         sh("mvn versions:set -DnewVersion=$RELEASE_VERSION")
+
+        sh 'mkdir client-app'
     }
 
     stage('Build Linux Client') {
@@ -48,16 +50,16 @@ node('JAVAFX') {
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
         sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
-        archiveArtifacts artifacts: "jouska-client/target/output/jouska-linux-setup.sh",
+        archiveArtifacts artifacts: "client-app/jouska-linux-setup.sh",
                 fingerprint: true
     }
 
     stage('Build Mac Client') {
         def jdkPath = "$JDK_PATH_PREFIX/mac"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
-        sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath clinet-app"
+        sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
-        archiveArtifacts artifacts: "jouska-client/target/output/jouska-mac-setup.sh",
+        archiveArtifacts artifacts: "client-app/jouska-mac-setup.sh",
                 fingerprint: true
     }
 
@@ -66,15 +68,13 @@ node('JAVAFX') {
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
         sh "sh jouska-ci/build/windows/windows-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
-        archiveArtifacts artifacts: "jouska-client/target/output/jouska-windows.zip",
+        archiveArtifacts artifacts: "client-app/jouska-windows.zip",
                 fingerprint: true
     }
 
-    stage('Build') {
-        sh 'mvn clean install'
-    }
-
     stage('Build Server Image') {
+        sh 'mvn clean install'
+
         def IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$RELEASE_VERSION"
         print("Docker Image name: $IMAGE_NAME")
 
@@ -84,9 +84,8 @@ node('JAVAFX') {
     stage('Push') {
         sh 'git add .'
         sh "git commit -m \"Update version to $RELEASE_VERSION\""
-        sh "git push origin master"
 
         sh "git tag v${RELEASE_VERSION}"
-        sh "git push origin v${RELEASE_VERSION}"
+        sh "git push origin HEAD:refs/heads/master --tags"
     }
 }
