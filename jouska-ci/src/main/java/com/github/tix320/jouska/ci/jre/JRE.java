@@ -16,10 +16,24 @@ public class JRE {
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException {
-		Path libPath = Path.of(args[0]);
-		Path jdkPath = Path.of(args[1]);
-		Path javaFxJmodsPath = Path.of(args[2]);
-		Path targetPath = Path.of(args[3]);
+		String OS = args[0];
+		Path libPath = Path.of(args[1]);
+		Path jdkPath = Path.of(args[2]);
+		Path javaFxJmodsPath = Path.of(args[3]);
+		Path targetPath = Path.of(args[4]);
+
+		char modulePathSeparator;
+		switch (OS.toLowerCase()) {
+			case "linux":
+			case "mac":
+				modulePathSeparator = ':';
+				break;
+			case "windows":
+				modulePathSeparator = ';';
+				break;
+			default:
+				throw new IllegalArgumentException("Invalid OS: " + OS);
+		}
 
 		checkDirectoryExist(libPath);
 		checkDirectoryExist(jdkPath);
@@ -39,7 +53,7 @@ public class JRE {
 
 		StringBuilder modulePath = new StringBuilder();
 		for (Path jar : jars) {
-			modulePath.append(libPath).append(File.separatorChar).append(jar.getFileName()).append(";");
+			modulePath.append(libPath).append(File.separatorChar).append(jar.getFileName()).append(modulePathSeparator);
 		}
 
 		System.out.println("Generating JRE...");
@@ -48,7 +62,7 @@ public class JRE {
 							  + jdkPath
 							  + "/jmods;"
 							  + javaFxJmodsPath
-							  + ";"
+							  + modulePathSeparator
 							  + modulePath
 							  + " --add-modules "
 							  + String.join(",", REQUIRED_MODULE_NAMES)
@@ -74,7 +88,7 @@ public class JRE {
 
 	private static void checkDirectoryExist(Path path) {
 		if (!Files.exists(path) || !Files.isDirectory(path)) {
-			throw new IllegalStateException("Directory does not exists: " + path);
+			throw new IllegalArgumentException("Directory does not exists: " + path);
 		}
 	}
 
