@@ -3,4 +3,4 @@
 # $3 Javafx Jmods path (platform should be according to the first parameter)
 
 sh jouska-ci/build/base/build.sh "$1" "$2" "$3" && \
-cp -R jouska-ci/build/unix/installer/include/* jouska-client/target/output &&
+cp -R jouska-ci/build/unix/installer/include/* jouska-client/target/output
