@@ -96,6 +96,7 @@ node('JAVAFX') {
         print("Docker Image name: $IMAGE_NAME")
 
         sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
+        sh "docker -H swarm-manager:4000 push $IMAGE_NAME"
     }
 
     stage('Push') {
