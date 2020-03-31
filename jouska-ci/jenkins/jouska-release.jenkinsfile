@@ -50,7 +50,7 @@ node('JAVAFX') {
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
         sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
-        archiveArtifacts artifacts: "client-app/jouska-linux-setup.sh",
+        archiveArtifacts artifacts: "client-app/jouska-linux.zip",
                 fingerprint: true
     }
 
@@ -59,7 +59,7 @@ node('JAVAFX') {
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
         sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
-        archiveArtifacts artifacts: "client-app/jouska-mac-setup.sh",
+        archiveArtifacts artifacts: "client-app/jouska-mac.zip",
                 fingerprint: true
     }
 

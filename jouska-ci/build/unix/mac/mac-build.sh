@@ -6,4 +6,4 @@
 sh jouska-ci/build/base/build.sh "$1 -Dos=MAC" "$2" "$3" && \
 cp -R jouska-ci/build/unix/installer/include/* jouska-client/target/output && \
 cp -R jouska-ci/build/unix/mac/include/* jouska-client/target/output && \
-sh jouska-ci/build/unix/installer/generate-installer.sh jouska-client/target/output "$4"/jouska-mac-setup.sh
+cd jouska-client/target/output && zip -r ../../../"$4"/jouska-mac.zip *

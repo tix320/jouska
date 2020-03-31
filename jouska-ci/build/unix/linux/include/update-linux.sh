@@ -1,1 +1,1 @@
-sleep 5 && sh jouska-linux-setup.sh
+sleep 5 && unzip -o jouska-linux.zip
