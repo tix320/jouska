@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.client.app;
+package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.core.infrastructure.OS;
 
