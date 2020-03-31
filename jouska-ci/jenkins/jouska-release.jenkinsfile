@@ -50,25 +50,42 @@ node('JAVAFX') {
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
         sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
+        sh "sh jouska-ci/build/unix/linux/linux-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
+
         archiveArtifacts artifacts: "client-app/jouska-linux.zip",
+                fingerprint: true
+
+        archiveArtifacts artifacts: "client-app/jouska-bot-linux.zip",
                 fingerprint: true
     }
 
     stage('Build Mac Client') {
         def jdkPath = "$JDK_PATH_PREFIX/mac"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
+
         sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
+        sh "sh jouska-ci/build/unix/mac/mac-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
+
         archiveArtifacts artifacts: "client-app/jouska-mac.zip",
+                fingerprint: true
+
+        archiveArtifacts artifacts: "client-app/jouska-bot-mac.zip",
                 fingerprint: true
     }
 
     stage('Build Windows Client') {
         def jdkPath = "$JDK_PATH_PREFIX/windows"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
+
         sh "sh jouska-ci/build/windows/windows-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
 
+        sh "sh jouska-ci/build/windows/windows-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
+
         archiveArtifacts artifacts: "client-app/jouska-windows.zip",
+                fingerprint: true
+
+        archiveArtifacts artifacts: "client-app/jouska-bot-windows.zip",
                 fingerprint: true
     }
 
