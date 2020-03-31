@@ -42,7 +42,7 @@
 						</program>
 						<program>
 							<id>bot-jre</id>
-							<mainClass>com.github.tix320.jouska.ci.jre.ClientJRE</mainClass>
+							<mainClass>com.github.tix320.jouska.ci.jre.BotJRE</mainClass>
 						</program>
 						<program>
 							<id>upload</id>
