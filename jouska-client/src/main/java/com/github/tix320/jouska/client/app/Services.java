@@ -12,7 +12,7 @@ public class Services {
 	public static ClientGameManagementOrigin GAME_SERVICE;
 	public static ClientGameOrigin IN_GAME_SERVICE;
 	public static ClientTournamentOrigin TOURNAMENT_SERVICE;
-	public static ApplicationUpdateOrigin APPLICATION_INSTALLER_SERVICE;
+	public static ApplicationUpdateOrigin APPLICATION_UPDATE_SERVICE;
 
 	public static SonderClient SONDER_CLIENT;
 
@@ -42,6 +42,6 @@ public class Services {
 		GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameManagementOrigin.class);
 		IN_GAME_SERVICE = SONDER_CLIENT.getRPCService(ClientGameOrigin.class);
 		TOURNAMENT_SERVICE = SONDER_CLIENT.getRPCService(ClientTournamentOrigin.class);
-		APPLICATION_INSTALLER_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateOrigin.class);
+		APPLICATION_UPDATE_SERVICE = SONDER_CLIENT.getRPCService(ApplicationUpdateOrigin.class);
 	}
 }

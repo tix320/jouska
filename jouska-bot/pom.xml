@@ -12,6 +12,74 @@
 
 	<artifactId>jouska-bot</artifactId>
 
+	<properties>
+		<os>WINDOWS</os>
+		<jouska.server.host>localhost</jouska.server.host>
+		<jouska.server.port>8888</jouska.server.port>
+	</properties>
+
+	<build>
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
+		<plugins>
+			<plugin>
+				<groupId>com.google.code.maven-replacer-plugin</groupId>
+				<artifactId>maven-replacer-plugin</artifactId>
+				<version>1.4.0</version>
+				<executions>
+					<execution>
+						<id>Version.java</id>
+						<phase>process-sources</phase>
+						<goals>
+							<goal>replace</goal>
+						</goals>
+						<configuration>
+							<file>src/template/Version.java</file>
+							<outputFile>src/main/java/com/github/tix320/jouska/bot/Version.java</outputFile>
+							<replacements>
+								<replacement>
+									<token>@version@</token>
+									<value>${parent.version}</value>
+								</replacement>
+								<replacement>
+									<token>@os@</token>
+									<value>${os}</value>
+								</replacement>
+							</replacements>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<finalName>jouska-bot</finalName>
+				</configuration>
+			</plugin>
+			<plugin>
+				<artifactId>maven-dependency-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>prepare-package</phase>
+						<goals>
+							<goal>copy-dependencies</goal>
+						</goals>
+						<configuration>
+							<outputDirectory>${project.build.directory}/lib</outputDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
+
 	<dependencies>
 		<dependency>
 			<groupId>com.github.tix320</groupId>

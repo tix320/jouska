@@ -7,6 +7,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import com.github.tix320.jouska.core.infrastructure.OS;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.Configuration;
@@ -18,71 +19,85 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 @Endpoint("application")
 public class ApplicationUpdateEndpoint {
 
-	private static final String WINDOWS_FILE_NAME = "/jouska-windows.zip";
-	private static final String LINUX_FILE_NAME = "/jouska-linux.zip";
-	private static final String MAC_FILE_NAME = "/jouska-mac.zip";
+	private static final String WINDOWS_CLIENT_FILE_NAME = "/jouska-client-windows.zip";
+	private static final String WINDOWS_BOT_FILE_NAME = "/jouska-bot-windows.zip";
 
-	@Endpoint("check-update")
-	public String checkUpdate(String version, String os) {
+	private static final String LINUX_CLIENT_FILE_NAME = "/jouska-client-linux.zip";
+	private static final String LINUX_BOT_FILE_NAME = "/jouska-bot-linux.zip";
+
+	private static final String MAC_CLIENT_FILE_NAME = "/jouska-client-mac.zip";
+	private static final String MAC_BOT_FILE_NAME = "/jouska-bot-mac.zip";
+
+	@Endpoint
+	public String checkUpdate(String version, OS os) {
 		String applicationVersion = Configuration.getApplicationVersion();
 		Path clientAppPath = Configuration.getClientAppPath();
-		if (clientAppPath == null) {
-			throw new IllegalStateException("Sources path not specified");
-		}
 
 		if (version.equals(applicationVersion)) {
 			return "";
 		}
 
 		switch (os) {
-			case "WINDOWS":
-				return Files.exists(Path.of(clientAppPath + WINDOWS_FILE_NAME)) ? applicationVersion : "";
-			case "LINUX":
-				return Files.exists(Path.of(clientAppPath + LINUX_FILE_NAME)) ? applicationVersion : "";
-			case "MAC":
-				return Files.exists(Path.of(clientAppPath + MAC_FILE_NAME)) ? applicationVersion : "";
+			case WINDOWS:
+				return Files.exists(Path.of(clientAppPath + WINDOWS_CLIENT_FILE_NAME)) ? applicationVersion : "";
+			case LINUX:
+				return Files.exists(Path.of(clientAppPath + LINUX_CLIENT_FILE_NAME)) ? applicationVersion : "";
+			case MAC:
+				return Files.exists(Path.of(clientAppPath + MAC_CLIENT_FILE_NAME)) ? applicationVersion : "";
 			default:
-				throw new IllegalArgumentException(os);
+				throw new IllegalArgumentException();
 		}
 	}
 
-	@Endpoint("windows-latest")
-	public Transfer downloadWindowsLatest() {
-		Path installersPath = Configuration.getClientAppPath();
-		return fileToTransfer(installersPath + WINDOWS_FILE_NAME);
+	@Endpoint
+	public Transfer downloadClient(OS os) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		switch (os) {
+			case WINDOWS:
+				return fileToTransfer(clientAppPath + WINDOWS_CLIENT_FILE_NAME);
+			case LINUX:
+				return fileToTransfer(clientAppPath + LINUX_CLIENT_FILE_NAME);
+			case MAC:
+				return fileToTransfer(clientAppPath + MAC_CLIENT_FILE_NAME);
+			default:
+				throw new IllegalArgumentException();
+		}
 	}
 
-	@Endpoint("linux-latest")
-	public Transfer downloadLinuxLatest() {
-		Path installersPath = Configuration.getClientAppPath();
-		return fileToTransfer(installersPath + LINUX_FILE_NAME);
+	@Endpoint
+	public Transfer downloadBot(OS os) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		switch (os) {
+			case WINDOWS:
+				return fileToTransfer(clientAppPath + WINDOWS_BOT_FILE_NAME);
+			case LINUX:
+				return fileToTransfer(clientAppPath + LINUX_BOT_FILE_NAME);
+			case MAC:
+				return fileToTransfer(clientAppPath + MAC_BOT_FILE_NAME);
+			default:
+				throw new IllegalArgumentException();
+		}
 	}
 
-	@Endpoint("mac-latest")
-	public Transfer downloadMacLatest() {
-		Path installersPath = Configuration.getClientAppPath();
-		return fileToTransfer(installersPath + MAC_FILE_NAME);
-	}
-
-	@Endpoint("upload-windows")
+	@Endpoint
 	@Role(RoleName.ADMIN)
-	public void uploadWindows(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getClientAppPath();
-		transferToFile(transfer, installersPath + WINDOWS_FILE_NAME);
+	public void uploadWindowsClient(Transfer transfer, @CallerUser Player player) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		transferToFile(transfer, clientAppPath + WINDOWS_CLIENT_FILE_NAME);
 	}
 
-	@Endpoint("upload-linux")
+	@Endpoint
 	@Role(RoleName.ADMIN)
-	public void uploadLinux(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getClientAppPath();
-		transferToFile(transfer, installersPath + LINUX_FILE_NAME);
+	public void uploadLinuxClient(Transfer transfer, @CallerUser Player player) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		transferToFile(transfer, clientAppPath + LINUX_CLIENT_FILE_NAME);
 	}
 
-	@Endpoint("upload-mac")
+	@Endpoint
 	@Role(RoleName.ADMIN)
-	public void uploadMac(Transfer transfer, @CallerUser Player player) {
-		Path installersPath = Configuration.getClientAppPath();
-		transferToFile(transfer, installersPath + MAC_FILE_NAME);
+	public void uploadMacClient(Transfer transfer, @CallerUser Player player) {
+		Path clientAppPath = Configuration.getClientAppPath();
+		transferToFile(transfer, clientAppPath + MAC_CLIENT_FILE_NAME);
 	}
 
 	private Transfer fileToTransfer(String filePath) {

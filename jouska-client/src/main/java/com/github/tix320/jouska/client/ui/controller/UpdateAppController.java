@@ -8,6 +8,7 @@ import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.client.app.Version;
+import com.github.tix320.jouska.core.infrastructure.OS;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.communication.Transfer;
@@ -18,7 +19,7 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 
-import static com.github.tix320.jouska.client.app.Services.APPLICATION_INSTALLER_SERVICE;
+import static com.github.tix320.jouska.client.app.Services.APPLICATION_UPDATE_SERVICE;
 
 public class UpdateAppController implements Controller<String> {
 
@@ -53,17 +54,17 @@ public class UpdateAppController implements Controller<String> {
 		String command;
 		switch (Version.os) {
 			case WINDOWS:
-				observable = APPLICATION_INSTALLER_SERVICE.downloadWindowsLatest();
+				observable = APPLICATION_UPDATE_SERVICE.downloadClient(OS.WINDOWS);
 				fileName = "jouska-windows.zip";
 				command = "cmd /c start \"\" update.bat";
 				break;
 			case LINUX:
-				observable = APPLICATION_INSTALLER_SERVICE.downloadLinuxLatest();
+				observable = APPLICATION_UPDATE_SERVICE.downloadClient(OS.LINUX);
 				fileName = "jouska-linux.zip";
 				command = "sh update-linux.sh";
 				break;
 			case MAC:
-				observable = APPLICATION_INSTALLER_SERVICE.downloadMacLatest();
+				observable = APPLICATION_UPDATE_SERVICE.downloadClient(OS.MAC);
 				fileName = "jouska-mac.zip";
 				command = "sh update-mac.sh";
 				break;

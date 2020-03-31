@@ -8,19 +8,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class JRE {
+/**
+ * @author Tigran Sargsyan on 31-Mar-20.
+ */
+public class BotJRE {
 
 	private static final String[] REQUIRED_MODULE_NAMES = {
-			"javafx.base", "javafx.graphics", "javafx.controls", "javafx.fxml", "sonder", "kiwi", "jouska.core",
-			"net.bytebuddy",};
+			"sonder", "kiwi", "jouska.core"};
 
 	public static void main(String[] args)
 			throws IOException, InterruptedException {
 		String runnerOS = args[0];
 		Path libPath = Path.of(args[1]);
 		Path jdkPath = Path.of(args[2]);
-		Path javaFxJmodsPath = Path.of(args[3]);
-		Path targetPath = Path.of(args[4]);
+		Path targetPath = Path.of(args[3]);
 
 		char modulePathSeparator;
 		switch (runnerOS.toLowerCase()) {
@@ -36,7 +37,6 @@ public class JRE {
 
 		checkDirectoryExist(libPath);
 		checkDirectoryExist(jdkPath);
-		checkDirectoryExist(javaFxJmodsPath);
 		checkDirectoryExist(targetPath);
 
 		List<Path> jars = Files.walk(libPath, 1).skip(1).collect(Collectors.toList());
@@ -44,7 +44,7 @@ public class JRE {
 		Iterator<Path> iterator = jars.iterator();
 		while (iterator.hasNext()) {
 			Path jar = iterator.next();
-			if (jar.getFileName().toString().contains("javafx")) {
+			if (jar.getFileName().toString().contains("byte-buddy")) {
 				Files.delete(jar);
 				iterator.remove();
 			}
@@ -55,13 +55,11 @@ public class JRE {
 			modulePath.append(libPath).append(File.separatorChar).append(jar.getFileName()).append(modulePathSeparator);
 		}
 
-		System.out.println("Generating JRE...");
+		System.out.println("Generating Bot JRE...");
 
 		String jlinkCommand = "jlink --module-path "
 							  + jdkPath
 							  + "/jmods"
-							  + modulePathSeparator
-							  + javaFxJmodsPath
 							  + modulePathSeparator
 							  + modulePath
 							  + " --add-modules "
@@ -91,5 +89,4 @@ public class JRE {
 			throw new IllegalArgumentException("Directory does not exists: " + path);
 		}
 	}
-
 }

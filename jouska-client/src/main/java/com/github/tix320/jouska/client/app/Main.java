@@ -16,7 +16,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-import static com.github.tix320.jouska.client.app.Services.APPLICATION_INSTALLER_SERVICE;
+import static com.github.tix320.jouska.client.app.Services.APPLICATION_UPDATE_SERVICE;
 import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 
 
@@ -39,7 +39,7 @@ public class Main extends Application {
 			new Thread(() -> {
 				try {
 					Services.initialize(Configuration.getServerHost(), Configuration.getServerPort());
-					APPLICATION_INSTALLER_SERVICE.checkUpdate(Version.VERSION, Version.os.name())
+					APPLICATION_UPDATE_SERVICE.checkUpdate(Version.VERSION, Version.os)
 							.subscribe(lastVersion -> {
 								if (!lastVersion.equals("")) { // update
 									UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);

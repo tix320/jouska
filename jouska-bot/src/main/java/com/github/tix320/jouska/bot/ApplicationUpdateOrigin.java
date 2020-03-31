@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.client.service.origin;
+package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.core.infrastructure.OS;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
@@ -12,5 +12,5 @@ public interface ApplicationUpdateOrigin {
 	MonoObservable<String> checkUpdate(String version, OS os);
 
 	@Origin
-	MonoObservable<Transfer> downloadClient(OS os);
+	MonoObservable<Transfer> downloadBot(OS os);
 }

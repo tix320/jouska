@@ -37,11 +37,15 @@
 				<configuration>
 					<programs>
 						<program>
-							<id>jre</id>>
-							<mainClass>com.github.tix320.jouska.ci.jre.JRE</mainClass>
+							<id>client-jre</id>
+							<mainClass>com.github.tix320.jouska.ci.jre.ClientJRE</mainClass>
 						</program>
 						<program>
-							<id>upload</id>>
+							<id>bot-jre</id>
+							<mainClass>com.github.tix320.jouska.ci.jre.ClientJRE</mainClass>
+						</program>
+						<program>
+							<id>upload</id>
 							<mainClass>com.github.tix320.jouska.ci.upload.Uploader</mainClass>
 						</program>
 					</programs>

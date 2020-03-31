@@ -11,4 +11,5 @@ open module jouska.core {
 	exports com.github.tix320.jouska.core.application.tournament;
 	exports com.github.tix320.jouska.core.event;
 	exports com.github.tix320.jouska.core.util;
+	exports com.github.tix320.jouska.core.infrastructure;
 }
