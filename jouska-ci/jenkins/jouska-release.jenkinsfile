@@ -60,7 +60,7 @@ node('JAVAFX') {
     }
 
     stage('Build Mac Client') {
-        def jdkPath = "$JDK_PATH_PREFIX/mac"
+        def jdkPath = "$JDK_PATH_PREFIX/mac/Contents/Home"
         def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
 
         sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"

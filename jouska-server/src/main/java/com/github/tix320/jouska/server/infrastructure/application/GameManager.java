@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.concurrent.locks.Lock;
+import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.Game;
 import com.github.tix320.jouska.core.application.game.InGamePlayer;
@@ -21,6 +22,7 @@ import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
 import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.service.GameService;
+import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.MapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
@@ -33,21 +35,42 @@ public class GameManager {
 	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
 	private static final MapProperty<Long, GameInfo> games = Property.forMap(new ConcurrentHashMap<>());
 
-	public static long createNewGame(CreateGameCommand createGameCommand) {
+	public static long createNewGame(CreateGameCommand createGameCommand, Player creator) {
 		long gameId = ID_GENERATOR.next();
 		GameSettings gameSettings = createGameCommand.getGameSettings();
 
-		games.put(gameId, new GameInfo(gameId, gameSettings));
+		Set<Player> accessedPlayers = createGameCommand.getAccessedPlayers()
+				.stream()
+				.map(PlayerService::findPlayerByNickname)
+				.filter(Optional::isPresent)
+				.map(Optional::get)
+				.collect(Collectors.toSet());
+
+		games.put(gameId, new GameInfo(gameId, gameSettings, creator, accessedPlayers));
+
 		return gameId;
 	}
 
-	public static Observable<Collection<GameInfo>> games() {
-		return games.asObservable().map(Map::values);
+	public static Observable<Collection<GameInfo>> games(Player caller) {
+		return games.asObservable().map(Map::values).map(gameInfos -> {
+			if (caller.isAdmin()) {
+				return gameInfos;
+			}
+			else {
+				return gameInfos.stream()
+						.filter(gameInfo -> hasAccessToGame(gameInfo, caller))
+						.collect(Collectors.toList());
+			}
+		});
 	}
 
 	public static GameConnectionAnswer connectToGame(long gameId, Player player) {
 		AtomicReference<GameConnectionAnswer> answer = new AtomicReference<>(GameConnectionAnswer.GAME_NOT_FOUND);
 		games.computeIfPresent(gameId, (key, gameInfo) -> {
+			if (hasAccessToGame(gameInfo, player)) {
+				throw new IllegalAccessException();
+			}
+
 			int playersCount = gameInfo.getSettings().getPlayersCount();
 			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
 			if (connectedPlayers.size() < playersCount) { // free
@@ -106,10 +129,14 @@ public class GameManager {
 		turnInGame(gameInfo, player, point);
 	}
 
-	public static Game getGame(long gameId) {
+	public static Game getGame(long gameId, Player caller) {
 		GameInfo gameInfo = games.get(gameId);
 		if (gameInfo == null) {
 			throw new IllegalArgumentException(String.format("Game %s not found", gameId));
+		}
+
+		if (!hasAccessToGame(gameInfo, caller)) {
+			throw new IllegalAccessException();
 		}
 
 		return gameInfo.getGame();
@@ -183,6 +210,18 @@ public class GameManager {
 		finally {
 			lock.unlock();
 		}
+	}
+
+	private static boolean hasAccessToGame(GameInfo game, Player player) {
+		if (player.isAdmin() || game.getCreator().equals(player)) {
+			return true;
+		}
+
+		if (game.getAccessedPlayers().isEmpty()) {
+			return true;
+		}
+
+		return game.getAccessedPlayers().contains(player);
 	}
 
 	private static void removePLayerFromGame(GameInfo gameInfo, Player player) {

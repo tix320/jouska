@@ -1,6 +1,6 @@
 # $1 maven post command (now used for properties) (example -Djouska.server.host=1.1.1.1 -Djouska.server.port=8888)
-# $2 Linux JDK path
-# $3 Linux Javafx Jmods path
+# $2 Mac JDK path
+# $3 Mac Javafx Jmods path
 # $4 Output folder
 
 sh jouska-ci/build/base/build.sh "$1 -Dos=MAC" "$2" "$3" && \

@@ -1,5 +1,9 @@
 package com.github.tix320.jouska.server.infrastructure.service;
 
+import java.util.Optional;
+import java.util.Set;
+import java.util.stream.Collectors;
+
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.LoginResult;
@@ -16,9 +20,6 @@ import dev.morphia.query.Query;
 import org.bson.types.ObjectId;
 
 import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_ORIGIN;
-import java.util.Optional;
-import java.util.Set;
-import java.util.stream.Collectors;
 
 public class PlayerService {
 
@@ -35,7 +36,8 @@ public class PlayerService {
 
 		if (clientIdByPlayer.isPresent()) {
 			return new LoginAnswer(LoginResult.ALREADY_LOGGED, entityToModel(playerEntity));
-		} else {
+		}
+		else {
 			ClientPlayerMappingResolver.setMapping(clientId, playerEntity.getId().toHexString());
 
 			Player player = entityToModel(playerEntity);
@@ -88,6 +90,13 @@ public class PlayerService {
 		return findPlayerEntityById(playerId).map(PlayerService::entityToModel);
 	}
 
+	public static Optional<Player> findPlayerByNickname(String nickname) {
+		Query<PlayerEntity> query = DataSource.INSTANCE.find(PlayerEntity.class);
+		query.and(query.criteria("nickname").equal(nickname));
+
+		return Optional.ofNullable(query.first()).map(PlayerService::entityToModel);
+	}
+
 	public static Optional<PlayerEntity> findPlayerEntityById(String playerId) {
 		return Optional.ofNullable(DataSource.INSTANCE.get(PlayerEntity.class, new ObjectId(playerId)));
 	}
@@ -99,11 +108,11 @@ public class PlayerService {
 
 	public static Observable<Set<Player>> getConnectedPlayers() {
 		return ClientPlayerMappingResolver.getConnectedPlayers()
-				.map(
-						data -> data.values().stream()
-								.map(PlayerService::findPlayerById)
-								.filter(Optional::isPresent)
-								.map(Optional::get)
-								.collect(Collectors.toSet()));
+				.map(data -> data.values()
+						.stream()
+						.map(PlayerService::findPlayerById)
+						.filter(Optional::isPresent)
+						.map(Optional::get)
+						.collect(Collectors.toSet()));
 	}
 }

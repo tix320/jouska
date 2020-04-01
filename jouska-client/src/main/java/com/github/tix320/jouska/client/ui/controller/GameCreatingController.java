@@ -1,5 +1,8 @@
 package com.github.tix320.jouska.client.ui.controller;
 
+import java.util.Arrays;
+import java.util.HashSet;
+
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberTextField;
@@ -13,6 +16,7 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ChoiceBox;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 
 import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
@@ -32,6 +36,9 @@ public class GameCreatingController implements Controller<Object> {
 
 	@FXML
 	private ChoiceBox<Integer> playersCountChoice;
+
+	@FXML
+	private TextArea accessPlayersTextArea;
 
 	@FXML
 	private ChoiceBox<String> turnTotalDurationTypeChoice;
@@ -66,9 +73,11 @@ public class GameCreatingController implements Controller<Object> {
 		String durationType = turnTotalDurationTypeChoice.getValue();
 		int number = playerTurnTotalDurationInput.getNumber();
 		int playerTurnTotalDurationSeconds = durationType.equals("seconds") ? number : number * 60;
+		String[] playerNicknames = accessPlayersTextArea.getText().strip().split(",");
 		GAME_SERVICE.create(new CreateGameCommand(
 				new TimedGameSettings(gameNameInput.getText(), BoardType.STANDARD, playersCountChoice.getValue(),
-						turnDurationInput.getNumber(), playerTurnTotalDurationSeconds)))
+						turnDurationInput.getNumber(), playerTurnTotalDurationSeconds),
+				new HashSet<>(Arrays.asList(playerNicknames))))
 				.subscribe(Subscriber.<Long>builder().onPublish(
 						gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)))
 						.onError(throwable -> {

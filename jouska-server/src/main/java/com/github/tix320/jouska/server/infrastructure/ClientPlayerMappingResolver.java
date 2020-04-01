@@ -33,7 +33,6 @@ public final class ClientPlayerMappingResolver {
 		return playerAndClientIds.straightRemove(clientId);
 	}
 
-
 	public static Long removeByPlayerId(String playerId) {
 		return playerAndClientIds.inverseRemove(playerId);
 	}

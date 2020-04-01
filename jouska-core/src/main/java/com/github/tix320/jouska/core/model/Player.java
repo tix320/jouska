@@ -2,6 +2,9 @@ package com.github.tix320.jouska.core.model;
 
 import java.util.Objects;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+
 public class Player {
 
 	private final String id;
@@ -30,6 +33,11 @@ public class Player {
 
 	public RoleName getRole() {
 		return role;
+	}
+
+	@JsonIgnore
+	public boolean isAdmin() {
+		return role == RoleName.ADMIN;
 	}
 
 	@Override

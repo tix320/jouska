@@ -1,9 +1,9 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
-import com.github.tix320.jouska.core.dto.GameChangeDto;
 import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.application.game.Point;
+import com.github.tix320.jouska.core.dto.GameChangeDto;
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
@@ -16,7 +16,7 @@ public class ServerGameEndpoint {
 	@Endpoint("changes")
 	@Subscription
 	public Observable<GameChangeDto> changes(long gameId, @CallerUser Player player) {
-		Game game = GameManager.getGame(gameId);
+		Game game = GameManager.getGame(gameId, player);
 		return game.changes().map(GameChangeDto::fromModel);
 	}
 

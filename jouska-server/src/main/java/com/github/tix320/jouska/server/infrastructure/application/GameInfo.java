@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.server.infrastructure.application;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -18,11 +17,15 @@ public final class GameInfo {
 	private final GameSettings settings;
 	private final Lock gameLock;
 	private Game game;
+	private final Player creator;
+	private final Set<Player> accessedPlayers;
 	private final Set<Player> connectedPlayers;
 
-	public GameInfo(long id, GameSettings settings) {
+	public GameInfo(long id, GameSettings settings, Player creator, Set<Player> accessedPlayers) {
 		this.id = id;
 		this.settings = settings;
+		this.creator = creator;
+		this.accessedPlayers = Set.copyOf(accessedPlayers);
 		this.connectedPlayers = Collections.newSetFromMap(new ConcurrentHashMap<>());
 		this.gameLock = new ReentrantLock();
 	}
@@ -37,6 +40,14 @@ public final class GameInfo {
 
 	public Lock getGameLock() {
 		return gameLock;
+	}
+
+	public Player getCreator() {
+		return creator;
+	}
+
+	public Set<Player> getAccessedPlayers() {
+		return accessedPlayers;
 	}
 
 	public Set<Player> getConnectedPlayers() {
