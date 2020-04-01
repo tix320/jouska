@@ -37,7 +37,6 @@ public class Services {
 				.build();
 		initServices();
 
-
 		SONDER_SERVER.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
 			long clientId = event.getClientId();
 			String playerId = ClientPlayerMappingResolver.removeByClientId(clientId);

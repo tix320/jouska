@@ -4,7 +4,7 @@
 }
 
 #gameItem {
-    -fx-background-color: #82be3c;
+    -fx-background-color: #c9f655;
     -fx-background-radius: 25px;
     -fx-pref-height: 200;
     -fx-pref-width: 200;
@@ -33,4 +33,17 @@
 
 #joinButton:pressed {
     -fx-background-color: #0288e9;
+}
+
+#startButton {
+    -fx-background-color: #32e999;
+    -fx-background-radius: 25px;
+}
+
+#startButton:hover {
+    -fx-background-color: #ace9c0;
+}
+
+#startButton:pressed {
+    -fx-background-color: #32e999;
 }

@@ -43,6 +43,7 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
 import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
 import static java.util.stream.Collectors.toMap;
 
@@ -545,7 +546,7 @@ public class GameController implements Controller<GameWatchDto> {
 	public void onLeaveClick() {
 		destroyPublisher.complete();
 		if (!game.isCompleted() && playerMode == PlayerMode.PLAY) {
-			IN_GAME_SERVICE.leave(gameId);
+			GAME_SERVICE.leave(gameId);
 		}
 		UI.switchComponent(ComponentType.MENU);
 	}

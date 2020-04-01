@@ -8,14 +8,17 @@ public class TournamentView {
 
 	private final int playersCount;
 
+	private final int maxPlayersCount;
+
 	public TournamentView() {
-		this(-1, null, -1);
+		this(-1, null, -1, -1);
 	}
 
-	public TournamentView(long id, String name, int playersCount) {
+	public TournamentView(long id, String name, int playersCount, int maxPlayersCount) {
 		this.id = id;
 		this.name = name;
 		this.playersCount = playersCount;
+		this.maxPlayersCount = maxPlayersCount;
 	}
 
 	public long getId() {
@@ -28,5 +31,9 @@ public class TournamentView {
 
 	public int getPlayersCount() {
 		return playersCount;
+	}
+
+	public int getMaxPlayersCount() {
+		return maxPlayersCount;
 	}
 }

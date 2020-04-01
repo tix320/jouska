@@ -3,7 +3,6 @@ package com.github.tix320.jouska.core.model;
 import java.util.Objects;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
 
 public class Player {
 

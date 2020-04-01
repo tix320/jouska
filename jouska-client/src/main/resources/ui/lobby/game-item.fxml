@@ -50,6 +50,14 @@
 				<Button id="joinButton" fx:id="joinButton" mnemonicParsing="false" prefWidth="200.0" text="Join" />
 			</children>
 		</HBox>
+      <HBox fx:id="startButtonHolder" layoutX="10.0" layoutY="130.0" styleClass="hbox">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+         <children>
+            <Button id="startButton" fx:id="startButton" mnemonicParsing="false" prefWidth="200.0" text="Start" />
+         </children>
+      </HBox>
 	</VBox>
 	<stylesheets>
 		<URL value="@game-item.css" />

@@ -4,6 +4,7 @@ import java.time.Duration;
 import java.util.Collection;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tix320.jouska.core.application.tournament.Tournament;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
@@ -36,42 +37,61 @@ public class TournamentManager {
 		return tournaments.asObservable().map(Map::values);
 	}
 
+	public static TournamentInfo getTournamentInfo(long tournamentId) {
+		TournamentInfo tournamentInfo = tournaments.get(tournamentId);
+		return tournamentInfo;
+	}
+
 	public static Tournament getTournament(long tournamentId) {
 		TournamentInfo tournamentInfo = tournaments.get(tournamentId);
 		failIfTournamentNull(tournamentId, tournamentInfo);
-		return tournamentInfo.getTournament();
+		return tournamentInfo.getTournament().orElseThrow();
 	}
 
-	public static synchronized TournamentJoinAnswer joinTournament(long tournamentId, Player player) {
-		TournamentInfo tournamentInfo = tournaments.get(tournamentId);
-		failIfTournamentNull(tournamentId, tournamentInfo);
+	public static TournamentJoinAnswer joinTournament(long tournamentId, Player player) {
+		AtomicReference<TournamentJoinAnswer> answer = new AtomicReference<>(TournamentJoinAnswer.REJECT);
+		tournaments.computeIfPresent(tournamentId, (key, tournamentInfo) -> {
+			int maxPlayersCount = tournamentInfo.getTournamentSettings().getPlayersCount();
 
-		int maxPlayersCount = tournamentInfo.getTournamentSettings().getPlayersCount();
-
-		if (tournamentInfo.getRegisteredPlayers().size() < maxPlayersCount) {
-			Long creatorClientId = ClientPlayerMappingResolver.getClientIdByPlayer(tournamentInfo.getCreator().getId())
-					.orElseThrow();
-
-			TournamentJoinRequest request = new TournamentJoinRequest(
-					new TournamentView(tournamentInfo.getId(), tournamentInfo.getTournamentSettings().getName(), -1),
-					player);
-			try {
-				TournamentJoinAnswer requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request, creatorClientId)
-						.get(Duration.ofSeconds(15));
-
-				if (requestAnswer == TournamentJoinAnswer.ACCEPT) {
+			if (tournamentInfo.getRegisteredPlayers().size() < maxPlayersCount) {
+				if (player.equals(tournamentInfo.getCreator())) {
 					tournamentInfo.getRegisteredPlayers().add(player);
+					answer.set(TournamentJoinAnswer.ACCEPT);
+					return tournamentInfo;
 				}
 
-				return requestAnswer;
+				if (tournamentInfo.getRegisteredPlayers().contains(player)) {
+					answer.set(TournamentJoinAnswer.ACCEPT);
+					return tournamentInfo;
+				}
+
+				Long creatorClientId = ClientPlayerMappingResolver.getClientIdByPlayer(
+						tournamentInfo.getCreator().getId()).orElseThrow();
+
+				TournamentJoinRequest request = new TournamentJoinRequest(
+						new TournamentView(tournamentInfo.getId(), tournamentInfo.getTournamentSettings().getName(),
+								tournamentInfo.getRegisteredPlayers().size(), maxPlayersCount), player);
+				try {
+					TournamentJoinAnswer requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request,
+							creatorClientId).get(Duration.ofSeconds(15));
+
+					if (requestAnswer == TournamentJoinAnswer.ACCEPT) {
+						tournamentInfo.getRegisteredPlayers().add(player);
+					}
+
+					answer.set(requestAnswer);
+				}
+				catch (TimeoutException e) {
+					answer.set(TournamentJoinAnswer.REJECT);
+				}
 			}
-			catch (TimeoutException e) {
-				return TournamentJoinAnswer.REJECT;
+			else {
+				answer.set(TournamentJoinAnswer.REJECT);
 			}
-		}
-		else {
-			return TournamentJoinAnswer.REJECT;
-		}
+
+			return tournamentInfo;
+		});
+		return answer.get();
 	}
 
 	private static void failIfTournamentNull(long tournamentId, TournamentInfo tournamentInfo) {
@@ -79,5 +99,4 @@ public class TournamentManager {
 			throw new IllegalArgumentException(String.format("Tournament `%s` does not exists", tournamentId));
 		}
 	}
-
 }

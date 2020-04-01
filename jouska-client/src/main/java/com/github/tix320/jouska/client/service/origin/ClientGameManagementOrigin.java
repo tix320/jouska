@@ -21,8 +21,14 @@ public interface ClientGameManagementOrigin {
 	@Origin("create")
 	MonoObservable<Long> create(CreateGameCommand createGameCommand);
 
-	@Origin("connect")
-	MonoObservable<GameConnectionAnswer> connect(long gameId);
+	@Origin("start")
+	void startGame(long gameId);
+
+	@Origin
+	MonoObservable<GameConnectionAnswer> join(long gameId);
+
+	@Origin
+	void leave(long gameId);
 
 	@Origin("watch")
 	MonoObservable<GameWatchDto> watch(long gameId);

@@ -49,14 +49,14 @@ public class TournamentItem extends AnchorPane {
 
 	private void initView(TournamentView tournamentView) {
 		setGameName(tournamentView.getName());
-		setPlayersCount(String.valueOf(tournamentView.getPlayersCount()));
+		setPlayersCount(tournamentView.getPlayersCount(), tournamentView.getMaxPlayersCount());
 	}
 
 	private void setGameName(String gameName) {
 		this.gameNameLabel.setText(gameName);
 	}
 
-	private void setPlayersCount(String playerCount) {
-		this.playersCountLabel.setText(playerCount);
+	private void setPlayersCount(int playerCount, int maxPlayersCount) {
+		this.playersCountLabel.setText(playerCount + "/" + maxPlayersCount);
 	}
 }

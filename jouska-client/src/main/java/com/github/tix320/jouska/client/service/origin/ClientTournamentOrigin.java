@@ -2,9 +2,9 @@ package com.github.tix320.jouska.client.service.origin;
 
 import java.util.List;
 
+import com.github.tix320.jouska.core.application.tournament.TournamentChange;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
 import com.github.tix320.jouska.core.dto.TournamentJoinAnswer;
-import com.github.tix320.jouska.core.dto.TournamentStructure;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
@@ -19,8 +19,9 @@ public interface ClientTournamentOrigin {
 	@Subscription
 	Observable<List<TournamentView>> getTournaments();
 
-	@Origin("structure")
-	MonoObservable<TournamentStructure> getStructure(long tournamentId);
+	@Origin
+	@Subscription
+	Observable<TournamentChange> tournamentChanges(long tournamentId);
 
 	@Origin("create")
 	MonoObservable<None> create(CreateTournamentCommand createTournamentCommand);

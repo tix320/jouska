@@ -19,7 +19,6 @@ import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.animation.FadeTransition;
-import javafx.animation.TranslateTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.ObservableList;
@@ -159,12 +158,15 @@ public final class MenuController implements Controller<Object> {
 				ObservableList<Node> children = this.notificationPane.getChildren();
 				children.add(content);
 
+				notificationPane.setDisable(true);
 
-				FadeTransition translateTransition = new FadeTransition(Duration.seconds(1),
-						notificationPane);
+				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.5), notificationPane);
 
 				translateTransition.setFromValue(0);
 				translateTransition.setToValue(1);
+
+				translateTransition.setOnFinished(event -> notificationPane.setDisable(false));
+
 				translateTransition.play();
 			});
 
@@ -176,8 +178,9 @@ public final class MenuController implements Controller<Object> {
 			}
 			finally {
 				Platform.runLater(() -> {
-					FadeTransition translateTransition = new FadeTransition(Duration.seconds(1),
-							notificationPane);
+					FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.5), notificationPane);
+
+					notificationPane.setDisable(true);
 
 					translateTransition.setFromValue(1);
 					translateTransition.setToValue(0);

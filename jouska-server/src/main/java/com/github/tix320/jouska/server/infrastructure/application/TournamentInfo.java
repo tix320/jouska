@@ -1,8 +1,8 @@
 package com.github.tix320.jouska.server.infrastructure.application;
 
 import java.util.Collections;
-import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -47,10 +47,7 @@ public class TournamentInfo {
 		this.tournament = tournament;
 	}
 
-	public Tournament getTournament() {
-		if (tournament == null) {
-			throw new NoSuchElementException("Tournament does not exists");
-		}
-		return tournament;
+	public Optional<Tournament> getTournament() {
+		return Optional.ofNullable(tournament);
 	}
 }

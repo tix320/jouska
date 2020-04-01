@@ -7,7 +7,7 @@
 
 <AnchorPane prefHeight="515.0" prefWidth="814.0" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.ErrorController">
    <children>
-      <TextArea fx:id="errorTextArea" disable="true" layoutX="10.0" layoutY="22.0" prefHeight="405.0" prefWidth="797.0" />
+      <TextArea fx:id="errorTextArea" layoutX="10.0" layoutY="22.0" prefHeight="405.0" prefWidth="797.0" />
       <Button defaultButton="true" layoutX="316.0" layoutY="433.0" mnemonicParsing="false" onAction="#returnToGame" prefHeight="39.0" prefWidth="185.0" text="Return to game">
          <font>
             <Font size="18.0" />

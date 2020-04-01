@@ -29,14 +29,24 @@ public class ServerGameManagementEndpoint {
 		}).collect(Collectors.toList()));
 	}
 
-	@Endpoint("connect")
-	public GameConnectionAnswer connect(long gameId, @CallerUser Player player) {
-		return GameManager.connectToGame(gameId, player);
+	@Endpoint
+	public GameConnectionAnswer join(long gameId, @CallerUser Player player) {
+		return GameManager.joinGame(gameId, player);
+	}
+
+	@Endpoint
+	public void leave(long gameId, @CallerUser Player player) {
+		GameManager.leaveGame(gameId, player);
 	}
 
 	@Endpoint("create")
 	public long createGame(CreateGameCommand createGameCommand, @CallerUser Player player) {
 		return GameManager.createNewGame(createGameCommand, player);
+	}
+
+	@Endpoint("start")
+	public void startGame(long gameId, @CallerUser Player player) {
+		GameManager.startGame(gameId, player);
 	}
 
 	@Endpoint("watch")

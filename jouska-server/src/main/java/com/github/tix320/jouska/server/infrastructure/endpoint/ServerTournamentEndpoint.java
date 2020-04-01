@@ -26,11 +26,17 @@ public class ServerTournamentEndpoint {
 				.map(tournamentInfos -> tournamentInfos.stream()
 						.map(tournamentInfo -> new TournamentView(tournamentInfo.getId(),
 								tournamentInfo.getTournamentSettings().getName(),
+								tournamentInfo.getRegisteredPlayers().size(),
 								tournamentInfo.getTournamentSettings().getPlayersCount()))
 						.collect(Collectors.toList()));
 	}
 
-	@Endpoint("tournamentChanges")
+	@Endpoint
+	public void getTournament(long tournamentId, @CallerUser Player player){
+		// TournamentManager.getTournament(tournamentId)
+	}
+
+	@Endpoint
 	@Subscription
 	public Observable<TournamentChange> tournamentChanges(long tournamentId, @CallerUser Player player) {
 		return TournamentManager.getTournament(tournamentId).changes();

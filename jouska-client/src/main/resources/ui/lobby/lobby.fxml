@@ -1,46 +1,35 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ScrollPane?>
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import javafx.scene.text.Font?>
-<AnchorPane prefHeight="700.0" prefWidth="903.0" stylesheets="@lobby.css" xmlns="http://javafx.com/javafx/11.0.1"
-			xmlns:fx="http://javafx.com/fxml/1"
-			fx:controller="com.github.tix320.jouska.client.ui.controller.LobbyController">
+<?import javafx.scene.text.*?>
+
+<AnchorPane prefHeight="700.0" prefWidth="903.0" stylesheets="@lobby.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.LobbyController">
 	<children>
-		<AnchorPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-					AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="100.0">
+		<AnchorPane prefHeight="200.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="100.0">
 			<children>
-				<ScrollPane id="games-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false"
-							hbarPolicy="NEVER" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
-							AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0">
+				<ScrollPane id="games-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" pannable="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0">
 					<content>
-						<FlowPane id="games-pane" fx:id="gameItemsPane" alignment="TOP_CENTER" columnHalignment="CENTER"
-								  hgap="20.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
-								  minHeight="-Infinity" minWidth="-Infinity" vgap="30.0">
+						<FlowPane id="games-pane" fx:id="gameItemsPane" alignment="TOP_CENTER" columnHalignment="CENTER" hgap="20.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" vgap="30.0">
 							<opaqueInsets>
-								<Insets/>
+								<Insets />
 							</opaqueInsets>
 							<padding>
-								<Insets bottom="20.0" left="20.0" right="20.0" top="20.0"/>
+								<Insets bottom="20.0" left="20.0" right="20.0" top="20.0" />
 							</padding>
 						</FlowPane>
 					</content>
 				</ScrollPane>
-				<ScrollPane id="players-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false"
-							hbarPolicy="NEVER" layoutX="10.0" layoutY="10.0" pannable="true" prefWidth="200.0"
-							AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+				<ScrollPane id="players-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" layoutX="10.0" layoutY="10.0" pannable="true" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 					<content>
 
-						<VBox id="connected-players-pane" fx:id="connectedPlayersPane" alignment="TOP_RIGHT"
-							  maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity"
-							  minWidth="-Infinity">
+						<VBox id="connected-players-pane" fx:id="connectedPlayersPane" alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">
 							<opaqueInsets>
-								<Insets/>
+								<Insets />
 							</opaqueInsets>
 							<padding>
-								<Insets bottom="0.0" left="0.0" right="0.0" top="0.0"/>
+								<Insets bottom="0.0" left="0.0" right="0.0" top="0.0" />
 							</padding>
 						</VBox>
 					</content>
@@ -49,13 +38,12 @@
 		</AnchorPane>
 		<AnchorPane AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
-				<Label fx:id="waitingPlayersLabel" alignment="CENTER" layoutX="28.0" layoutY="33.0"
-					   text="Waiting for players..." visible="false" AnchorPane.leftAnchor="10.0"
-					   AnchorPane.topAnchor="30.0">
+				<Label fx:id="waitingPlayersLabel" alignment="CENTER" layoutX="28.0" layoutY="33.0" text="Waiting for players..." AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="30.0">
 					<font>
-						<Font size="18.0"/>
+						<Font size="18.0" />
 					</font>
 				</Label>
+            <Button fx:id="cancelWaitButton" mnemonicParsing="false" onAction="#cancelWait" text="Cancel" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="200.0" AnchorPane.topAnchor="25.0" />
 			</children>
 		</AnchorPane>
 	</children>

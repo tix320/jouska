@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.server.infrastructure.application;
 
 import java.util.Collections;
-import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -61,10 +61,7 @@ public final class GameInfo {
 		this.game = game;
 	}
 
-	public Game getGame() {
-		if (game == null) {
-			throw new NoSuchElementException("Game does not exists");
-		}
-		return game;
+	public Optional<Game> getGame() {
+		return Optional.ofNullable(game);
 	}
 }

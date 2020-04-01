@@ -71,22 +71,20 @@ public class TournamentLobbyController implements Controller<Object> {
 	private void joinTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
 		long tournamentId = tournamentView.getId();
-		TOURNAMENT_SERVICE.join(tournamentId).subscribe(tournamentJoinAnswer -> {
-			System.out.println(tournamentJoinAnswer);
-		});
+		TOURNAMENT_SERVICE.join(tournamentId).subscribe(System.out::println);
 	}
 
 	private void viewTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
 		long tournamentId = tournamentView.getId();
-		TOURNAMENT_SERVICE.getStructure(tournamentId).subscribe(tournamentStructure -> {
-			if (tournamentStructure != null) {
-				EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
-			}
-			else {
-				UI.switchComponent(ComponentType.ERROR, "Tournament not found");
-			}
-		});
+		// TOURNAMENT_SERVICE.getStructure(tournamentId).subscribe(tournamentStructure -> {
+		// 	if (tournamentStructure != null) {
+		// 		EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
+		// 	}
+		// 	else {
+		// 		UI.switchComponent(ComponentType.ERROR, "Tournament not found");
+		// 	}
+		// });
 	}
 
 	public void createTournament() {

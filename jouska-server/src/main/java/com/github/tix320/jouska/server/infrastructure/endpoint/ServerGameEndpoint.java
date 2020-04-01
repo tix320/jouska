@@ -24,9 +24,4 @@ public class ServerGameEndpoint {
 	public void turn(long gameId, Point point, @CallerUser Player player) {
 		GameManager.turnInGame(gameId, player, point);
 	}
-
-	@Endpoint("leave")
-	public void leave(long gameId, @CallerUser Player player) {
-		GameManager.leaveFromGame(gameId, player);
-	}
 }

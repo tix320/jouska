@@ -3,7 +3,6 @@ package com.github.tix320.jouska.client.ui.controller;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
@@ -12,10 +11,7 @@ import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.ui.lobby.ConnectedPlayerItem;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.dto.GamePlayDto;
-import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -24,14 +20,15 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleLongProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.Button;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
@@ -41,7 +38,7 @@ import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
 
 public class LobbyController implements Controller<Object> {
 
-	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
+	private final SimpleBooleanProperty disable = new SimpleBooleanProperty(false);
 
 	@FXML
 	private FlowPane gameItemsPane;
@@ -50,17 +47,19 @@ public class LobbyController implements Controller<Object> {
 	private Label waitingPlayersLabel;
 
 	@FXML
+	private Button cancelWaitButton;
+
+	@FXML
 	private VBox connectedPlayersPane;
 
 	private Timeline timeline;
 
-	private AtomicReference<Long> waitingToConnectGameId = new AtomicReference<>(null);
+	private SimpleLongProperty waitingToConnectGameId = new SimpleLongProperty();
 
 	private MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	@Override
 	public void init(Object data) {
-		gameItemsPane.disableProperty().bind(loading);
 		subscribeToGameList();
 		subscribeToConnectedPlayersList();
 
@@ -79,14 +78,25 @@ public class LobbyController implements Controller<Object> {
 
 		timeline.setCycleCount(Animation.INDEFINITE);
 
-		waitingPlayersLabel.visibleProperty().addListener((observable, oldValue, visible) -> {
-			if (visible) {
-				timeline.play();
-			}
-			else {
+		waitingToConnectGameId.addListener((observableValue, number, gameId) -> {
+			if (gameId.longValue() == -1) {
+				waitingPlayersLabel.setVisible(false);
+				cancelWaitButton.setVisible(false);
+				cancelWaitButton.setDisable(true);
+				gameItemsPane.getChildren();
+				disable.set(false);
 				timeline.stop();
 			}
+			else {
+				waitingPlayersLabel.setVisible(true);
+				cancelWaitButton.setVisible(true);
+				cancelWaitButton.setDisable(false);
+				disable.set(true);
+				timeline.play();
+			}
 		});
+
+		waitingToConnectGameId.set(-1);
 
 		EventDispatcher.on(GameStartedEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
@@ -113,7 +123,11 @@ public class LobbyController implements Controller<Object> {
 		GAME_SERVICE.games().takeUntil(destroyPublisher.asObservable()).subscribe(gameViews -> {
 			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
 			Collections.reverse(gameItems);
-			gameItems.forEach(gameItem -> gameItem.setOnJoinClick(event -> onItemClick(gameItem, event)));
+			gameItems.forEach(gameItem -> {
+				gameItem.getJoinButton().disableProperty().bind(disable);
+				gameItem.setOnJoinClick(event -> connectToGame(gameItem.getGameView().getId()));
+				gameItem.setOnStartClick(event -> GAME_SERVICE.startGame(gameItem.getGameView().getId()));
+			});
 			Platform.runLater(() -> {
 				ObservableList<Node> gameList = gameItemsPane.getChildren();
 				gameList.clear();
@@ -136,14 +150,10 @@ public class LobbyController implements Controller<Object> {
 		});
 	}
 
-	private void onItemClick(GameItem gameItem, MouseEvent mouseEvent) {
-		GameView gameView = gameItem.getGameView();
-		long gameId = gameView.getId();
-		loading.set(true);
+	private void connectToGame(long gameId) {
+		disable.set(true);
 
-		waitingToConnectGameId.set(gameId);
-
-		GAME_SERVICE.connect(gameId).subscribe(answer -> {
+		GAME_SERVICE.join(gameId).subscribe(answer -> {
 			switch (answer) {
 				case GAME_NOT_FOUND:
 					Platform.runLater(() -> {
@@ -153,6 +163,17 @@ public class LobbyController implements Controller<Object> {
 						warning.setContentText("Game deleted or already completed.");
 						warning.showAndWait();
 					});
+					disable.set(false);
+					break;
+				case ALREADY_FULL:
+					Platform.runLater(() -> {
+						Alert alert = new Alert(AlertType.WARNING);
+						alert.setTitle("Confirmation");
+						alert.setHeaderText("Game is full.");
+						alert.setContentText("Game already full (");
+						alert.showAndWait();
+					});
+					disable.set(false);
 					break;
 				case ALREADY_STARTED:
 					Platform.runLater(() -> {
@@ -166,17 +187,20 @@ public class LobbyController implements Controller<Object> {
 							GAME_SERVICE.watch(gameId)
 									.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
 						}
-						else {
-							loading.set(false);
-						}
+						disable.set(false);
 					});
 					break;
 				case CONNECTED:
-					waitingPlayersLabel.setVisible(true);
+					waitingToConnectGameId.set(gameId);
 					break;
 				default:
 					throw new IllegalStateException();
 			}
 		});
+	}
+
+	public void cancelWait() {
+		GAME_SERVICE.leave(waitingToConnectGameId.get());
+		waitingToConnectGameId.set(-1);
 	}
 }

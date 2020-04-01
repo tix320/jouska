@@ -3,7 +3,6 @@ package com.github.tix320.jouska.server.infrastructure.application;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
-import java.util.concurrent.locks.Lock;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.Game;
@@ -64,11 +63,15 @@ public class GameManager {
 		});
 	}
 
-	public static GameConnectionAnswer connectToGame(long gameId, Player player) {
+	public static GameConnectionAnswer joinGame(long gameId, Player player) {
 		AtomicReference<GameConnectionAnswer> answer = new AtomicReference<>(GameConnectionAnswer.GAME_NOT_FOUND);
 		games.computeIfPresent(gameId, (key, gameInfo) -> {
-			if (hasAccessToGame(gameInfo, player)) {
+			if (!hasAccessToGame(gameInfo, player)) {
 				throw new IllegalAccessException();
+			}
+
+			if (gameInfo.getGame().isPresent()) {
+				answer.set(GameConnectionAnswer.ALREADY_STARTED);
 			}
 
 			int playersCount = gameInfo.getSettings().getPlayersCount();
@@ -76,12 +79,9 @@ public class GameManager {
 			if (connectedPlayers.size() < playersCount) { // free
 				answer.set(GameConnectionAnswer.CONNECTED);
 				connectedPlayers.add(player);
-				if (connectedPlayers.size() == playersCount) { // full
-					startGame(gameInfo);
-				}
 			}
 			else {
-				answer.set(GameConnectionAnswer.ALREADY_STARTED);
+				answer.set(GameConnectionAnswer.ALREADY_FULL);
 			}
 
 			return gameInfo;
@@ -89,30 +89,32 @@ public class GameManager {
 		return answer.get();
 	}
 
-	public static GameWatchDto watchGame(long gameId) {
-		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null || gameInfo.getGame() == null) {
-			throw new IllegalArgumentException(String.format("Game `%s` does not exists", gameId));
-		}
+	public static void leaveGame(long gameId, Player player) {
+		games.computeIfPresent(gameId, (key, gameInfo) -> {
+			if (!hasAccessToGame(gameInfo, player)) {
+				throw new IllegalAccessException();
+			}
 
-		Lock lock = gameInfo.getGameLock();
-		try {
-			lock.lock();
-			Game game = gameInfo.getGame();
-			return new GameWatchDto(gameId, (TimedGameSettings) gameInfo.getSettings(), game.getPlayers());
-		}
-		finally {
-			lock.unlock();
-		}
+			if (gameInfo.getGame().isPresent()) {
+
+				gameInfo.getGame().get().kick(player);
+			}
+
+			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
+			connectedPlayers.remove(player);
+
+			return gameInfo;
+		});
 	}
 
-	public static void leaveFromGame(long gameId, Player player) {
+	public static GameWatchDto watchGame(long gameId) {
 		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null) {
+		if (gameInfo == null || gameInfo.getGame().isEmpty()) {
 			throw new IllegalArgumentException(String.format("Game `%s` does not exists", gameId));
 		}
 
-		removePLayerFromGame(gameInfo, player);
+		Game game = gameInfo.getGame().orElseThrow();
+		return new GameWatchDto(gameId, (TimedGameSettings) gameInfo.getSettings(), game.getPlayers());
 	}
 
 	public static void turnInGame(long gameId, Player player, Point point) {
@@ -121,7 +123,7 @@ public class GameManager {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
 
-		Game game = gameInfo.getGame();
+		Game game = gameInfo.getGame().orElseThrow();
 		if (!containsPlayerInGame(game, player)) {
 			throw new IllegalStateException(String.format("Player %s is not a player of game %s", player, gameId));
 		}
@@ -139,44 +141,42 @@ public class GameManager {
 			throw new IllegalAccessException();
 		}
 
-		return gameInfo.getGame();
+		return gameInfo.getGame().orElseThrow();
 	}
 
 	private static void turnInGame(GameInfo gameInfo, Player player, Point point) {
-		Lock lock = gameInfo.getGameLock();
-		lock.lock();
-		try {
-			Game game = gameInfo.getGame();
+		Game game = gameInfo.getGame().orElseThrow();
 
-			InGamePlayer currentGamePlayer = game.getCurrentPlayer();
+		InGamePlayer currentGamePlayer = game.getCurrentPlayer();
 
-			if (!player.equals(currentGamePlayer.getRealPlayer())) {
-				throw new IllegalStateException(
-						String.format("Now is turn of %s, not %s", currentGamePlayer.getRealPlayer(), player));
-			}
-
-			game.turn(point);
+		if (!player.equals(currentGamePlayer.getRealPlayer())) {
+			throw new IllegalStateException(
+					String.format("Now is turn of %s, not %s", currentGamePlayer.getRealPlayer(), player));
 		}
-		finally {
-			lock.unlock();
-		}
+
+		game.turn(point);
 	}
 
-	private static void startGame(GameInfo gameInfo) {
-		long gameId = gameInfo.getId();
-		TimedGameSettings gameSettings = (TimedGameSettings) gameInfo.getSettings();
-		Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
+	public static void startGame(long gameId, Player caller) {
+		GameInfo gameInfo = games.get(gameId);
+		synchronized (gameInfo) {
+			if (!gameInfo.getCreator().equals(caller) && !caller.isAdmin()) {
+				throw new IllegalAccessException();
+			}
 
-		Game game = GameFactory.create(gameSettings, connectedPlayers);
-		gameInfo.setGame(game);
+			if (gameInfo.getConnectedPlayers().size() != gameInfo.getSettings().getPlayersCount()) { // full
+				throw new IllegalStateException("Not fully");
+			}
 
-		List<InGamePlayer> gamePlayers = game.getPlayers();
+			TimedGameSettings gameSettings = (TimedGameSettings) gameInfo.getSettings();
+			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
 
-		game.completed().subscribe(ignored -> onGameComplete(gameInfo));
+			Game game = GameFactory.create(gameSettings, connectedPlayers);
+			gameInfo.setGame(game);
 
-		Lock lock = gameInfo.getGameLock();
-		try {
-			lock.lock();
+			List<InGamePlayer> gamePlayers = game.getPlayers();
+
+			game.completed().subscribe(ignored -> onGameComplete(gameInfo));
 
 			List<Observable<None>> playersReady = new ArrayList<>();
 			for (InGamePlayer player : gamePlayers) {
@@ -191,14 +191,14 @@ public class GameManager {
 			EventDispatcher.on(PlayerLogoutEvent.class).takeUntil(game.completed()).subscribe(event -> {
 				Player logoutPlayer = event.getPlayer();
 				if (containsPlayerInGame(game, logoutPlayer)) {
-					removePLayerFromGame(gameInfo, logoutPlayer);
+					game.kick(logoutPlayer);
 				}
 			});
 
 			EventDispatcher.on(PlayerDisconnectedEvent.class).takeUntil(game.completed()).subscribe(event -> {
 				Player disconnectedPlayer = event.getPlayer();
 				if (containsPlayerInGame(game, disconnectedPlayer)) {
-					removePLayerFromGame(gameInfo, disconnectedPlayer);
+					game.kick(disconnectedPlayer);
 				}
 			});
 
@@ -206,9 +206,6 @@ public class GameManager {
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameSettings.getName(), gameId));
 			});
-		}
-		finally {
-			lock.unlock();
 		}
 	}
 
@@ -224,21 +221,9 @@ public class GameManager {
 		return game.getAccessedPlayers().contains(player);
 	}
 
-	private static void removePLayerFromGame(GameInfo gameInfo, Player player) {
-		Lock gameLock = gameInfo.getGameLock();
-		gameLock.lock();
-		try {
-			Game game = gameInfo.getGame();
-			game.kick(player);
-		}
-		finally {
-			gameLock.unlock();
-		}
-	}
-
 	private static void onGameComplete(GameInfo gameInfo) {
 		long gameId = gameInfo.getId();
-		Game game = gameInfo.getGame();
+		Game game = gameInfo.getGame().orElseThrow();
 		GameSettings gameSettings = gameInfo.getSettings();
 		InGamePlayer winner = game.getWinner().orElseThrow();
 		games.remove(gameId);
