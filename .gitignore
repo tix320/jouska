@@ -11,3 +11,5 @@ jouska-client/src/main/java/com/github/tix320/jouska/client/app/Version.java
 jouska-bot/src/main/java/com/github/tix320/jouska/bot/Version.java
 
 client-app/
+
+config.properties
