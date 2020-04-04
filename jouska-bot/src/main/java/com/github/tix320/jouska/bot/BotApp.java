@@ -18,7 +18,10 @@ public class BotApp {
 
 	public static SonderClient SONDER_CLIENT;
 
+	public static JouskaBotProcess BOT;
+
 	public static void main(String[] args) {
+		String processCommand = args[0];
 		String host = Configuration.getServerHost();
 		int port = Configuration.getServerPort();
 		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
@@ -28,6 +31,8 @@ public class BotApp {
 				.build();
 
 		checkApplicationUpdate();
+
+		BOT = new JouskaBotProcess(processCommand);
 
 		BotGameService botGameService = SONDER_CLIENT.getRPCService(BotGameService.class);
 

@@ -13,13 +13,11 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 @Endpoint("game")
 public class BotGameEndpoint {
 
-	private long gameId;
+	private volatile long gameId;
 
-	private Game game;
+	private volatile Game game;
 
-	private PlayerColor myPlayer;
-
-	private Bot bot;
+	private volatile PlayerColor myPlayer;
 
 	@Endpoint
 	public void notifyGameStarted(GamePlayDto gamePlayDto) {
@@ -30,7 +28,6 @@ public class BotGameEndpoint {
 				players.stream().map(InGamePlayer::getColor).collect(Collectors.toList()));
 		Game game = SimpleGame.createPredefined(board, players);
 		PlayerColor myColor = gamePlayDto.getMyPlayer();
-		this.bot = new Bot(myColor);
 		this.game = game;
 		this.myPlayer = myColor;
 
@@ -74,7 +71,7 @@ public class BotGameEndpoint {
 	private void tryTurn() {
 		if (!game.isCompleted() && game.getCurrentPlayer().getColor() == myPlayer) {
 			Try.runOrRethrow(() -> Thread.sleep(1000));
-			Point turn = bot.turn(game.getBoard());
+			Point turn = BotApp.BOT.turn(game.getBoard(), myPlayer);
 			BotApp.SONDER_CLIENT.getRPCService(BotInGameService.class).turn(gameId, turn);
 		}
 	}
