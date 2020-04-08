@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.client.ui.controller;
 
+import java.util.Collections;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -7,7 +8,6 @@ import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEve
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.TextFields;
 import com.github.tix320.jouska.core.application.game.BoardType;
-import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TournamentSettings;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
@@ -128,10 +128,10 @@ public class TournamentCreateController implements Controller<Object> {
 	@FXML
 	private void create() {
 		loading.set(true);
-		TimedGameSettings groupSettings = new TimedGameSettings("None", BoardType.STANDARD, 2, groupTurnDuration.get(),
-				groupGameDuration.get());
-		TimedGameSettings playOffSettings = new TimedGameSettings("None", BoardType.STANDARD, 2, playOffTurnDuration.get(),
-				playOffGameDuration.get());
+		TimedGameSettings groupSettings = new TimedGameSettings("None", BoardType.STANDARD, 2, Collections.emptySet(),
+				groupTurnDuration.get(), groupGameDuration.get());
+		TimedGameSettings playOffSettings = new TimedGameSettings("None", BoardType.STANDARD, 2, Collections.emptySet(),
+				playOffTurnDuration.get(), playOffGameDuration.get());
 		TOURNAMENT_SERVICE.create(new CreateTournamentCommand(
 				new TournamentSettings(gameNameInput.getText(), playersCountChoice.getValue(), groupSettings,
 						playOffSettings)))

@@ -21,12 +21,12 @@ public class ServerGameManagementEndpoint {
 	@Endpoint("info")
 	@Subscription
 	public Observable<List<GameView>> games(@CallerUser Player player) {
-		return GameManager.games(player).map(games -> games.stream().map(gameInfo -> {
-			TimedGameSettings settings = (TimedGameSettings) gameInfo.getSettings();
-			return new GameView(gameInfo.getId(), settings.getName(), gameInfo.getConnectedPlayers().size(),
-					settings.getPlayersCount(), settings.getTurnDurationSeconds(),
-					settings.getPlayerTurnTotalDurationSeconds(), gameInfo.getCreator(), gameInfo.getAccessedPlayers());
-		}).collect(Collectors.toList()));
+		return GameManager.games(player)
+				.map(games -> games.stream()
+						.map(gameInfo -> new GameView(gameInfo.getId(), (TimedGameSettings) gameInfo.getSettings(),
+								gameInfo.getCreator(), gameInfo.getConnectedPlayers(),
+								gameInfo.getGame().isPresent() && gameInfo.getGame().get().isStarted()))
+						.collect(Collectors.toList()));
 	}
 
 	@Endpoint

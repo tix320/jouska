@@ -3,13 +3,14 @@ package com.github.tix320.jouska.core.application.tournament;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import com.github.tix320.jouska.core.application.game.TournamentState;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.TournamentSettings;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
-import com.github.tix320.kiwi.api.util.collection.Tuple;
+import com.github.tix320.kiwi.api.util.None;
 
 public class ClassicTournament implements Tournament {
 
@@ -17,26 +18,29 @@ public class ClassicTournament implements Tournament {
 
 	private final GameSettings playOffGameSettings;
 
-	private final List<Player> players;
+	private final Set<Player> players;
 
 	private final List<Group> groups;
 
 	private final Property<PlayOff> playOff;
 
-	public ClassicTournament(GameSettings groupGameSettings, GameSettings playOffGameSettings, List<Player> players) {
-		this.groupGameSettings = groupGameSettings;
-		this.playOffGameSettings = playOffGameSettings;
+	private final Property<TournamentState> tournamentState;
+
+	public ClassicTournament(TournamentSettings tournamentSettings, Set<Player> players) {
+		this.groupGameSettings = tournamentSettings.getGroupGameSettings();
+		this.playOffGameSettings = tournamentSettings.getPlayOffGameSettings();
 		if (players.size() < 4) {
 			throw new IllegalArgumentException("Tournament players count must be >=4");
 		}
-		this.players = players;
+		this.players = Set.copyOf(players);
 		this.groups = assembleGroups(players);
 		this.playOff = Property.forObject();
+		this.tournamentState = Property.forObject(TournamentState.IN_PROGRESS);
 		listenGroupsCompleteness();
 	}
 
 	@Override
-	public List<Player> getPlayers() {
+	public Set<Player> getPlayers() {
 		return players;
 	}
 
@@ -46,16 +50,13 @@ public class ClassicTournament implements Tournament {
 	}
 
 	@Override
-	public ReadOnlyProperty<PlayOff> playOff() {
-		return playOff.toReadOnly();
+	public MonoObservable<PlayOff> playOff() {
+		return playOff.asObservable().toMono();
 	}
 
-	@Override
-	public Observable<TournamentChange> changes() {
-		return null;
-	}
+	private List<Group> assembleGroups(Set<Player> playersSet) {
+		List<Player> players = new ArrayList<>(playersSet);
 
-	private List<Group> assembleGroups(List<Player> players) {
 		Collections.shuffle(players);
 		int playersCount = players.size();
 		int groupsCount = resolveGroupCountForPlayers(playersCount);
@@ -103,45 +104,23 @@ public class ClassicTournament implements Tournament {
 	}
 
 	private void listenGroupsCompleteness() {
-		List<MonoObservable<Boolean>> groupsCompleteObservables = this.groups.stream()
-				.map(group -> group.completed().asObservable().filter(completed -> completed).toMono())
+		List<MonoObservable<None>> groupsCompleteObservables = this.groups.stream()
+				.map(Group::completed)
 				.collect(Collectors.toList());
 		Observable.zip(groupsCompleteObservables).subscribe(ignored -> {
 			List<Player> groupWinners = this.groups.stream()
-					.flatMap(group -> resolveGroupWinners(group).stream())
+					.flatMap(group -> group.getWinners().orElseThrow().stream())
 					.collect(Collectors.toList());
 
-			ClassicPlayOff classicPlayOff = new ClassicPlayOff(playOffGameSettings, groupWinners);
+			ClassicPlayOff classicPlayOff = new ClassicPlayOff(playOffGameSettings,
+					groupWinners); //TODO distribute group winners fairly in play-off
 			playOff.setValue(classicPlayOff);
+			listenPlayOffCompleteness();
 		});
-
 	}
 
-	private List<Player> resolveGroupWinners(Group group) {
-		Map<Player, Integer> groupPoints = group.points().getValue();
-
-		List<Tuple<Player, Integer>> sortedPlayers = groupPoints.entrySet()
-				.stream()
-				.map(entry -> new Tuple<>(entry.getKey(), entry.getValue()))
-				.sorted(Comparator.<Tuple<Player, Integer>, Integer>comparing(Tuple::second).reversed())
-				.collect(Collectors.toList());
-
-		if (sortedPlayers.size() == 2) {
-			return List.of(sortedPlayers.get(0).first(), sortedPlayers.get(1).first());
-		}
-		else { // >2
-			Tuple<Player, Integer> firstPlace = sortedPlayers.get(0);
-			Tuple<Player, Integer> secondPlace = sortedPlayers.get(1);
-			Tuple<Player, Integer> thirdPlace = sortedPlayers.get(2);
-			if (secondPlace.second() > thirdPlace.second()) {
-				return List.of(firstPlace.first(), secondPlace.first());
-			}
-			else {
-				return List.of();
-				// TODO
-			}
-		}
-
-
+	private void listenPlayOffCompleteness() {
+		PlayOff playOff = this.playOff.getValue();
+		playOff.completed().subscribe(none -> tournamentState.setValue(TournamentState.COMPLETED));
 	}
 }

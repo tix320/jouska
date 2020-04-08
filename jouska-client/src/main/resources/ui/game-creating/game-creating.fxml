@@ -4,7 +4,7 @@
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 
-<AnchorPane prefHeight="459.0" prefWidth="629.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.GameCreatingController">
+<AnchorPane prefHeight="500.0" prefWidth="630.0" stylesheets="@style.css" xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.GameCreatingController">
 	<children>
 		<VBox layoutX="93.0" layoutY="22.0" prefHeight="398.0" prefWidth="443.0" spacing="10.0" styleClass="vbox" AnchorPane.bottomAnchor="50.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="50.0">
 			<children>
@@ -30,6 +30,7 @@
                   <ChoiceBox fx:id="turnTotalDurationTypeChoice" prefWidth="150.0" />
                </children>
             </HBox>
+				<Label id="errorLabel" fx:id="errorLabel" contentDisplay="CENTER" text="Foo" visible="false" />
 				<Button fx:id="createButton" defaultButton="true" mnemonicParsing="false" onAction="#create" prefHeight="37.0" prefWidth="229.0" text="Create" />
 			</children>
 		</VBox>

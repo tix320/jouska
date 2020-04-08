@@ -1,5 +1,7 @@
 package com.github.tix320.jouska.server.infrastructure.service;
 
+import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -20,6 +22,7 @@ import dev.morphia.query.Query;
 import org.bson.types.ObjectId;
 
 import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_ORIGIN;
+import static java.util.stream.Collectors.toMap;
 
 public class PlayerService {
 
@@ -97,11 +100,30 @@ public class PlayerService {
 		return Optional.ofNullable(query.first()).map(PlayerService::entityToModel);
 	}
 
+	public static List<Player> findPlayersByNickname(List<String> nicknames) {
+		Query<PlayerEntity> query = DataSource.INSTANCE.find(PlayerEntity.class);
+		query.and(query.criteria("nickname").in(nicknames));
+
+		Map<String, PlayerEntity> playerEntities = query.find()
+				.toList()
+				.stream()
+				.collect(toMap(PlayerEntity::getNickname, entity -> entity));
+
+		return nicknames.stream()
+				.map(playerEntities::get)
+				.map(PlayerService::entityToModel)
+				.collect(Collectors.toList());
+	}
+
 	public static Optional<PlayerEntity> findPlayerEntityById(String playerId) {
 		return Optional.ofNullable(DataSource.INSTANCE.get(PlayerEntity.class, new ObjectId(playerId)));
 	}
 
 	private static Player entityToModel(PlayerEntity entity) {
+		if (entity == null) {
+			return null;
+		}
+
 		return new Player(entity.getId().toHexString(), entity.getNickname(), entity.getRole());
 	}
 

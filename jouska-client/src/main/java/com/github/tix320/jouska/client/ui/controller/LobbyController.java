@@ -2,7 +2,6 @@ package com.github.tix320.jouska.client.ui.controller;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
@@ -27,7 +26,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
@@ -124,8 +122,9 @@ public class LobbyController implements Controller<Object> {
 			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
 			Collections.reverse(gameItems);
 			gameItems.forEach(gameItem -> {
-				gameItem.getJoinButton().disableProperty().bind(disable);
-				gameItem.setOnJoinClick(event -> connectToGame(gameItem.getGameView().getId()));
+				gameItem.disableJoinButtonOn(disable);
+				gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
+				gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
 				gameItem.setOnStartClick(event -> GAME_SERVICE.startGame(gameItem.getGameView().getId()));
 			});
 			Platform.runLater(() -> {
@@ -150,7 +149,7 @@ public class LobbyController implements Controller<Object> {
 		});
 	}
 
-	private void connectToGame(long gameId) {
+	private void joinGame(long gameId) {
 		disable.set(true);
 
 		GAME_SERVICE.join(gameId).subscribe(answer -> {
@@ -168,27 +167,22 @@ public class LobbyController implements Controller<Object> {
 				case ALREADY_FULL:
 					Platform.runLater(() -> {
 						Alert alert = new Alert(AlertType.WARNING);
-						alert.setTitle("Confirmation");
+						alert.setTitle("Warning");
 						alert.setHeaderText("Game is full.");
-						alert.setContentText("Game already full (");
+						alert.setContentText("Game already full ((");
 						alert.showAndWait();
 					});
 					disable.set(false);
 					break;
 				case ALREADY_STARTED:
 					Platform.runLater(() -> {
-						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.setTitle("Confirmation");
+						Alert alert = new Alert(AlertType.WARNING);
+						alert.setTitle("Warning");
 						alert.setHeaderText("Game is started.");
-						alert.setContentText("Game already started. Do you want to watch it?");
-
-						Optional<ButtonType> result = alert.showAndWait();
-						if (result.isPresent() && result.get() == ButtonType.OK) {
-							GAME_SERVICE.watch(gameId)
-									.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
-						}
-						disable.set(false);
+						alert.setContentText("Game already started ((");
+						alert.showAndWait();
 					});
+					disable.set(false);
 					break;
 				case CONNECTED:
 					waitingToConnectGameId.set(gameId);
@@ -197,6 +191,10 @@ public class LobbyController implements Controller<Object> {
 					throw new IllegalStateException();
 			}
 		});
+	}
+
+	private void watchGame(long gameId) {
+		GAME_SERVICE.watch(gameId).subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
 	}
 
 	public void cancelWait() {

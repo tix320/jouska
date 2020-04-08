@@ -9,12 +9,12 @@
 <?import javafx.scene.layout.AnchorPane?>
 <?import javafx.scene.layout.VBox?>
 
-<AnchorPane fx:id="root" prefHeight="900.0" prefWidth="1200.0" stylesheets="@menu.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.MenuController">
+<AnchorPane fx:id="root" stylesheets="@menu.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1" fx:controller="com.github.tix320.jouska.client.ui.controller.MenuController">
 	<children>
 		<AnchorPane id="header-pane" layoutX="443.0" layoutY="-8.0" prefHeight="80.0" prefWidth="835.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
 				<ProgressIndicator id="loading-indicator" fx:id="loadingIndicator" layoutX="769.0" layoutY="14.0" visible="false" AnchorPane.rightAnchor="100.0" AnchorPane.topAnchor="10.0" />
-            <Label id="nicknameLabel" fx:id="nicknameLabel" layoutX="82.0" layoutY="20.0" text="Tix" AnchorPane.leftAnchor="85.0" AnchorPane.topAnchor="10.0" />
+            <Label id="currentPlayerNicknameLabel" fx:id="nicknameLabel" layoutX="82.0" layoutY="20.0" text="Tix" AnchorPane.leftAnchor="85.0" AnchorPane.topAnchor="10.0" />
             <ImageView fitHeight="64.0" fitWidth="64.0" layoutX="-73.0" layoutY="-38.0" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
                <image>
                   <Image url="@../../images/menu/player-icon.png" />
@@ -24,7 +24,7 @@
             <AnchorPane fx:id="notificationPane" layoutX="252.0" layoutY="-58.0" prefHeight="80.0" AnchorPane.leftAnchor="250.0" AnchorPane.topAnchor="0.0" />
 			</children>
 		</AnchorPane>
-		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" prefHeight="622.0" prefWidth="835.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0" />
+		<AnchorPane id="content-pane" fx:id="contentPane" layoutX="300.0" layoutY="116.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="250.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="80.0" />
 		<AnchorPane id="menu" maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="493.0" prefWidth="250.0" stylesheets="@menu.css" AnchorPane.bottomAnchor="0.0" AnchorPane.topAnchor="0.0">
 			<children>
 				<VBox alignment="TOP_CENTER" layoutX="75.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0" spacing="30.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">

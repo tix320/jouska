@@ -28,6 +28,9 @@
 	-fx-alignment: CENTER;
 }
 
+.button{
+	-fx-background-radius: 10px;
+}
 
 #joinButton {
 	-fx-background-color: #18e91d;
@@ -51,4 +54,17 @@
 
 #viewButton:pressed {
 	-fx-background-color: #feff0c;
+}
+
+#startButton {
+	-fx-background-color: #ff6120;
+	-fx-pref-width: 100px;
+}
+
+#startButton:hover {
+	-fx-background-color: #ff803c;
+}
+
+#startButton:pressed {
+	-fx-background-color: #ff6120;
 }

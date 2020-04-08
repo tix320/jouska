@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.server.infrastructure.application;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicReference;
@@ -21,7 +22,6 @@ import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
 import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.service.GameService;
-import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.MapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
@@ -38,16 +38,31 @@ public class GameManager {
 		long gameId = ID_GENERATOR.next();
 		GameSettings gameSettings = createGameCommand.getGameSettings();
 
-		Set<Player> accessedPlayers = createGameCommand.getAccessedPlayers()
-				.stream()
-				.map(PlayerService::findPlayerByNickname)
-				.filter(Optional::isPresent)
-				.map(Optional::get)
-				.collect(Collectors.toSet());
-
-		games.put(gameId, new GameInfo(gameId, gameSettings, creator, accessedPlayers));
+		games.put(gameId, new GameInfo(gameId, gameSettings, creator));
 
 		return gameId;
+	}
+
+	public static void registerGames(List<GameRegistration> games) {
+		Map<Long, GameInfo> gamesById = new HashMap<>();
+		for (GameRegistration gameRegistration : games) {
+			long id = ID_GENERATOR.next();
+			GameInfo gameInfo = new GameInfo(id, gameRegistration.getGameWithSettings().getSettings(),
+					gameRegistration.getCreator());
+
+			Game game = gameRegistration.getGameWithSettings().getGame();
+			gameInfo.setGame(game);
+			gameInfo.getConnectedPlayers()
+					.addAll(game.getPlayers().stream().map(InGamePlayer::getRealPlayer).collect(Collectors.toList()));
+
+			if (game.isCompleted()) {
+				onGameComplete(gameInfo);
+			}
+			else {
+				gamesById.put(id, gameInfo);
+			}
+		}
+		GameManager.games.putAll(gamesById);
 	}
 
 	public static Observable<Collection<GameInfo>> games(Player caller) {
@@ -158,8 +173,11 @@ public class GameManager {
 	}
 
 	public static void startGame(long gameId, Player caller) {
-		GameInfo gameInfo = games.get(gameId);
-		synchronized (gameInfo) {
+		games.computeIfPresent(gameId, (id, gameInfo) -> {
+			Optional<Game> optionalGame = gameInfo.getGame();
+			if (optionalGame.isPresent() && optionalGame.get().isStarted()) {
+				throw new IllegalStateException(String.format("Game %s already started", id));
+			}
 			if (!gameInfo.getCreator().equals(caller) && !caller.isAdmin()) {
 				throw new IllegalAccessException();
 			}
@@ -171,7 +189,7 @@ public class GameManager {
 			TimedGameSettings gameSettings = (TimedGameSettings) gameInfo.getSettings();
 			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
 
-			Game game = GameFactory.create(gameSettings, connectedPlayers);
+			Game game = optionalGame.orElseGet(() -> GameFactory.create(gameSettings, connectedPlayers));
 			gameInfo.setGame(game);
 
 			List<InGamePlayer> gamePlayers = game.getPlayers();
@@ -184,7 +202,7 @@ public class GameManager {
 						.ifPresentOrElse(clientId -> {
 							Observable<None> playerReady = GAME_ORIGIN.notifyGameStarted(
 									new GamePlayDto(gameId, gameSettings, gamePlayers, player.getColor()), clientId);
-							playersReady.add(playerReady);
+							playersReady.add(playerReady.getOnTimout(Duration.ofSeconds(30), () -> None.SELF));
 						}, () -> logPlayerConnectionNotFound(player.getRealPlayer()));
 			}
 
@@ -206,7 +224,9 @@ public class GameManager {
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameSettings.getName(), gameId));
 			});
-		}
+
+			return gameInfo;
+		});
 	}
 
 	private static boolean hasAccessToGame(GameInfo game, Player player) {
@@ -214,11 +234,11 @@ public class GameManager {
 			return true;
 		}
 
-		if (game.getAccessedPlayers().isEmpty()) {
+		if (game.getSettings().getAccessedPlayers().isEmpty()) {
 			return true;
 		}
 
-		return game.getAccessedPlayers().contains(player);
+		return game.getSettings().getAccessedPlayers().contains(player);
 	}
 
 	private static void onGameComplete(GameInfo gameInfo) {

@@ -1,6 +1,9 @@
 package com.github.tix320.jouska.core.application.game.creation;
 
+import java.util.Set;
+
 import com.github.tix320.jouska.core.application.game.BoardType;
+import com.github.tix320.jouska.core.model.Player;
 
 /**
  * @author Tigran Sargsyan on 26-Mar-20.
@@ -16,9 +19,9 @@ public class TimedGameSettings extends GameSettings {
 		playerTurnTotalDurationSeconds = -1;
 	}
 
-	public TimedGameSettings(String name, BoardType boardType, int playersCount, int turnDurationSeconds,
-							 int playerTurnTotalDurationSeconds) {
-		super(name, boardType, playersCount);
+	public TimedGameSettings(String name, BoardType boardType, int playersCount, Set<Player> accessedPlayers,
+							 int turnDurationSeconds, int playerTurnTotalDurationSeconds) {
+		super(name, boardType, playersCount, accessedPlayers);
 		this.turnDurationSeconds = turnDurationSeconds;
 		this.playerTurnTotalDurationSeconds = playerTurnTotalDurationSeconds;
 
@@ -38,5 +41,17 @@ public class TimedGameSettings extends GameSettings {
 
 	public int getPlayerTurnTotalDurationSeconds() {
 		return playerTurnTotalDurationSeconds;
+	}
+
+	@Override
+	public GameSettings changeName(String name) {
+		return new TimedGameSettings(name, getBoardType(), getPlayersCount(), getAccessedPlayers(), turnDurationSeconds,
+				playerTurnTotalDurationSeconds);
+	}
+
+	@Override
+	public TimedGameSettings changePlayersCount(int playersCount) {
+		return new TimedGameSettings(getName(), getBoardType(), playersCount, getAccessedPlayers(), turnDurationSeconds,
+				playerTurnTotalDurationSeconds);
 	}
 }

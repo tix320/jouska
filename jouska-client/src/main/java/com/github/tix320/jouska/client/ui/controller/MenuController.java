@@ -65,7 +65,7 @@ public final class MenuController implements Controller<Object> {
 		nicknameLabel.setText(CurrentUserContext.getPlayer().getNickname());
 		EventDispatcher.on(MenuContentChangeEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
-				.subscribe(event -> changeContent(event.getMenuContentType()));
+				.subscribe(event -> changeContent(event.getMenuContentType(), event.getData()));
 
 		EventDispatcher.on(NotificationEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
@@ -121,6 +121,7 @@ public final class MenuController implements Controller<Object> {
 
 			currentMenuContentType = menuContentType;
 			currentContentComponent = component;
+			UI.normalize();
 		});
 	}
 
@@ -160,7 +161,7 @@ public final class MenuController implements Controller<Object> {
 
 				notificationPane.setDisable(true);
 
-				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.5), notificationPane);
+				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.3), notificationPane);
 
 				translateTransition.setFromValue(0);
 				translateTransition.setToValue(1);
@@ -177,8 +178,9 @@ public final class MenuController implements Controller<Object> {
 				System.out.println("Notification skipped in Menu");
 			}
 			finally {
+				MonoPublisher<None> onDestroy = Publisher.mono();
 				Platform.runLater(() -> {
-					FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.5), notificationPane);
+					FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.1), notificationPane);
 
 					notificationPane.setDisable(true);
 
@@ -189,10 +191,13 @@ public final class MenuController implements Controller<Object> {
 					translateTransition.setOnFinished(event -> {
 						notificationPane.getChildren().clear();
 						notificationController.destroy();
+						onDestroy.publish(None.SELF);
 					});
 
 					translateTransition.play();
 				});
+
+				onDestroy.asObservable().blockUntilComplete(java.time.Duration.ofSeconds(5));
 			}
 
 			return true;

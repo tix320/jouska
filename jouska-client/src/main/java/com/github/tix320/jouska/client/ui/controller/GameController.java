@@ -186,7 +186,7 @@ public class GameController implements Controller<GameWatchDto> {
 			if (gameChange instanceof PlayerTurnDto) {
 				PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
 				turn(playerTurn);
-				List<InGamePlayer> losers = game.getLostPlayers();
+				List<InGamePlayer> losers = game.getLosers();
 				if (losers.contains(myPlayer)) {
 					showLose();
 				}
@@ -294,8 +294,6 @@ public class GameController implements Controller<GameWatchDto> {
 
 	public void turn(PlayerTurnDto playerTurnDto) {
 		Point point = playerTurnDto.getPoint();
-		InGamePlayer currentPlayer1 = game.getCurrentPlayer();
-		// System.out.println(currentPlayer1 + " - " + point);
 		CellChange rootChange = game.turn(point);
 		animateCellChanges(rootChange);
 		Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
@@ -315,7 +313,7 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private void onGameComplete() {
 		InGamePlayer winner = game.getWinner().orElseThrow();
-		List<InGamePlayer> losers = game.getLostPlayers();
+		List<InGamePlayer> losers = game.getLosers();
 		if (losers.contains(myPlayer)) {
 			showLose();
 		}

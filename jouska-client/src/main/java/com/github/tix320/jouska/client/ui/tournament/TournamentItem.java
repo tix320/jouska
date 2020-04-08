@@ -1,6 +1,8 @@
 package com.github.tix320.jouska.client.ui.tournament;
 
+import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.core.dto.TournamentView;
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
@@ -23,6 +25,9 @@ public class TournamentItem extends AnchorPane {
 
 	@FXML
 	private Button viewButton;
+
+	@FXML
+	private Button startButton;
 
 	private final TournamentView tournamentView;
 
@@ -47,9 +52,30 @@ public class TournamentItem extends AnchorPane {
 		viewButton.setOnMouseClicked(handler);
 	}
 
+	public void setOnStartClick(EventHandler<? super MouseEvent> handler) {
+		startButton.setOnMouseClicked(handler);
+	}
+
 	private void initView(TournamentView tournamentView) {
 		setGameName(tournamentView.getName());
 		setPlayersCount(tournamentView.getPlayersCount(), tournamentView.getMaxPlayersCount());
+		resolveStartButtonAccessibility(tournamentView);
+
+		if (tournamentView.getPlayersCount() == tournamentView.getMaxPlayersCount()) {
+			joinButton.setDisable(true);
+		}
+
+		if (tournamentView.isStarted()) {
+			startButton.setDisable(true);
+			joinButton.setDisable(true);
+		}
+		else {
+			viewButton.setDisable(true);
+		}
+
+		if (tournamentView.getPlayersCount() < 4) {
+			startButton.setDisable(true);
+		}
 	}
 
 	private void setGameName(String gameName) {
@@ -58,5 +84,15 @@ public class TournamentItem extends AnchorPane {
 
 	private void setPlayersCount(int playerCount, int maxPlayersCount) {
 		this.playersCountLabel.setText(playerCount + "/" + maxPlayersCount);
+	}
+
+	private void resolveStartButtonAccessibility(TournamentView tournamentView) {
+		Player creator = tournamentView.getCreator();
+		Player currentPlayer = CurrentUserContext.getPlayer();
+
+		if (!currentPlayer.equals(creator) && !currentPlayer.isAdmin()) {
+			startButton.setDisable(true);
+			startButton.setVisible(false);
+		}
 	}
 }

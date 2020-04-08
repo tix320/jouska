@@ -1,19 +1,21 @@
 package com.github.tix320.jouska.core.application.tournament;
 
 import java.util.List;
-import java.util.Map;
+import java.util.Optional;
 
-import com.github.tix320.jouska.core.application.game.Game;
+import com.github.tix320.jouska.core.application.game.GameWithSettings;
+import com.github.tix320.jouska.core.application.tournament.ClassicGroup.GroupPlayer;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.api.util.None;
 
 public interface Group {
 
-	List<Player> getPlayers();
+	List<GroupPlayer> getPlayers();
 
-	List<Game> games();
+	Optional<List<Player>> getWinners();
 
-	ReadOnlyProperty<Map<Player, Integer>> points();
+	List<GameWithSettings> getGames();
 
-	ReadOnlyProperty<Boolean> completed();
+	MonoObservable<None> completed();
 }

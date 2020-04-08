@@ -3,13 +3,11 @@ package com.github.tix320.jouska.core.application.game;
 import java.util.List;
 import java.util.Optional;
 
-import com.github.tix320.jouska.core.event.ChangeableCandidate;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.util.None;
 
-public interface Game extends ChangeableCandidate {
+public interface Game {
 
 	void start();
 
@@ -17,7 +15,6 @@ public interface Game extends ChangeableCandidate {
 
 	BoardCell[][] getBoard();
 
-	@Override
 	Observable<GameChange> changes();
 
 	List<Point> getPointsBelongedToPlayer(Player player);
@@ -32,7 +29,7 @@ public interface Game extends ChangeableCandidate {
 
 	Statistics getStatistics();
 
-	List<InGamePlayer> getLostPlayers();
+	List<InGamePlayer> getLosers();
 
 	Optional<InGamePlayer> getWinner();
 
@@ -42,7 +39,7 @@ public interface Game extends ChangeableCandidate {
 
 	void forceCompleteGame(Player winner);
 
-	MonoObservable<None> completed();
+	MonoObservable<? extends Game> completed();
 
 	boolean isStarted();
 

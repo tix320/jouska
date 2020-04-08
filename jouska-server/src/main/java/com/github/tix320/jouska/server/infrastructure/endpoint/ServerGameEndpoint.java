@@ -13,14 +13,14 @@ import com.github.tix320.sonder.api.common.rpc.Subscription;
 @Endpoint("in-game")
 public class ServerGameEndpoint {
 
-	@Endpoint("changes")
+	@Endpoint
 	@Subscription
 	public Observable<GameChangeDto> changes(long gameId, @CallerUser Player player) {
 		Game game = GameManager.getGame(gameId, player);
 		return game.changes().map(GameChangeDto::fromModel);
 	}
 
-	@Endpoint("makeTurn")
+	@Endpoint
 	public void turn(long gameId, Point point, @CallerUser Player player) {
 		GameManager.turnInGame(gameId, player, point);
 	}

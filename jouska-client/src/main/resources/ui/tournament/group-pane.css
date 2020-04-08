@@ -5,23 +5,45 @@
 
 #rootPane {
     -fx-border-width: 2px;
-    -fx-pref-width: 200px;
-    -fx-pref-height: 170px;
+    -fx-min-height: 250px;
+    -fx-min-width: 200px;
 }
 
-
 #header {
-    -fx-background-color: #9bc9ff;
+    -fx-background-color: #ff9752;
+    -fx-pref-height: 50px;
 }
 
 #membersBox {
     -fx-spacing: 10px;
-    -fx-alignment: TOP-CENTER;
+    -fx-alignment: CENTER;
     -fx-padding: 10px;
     -fx-background-color: #d1dfff;
+    -fx-min-width: 250px;
 }
 
-.member {
-    -fx-pref-width: 200px;
+.member * {
+    -fx-border-color: #197380;
+    -fx-border-width: 2px;
+    -fx-border-style: solid;
+}
+
+.nameLabel {
+    -fx-alignment: CENTER;
+    -fx-min-width: 200px;
+    -fx-max-width: 200px;
+}
+
+.groupPointsLabel {
+    -fx-text-fill: red;
+    -fx-min-width: 20px;
     -fx-alignment: CENTER;
 }
+
+.gamesPointsLabel {
+    -fx-text-fill: #0d8514;
+    -fx-min-width: 60px;
+    -fx-alignment: CENTER;
+}
+
+

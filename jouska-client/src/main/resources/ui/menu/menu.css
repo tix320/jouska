@@ -34,13 +34,13 @@
     -fx-progress-color: #aaff03;
 }
 
-#nicknameLabel {
+#currentPlayerNicknameLabel {
     -fx-alignment: CENTER;
     -fx-font-size: 24px;
     -fx-text-fill: #8896ff;
 }
 
 #logoutButton {
-  -fx-border-radius: 5px;
+    -fx-border-radius: 5px;
     -fx-font-size: 14px;
 }

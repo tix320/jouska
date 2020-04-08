@@ -55,11 +55,11 @@ public class TournamentLobbyController implements Controller<Object> {
 					.map(TournamentItem::new)
 					.collect(Collectors.toList());
 			Collections.reverse(tournamentItems);
-			tournamentItems.forEach(
-					tournamentItem -> {
-						tournamentItem.setOnJoinClick(event -> joinTournament(tournamentItem));
-						tournamentItem.setOnViewClick(event -> viewTournament(tournamentItem));
-					});
+			tournamentItems.forEach(tournamentItem -> {
+				tournamentItem.setOnJoinClick(event -> joinTournament(tournamentItem));
+				tournamentItem.setOnViewClick(event -> viewTournament(tournamentItem));
+				tournamentItem.setOnStartClick(event -> startTournament(tournamentItem));
+			});
 			Platform.runLater(() -> {
 				ObservableList<Node> gameList = gameItemsPane.getChildren();
 				gameList.clear();
@@ -77,15 +77,21 @@ public class TournamentLobbyController implements Controller<Object> {
 	private void viewTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
 		long tournamentId = tournamentView.getId();
-		// TOURNAMENT_SERVICE.getStructure(tournamentId).subscribe(tournamentStructure -> {
-		// 	if (tournamentStructure != null) {
-		// 		EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT));
-		// 	}
-		// 	else {
-		// 		UI.switchComponent(ComponentType.ERROR, "Tournament not found");
-		// 	}
-		// });
+		TOURNAMENT_SERVICE.getTournamentStructure(tournamentId).subscribe(tournamentStructure -> {
+			if (tournamentStructure != null) {
+				EventDispatcher.fire(
+						new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT, tournamentStructure));
+			}
+			else {
+				UI.switchComponent(ComponentType.ERROR, "Tournament not found");
+			}
+		});
 	}
+
+	private void startTournament(TournamentItem tournamentItem) {
+		TOURNAMENT_SERVICE.startTournament(tournamentItem.getTournamentView().getId());
+	}
+
 
 	public void createTournament() {
 		EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_CREATE));

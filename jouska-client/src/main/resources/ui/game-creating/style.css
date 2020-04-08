@@ -3,7 +3,7 @@
     -fx-font-family: "Comic Sans MS";
 }
 
-.vbox{
+.vbox {
     -fx-spacing: 10px;
     -fx-alignment: CENTER;
 }
@@ -13,9 +13,6 @@
     -fx-alignment: CENTER_LEFT;
 }
 
-#input {
-}
-
-#players-combobox {
-
+#errorLabel {
+    -fx-text-fill: red;
 }

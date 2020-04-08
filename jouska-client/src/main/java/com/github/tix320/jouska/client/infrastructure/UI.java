@@ -51,16 +51,19 @@ public final class UI {
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
-			stage.sizeToScene();
-			stage.centerOnScreen();
-			stage.setMinWidth(stage.getWidth());
-			stage.setMinHeight(stage.getHeight());
+			normalize();
 			switchCompletePublisher.publish(None.SELF);
 			switchCompletePublisher.complete();
 
 		});
 
 		return switchCompletePublisher.asObservable().toMono();
+	}
+
+	public static void normalize() {
+		stage.sizeToScene();
+		stage.setMinWidth(stage.getWidth());
+		stage.setMinHeight(stage.getHeight());
 	}
 
 	public static Component loadComponent(ComponentType componentType, Object data) {
@@ -101,7 +104,7 @@ public final class UI {
 		LOBBY("/ui/lobby/lobby.fxml"),
 		TOURNAMENT_LOBBY("/ui/tournament/tournament-lobby.fxml"),
 		TOURNAMENT_CREATE("/ui/tournament/tournament-create.fxml"),
-		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-management.fxml"),
+		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-view.fxml"),
 		GAME("/ui/game/game.fxml"),
 
 		TOURNAMENT_ACCEPT_NOTIFICATION("/ui/tournament/accept-player-notification.fxml");

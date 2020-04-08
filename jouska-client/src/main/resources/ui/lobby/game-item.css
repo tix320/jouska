@@ -4,7 +4,7 @@
 }
 
 #gameItem {
-    -fx-background-color: #c9f655;
+    -fx-background-color: #169abe;
     -fx-background-radius: 25px;
     -fx-pref-height: 200;
     -fx-pref-width: 200;
@@ -22,9 +22,12 @@
     -fx-alignment: CENTER;
 }
 
+.button {
+    -fx-background-radius: 10px;
+}
+
 #joinButton {
-    -fx-background-color: #0288e9;
-    -fx-background-radius: 25px;
+    -fx-background-color: #18e91d;
 }
 
 #joinButton:hover {
@@ -32,18 +35,30 @@
 }
 
 #joinButton:pressed {
-    -fx-background-color: #0288e9;
+    -fx-background-color: #18e91d;
+}
+
+#watchButton {
+    -fx-background-color: #feff0c;
+}
+
+#watchButton:hover {
+    -fx-background-color: #f7ffd6;
+}
+
+#watchButton:pressed {
+    -fx-background-color: #feff0c;
 }
 
 #startButton {
-    -fx-background-color: #32e999;
-    -fx-background-radius: 25px;
+    -fx-background-color: #ff6120;
+    -fx-pref-width: 100px;
 }
 
 #startButton:hover {
-    -fx-background-color: #ace9c0;
+    -fx-background-color: #ff803c;
 }
 
 #startButton:pressed {
-    -fx-background-color: #32e999;
+    -fx-background-color: #ff6120;
 }

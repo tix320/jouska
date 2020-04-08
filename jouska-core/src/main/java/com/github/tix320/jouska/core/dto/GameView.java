@@ -2,71 +2,52 @@ package com.github.tix320.jouska.core.dto;
 
 import java.util.Set;
 
+import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.model.Player;
 
 public class GameView {
 
 	private final long id;
 
-	private final String name;
-
-	private final int playersCount;
-
-	private final int maxPlayersCount;
-
-	private final int turnDurationSeconds;
-
-	private final int playerTurTotalDurationSeconds;
+	private final TimedGameSettings gameSettings;
 
 	private final Player creator;
 
-	private final Set<Player> accessedPlayers;
+	private final Set<Player> connectedPlayers;
+
+	private final boolean started;
 
 	private GameView() {
-		this(-1, null, -1, -1, -1, -1, null, null);
+		this(-1, null, null, null, false);
 	}
 
-	public GameView(long id, String name, int playersCount, int maxPlayersCount, int turnDurationSeconds,
-					int playerTurTotalDurationSeconds, Player creator, Set<Player> accessedPlayers) {
+	public GameView(long id, TimedGameSettings gameSettings, Player creator, Set<Player> connectedPlayers,
+					boolean isStarted) {
 		this.id = id;
-		this.name = name;
-		this.playersCount = playersCount;
-		this.maxPlayersCount = maxPlayersCount;
-		this.turnDurationSeconds = turnDurationSeconds;
-		this.playerTurTotalDurationSeconds = playerTurTotalDurationSeconds;
+		this.gameSettings = gameSettings;
 		this.creator = creator;
-		this.accessedPlayers = accessedPlayers;
+		this.connectedPlayers = connectedPlayers;
+		this.started = isStarted;
 	}
 
 	public long getId() {
 		return id;
 	}
 
-	public String getName() {
-		return name;
-	}
-
-	public int getPlayersCount() {
-		return playersCount;
-	}
-
-	public int getMaxPlayersCount() {
-		return maxPlayersCount;
-	}
-
-	public int getTurnDurationSeconds() {
-		return turnDurationSeconds;
-	}
-
-	public int getPlayerTurTotalDurationSeconds() {
-		return playerTurTotalDurationSeconds;
+	public GameSettings getGameSettings() {
+		return gameSettings;
 	}
 
 	public Player getCreator() {
 		return creator;
 	}
 
-	public Set<Player> getAccessedPlayers() {
-		return accessedPlayers;
+	public Set<Player> getConnectedPlayers() {
+		return connectedPlayers;
+	}
+
+	public boolean isStarted() {
+		return started;
 	}
 }

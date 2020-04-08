@@ -19,7 +19,7 @@
 			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
 				<Image url="@../../images/player-icon.png" />
 			</ImageView>
-			<Label fx:id="playersCountLabel" text="16">
+			<Label fx:id="playersCountLabel" text="5/16">
 				<HBox.margin>
 					<Insets top="5.0" />
 				</HBox.margin>
@@ -32,6 +32,14 @@
          <children>
             <Button id="joinButton" fx:id="joinButton" mnemonicParsing="false" text="Join" />
             <Button id="viewButton" fx:id="viewButton" mnemonicParsing="false" text="View" />
+         </children>
+      </HBox>
+      <HBox layoutX="10.0" layoutY="55.0" styleClass="hbox">
+         <padding>
+            <Insets left="10.0" />
+         </padding>
+         <children>
+            <Button id="startButton" fx:id="startButton" mnemonicParsing="false" text="Start" />
          </children>
       </HBox>
 	</VBox>

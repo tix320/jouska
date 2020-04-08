@@ -1,20 +1,16 @@
 package com.github.tix320.jouska.core.application.tournament;
 
 import java.util.List;
+import java.util.Set;
 
-import com.github.tix320.jouska.core.event.ChangeableCandidate;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 
-public interface Tournament extends ChangeableCandidate {
+public interface Tournament {
 
-	List<Player> getPlayers();
+	Set<Player> getPlayers();
 
 	List<Group> getGroups();
 
-	ReadOnlyProperty<PlayOff> playOff();
-
-	@Override
-	Observable<TournamentChange> changes();
+	MonoObservable<PlayOff> playOff();
 }

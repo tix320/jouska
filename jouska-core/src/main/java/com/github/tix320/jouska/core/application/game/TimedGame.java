@@ -11,7 +11,6 @@ import com.github.tix320.jouska.core.util.SingleTaskTimer;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
-import com.github.tix320.kiwi.api.util.None;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -116,8 +115,8 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
-	public List<InGamePlayer> getLostPlayers() {
-		return game.getLostPlayers();
+	public List<InGamePlayer> getLosers() {
+		return game.getLosers();
 	}
 
 	@Override
@@ -141,7 +140,7 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
-	public MonoObservable<None> completed() {
+	public MonoObservable<? extends Game> completed() {
 		return game.completed();
 	}
 

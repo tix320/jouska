@@ -1,9 +1,13 @@
 package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
+import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.check.Try;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -11,7 +15,6 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
-import javafx.scene.layout.HBox;
 
 public class GameItem extends AnchorPane {
 
@@ -31,10 +34,10 @@ public class GameItem extends AnchorPane {
 	private Button joinButton;
 
 	@FXML
-	private Button startButton;
+	private Button watchButton;
 
 	@FXML
-	private HBox startButtonHolder;
+	private Button startButton;
 
 	private final GameView gameView;
 
@@ -51,35 +54,56 @@ public class GameItem extends AnchorPane {
 		joinButton.setOnMouseClicked(handler);
 	}
 
+	public void setOnWatchClick(EventHandler<? super MouseEvent> handler) {
+		watchButton.setOnMouseClicked(handler);
+	}
+
 	public void setOnStartClick(EventHandler<? super MouseEvent> handler) {
 		startButton.setOnMouseClicked(handler);
 	}
 
 	private void initView(GameView gameView) {
-		setGameName(gameView.getName() + " ( " + gameView.getId() + " )");
-		setPlayersCount(gameView.getPlayersCount() + "/" + gameView.getMaxPlayersCount());
-		setTurnDuration(String.valueOf(gameView.getTurnDurationSeconds()));
-		setTurnTotalDuration(String.valueOf(gameView.getPlayerTurTotalDurationSeconds() / 60));
+		GameSettings gameSettings = gameView.getGameSettings();
+		setGameName(gameView);
+		setPlayersCount(gameView);
+		setTurnDuration(gameSettings);
+		setTurnTotalDuration(gameSettings);
 		resolveStartButtonAccessibility(gameView);
-		if (gameView.getPlayersCount() != gameView.getMaxPlayersCount()) {
+		if (gameView.getGameSettings().getPlayersCount() != gameView.getConnectedPlayers().size()
+			|| gameView.isStarted()) {
 			startButton.setDisable(true);
+		}
+		if (!gameView.isStarted()) {
+			watchButton.setDisable(true);
 		}
 	}
 
-	private void setGameName(String gameName) {
-		this.gameNameLabel.setText(gameName);
+	private void setGameName(GameView gameView) {
+		this.gameNameLabel.setText(gameView.getGameSettings().getName() + " ( " + gameView.getId() + " )");
 	}
 
-	private void setPlayersCount(String playerCount) {
-		this.playersCountLabel.setText(playerCount);
+	private void setPlayersCount(GameView gameView) {
+		GameSettings gameSettings = gameView.getGameSettings();
+		this.playersCountLabel.setText(gameView.getConnectedPlayers().size() + "/" + gameSettings.getPlayersCount());
 	}
 
-	private void setTurnDuration(String turnDuration) {
-		this.turnDurationLabel.setText(turnDuration + "s");
+	private void setTurnDuration(GameSettings gameSettings) {
+		if (gameSettings instanceof TimedGameSettings) {
+			this.turnDurationLabel.setText(((TimedGameSettings) gameSettings).getTurnDurationSeconds() + "s");
+		}
+		else {
+			this.turnDurationLabel.setText("-");
+		}
 	}
 
-	private void setTurnTotalDuration(String gameDuration) {
-		this.turnTotalDurationLabel.setText(gameDuration + "m");
+	private void setTurnTotalDuration(GameSettings gameSettings) {
+		if (gameSettings instanceof TimedGameSettings) {
+			this.turnTotalDurationLabel.setText(
+					((TimedGameSettings) gameSettings).getPlayerTurnTotalDurationSeconds() / 60 + "m");
+		}
+		else {
+			this.turnTotalDurationLabel.setText("-");
+		}
 	}
 
 	private void resolveStartButtonAccessibility(GameView gameView) {
@@ -87,16 +111,22 @@ public class GameItem extends AnchorPane {
 		Player currentPlayer = CurrentUserContext.getPlayer();
 
 		if (!currentPlayer.equals(creator) && !currentPlayer.isAdmin()) {
-			startButtonHolder.setDisable(true);
-			startButtonHolder.setVisible(false);
+			startButton.setDisable(true);
+			startButton.setVisible(false);
 		}
-	}
-
-	public Button getJoinButton() {
-		return joinButton;
 	}
 
 	public GameView getGameView() {
 		return gameView;
+	}
+
+	public void disableJoinButtonOn(ObservableBooleanValue disableProperty) {
+		joinButton.disableProperty()
+				.bind(new SimpleBooleanProperty(isFull()).or(new SimpleBooleanProperty(gameView.isStarted()))
+						.or(disableProperty));
+	}
+
+	private boolean isFull() {
+		return gameView.getGameSettings().getPlayersCount() == gameView.getConnectedPlayers().size();
 	}
 }

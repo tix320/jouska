@@ -7,11 +7,10 @@ import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
-import com.github.tix320.jouska.core.model.*;
+import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
-import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.kiwi.api.util.collection.Tuple;
 
 import static java.util.stream.Collectors.toMap;
@@ -34,16 +33,10 @@ public final class SimpleGame implements Game {
 	private final Map<InGamePlayer, Integer> summaryStatistics;
 
 	public static SimpleGame createPredefined(GameBoard board, List<InGamePlayer> players) {
-		if (players.size() < 2) {
-			throw new IllegalArgumentException("Players must be >=2");
-		}
 		return new SimpleGame(board, players);
 	}
 
 	public static SimpleGame createRandom(GameSettings gameSettings, Set<Player> players) {
-		if (players.size() < 2) {
-			throw new IllegalArgumentException("Players must be >=2");
-		}
 		if (gameSettings.getPlayersCount() != players.size()) {
 			throw new IllegalStateException();
 		}
@@ -181,7 +174,7 @@ public final class SimpleGame implements Game {
 		return () -> Collections.unmodifiableMap(summaryStatistics);
 	}
 
-	public synchronized List<InGamePlayer> getLostPlayers() {
+	public synchronized List<InGamePlayer> getLosers() {
 		return Collections.unmodifiableList(lostPlayers);
 	}
 
@@ -234,11 +227,8 @@ public final class SimpleGame implements Game {
 	}
 
 	@Override
-	public MonoObservable<None> completed() {
-		return changes.asObservable()
-				.filter(change -> change instanceof GameComplete)
-				.map(aBoolean -> None.SELF)
-				.toMono();
+	public MonoObservable<? extends Game> completed() {
+		return changes.asObservable().filter(change -> change instanceof GameComplete).map(ignored -> this).toMono();
 	}
 
 	@Override
