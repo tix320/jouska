@@ -19,14 +19,14 @@
 				<HBox prefHeight="100.0" prefWidth="200.0" styleClass="hbox">
 					<children>
 						<Label contentDisplay="CENTER" prefHeight="37.0" prefWidth="129.0" text="Turn duration:" />
-						<NumberTextField fx:id="turnDurationInput" prefHeight="37.0" prefWidth="99.0" />
+						<NumberField fx:id="turnDurationInput" prefHeight="37.0" prefWidth="99.0" />
 						<Label contentDisplay="CENTER" prefHeight="37.0" prefWidth="92.0" text="seconds" />
 					</children>
 				</HBox>
             <HBox layoutX="10.0" layoutY="241.0" prefHeight="100.0" prefWidth="200.0" styleClass="hbox">
                <children>
                   <Label contentDisplay="CENTER" prefHeight="37.0" prefWidth="227.0" text="Player turn total duration:" />
-                  <NumberTextField fx:id="playerTurnTotalDurationInput" prefHeight="37.0" prefWidth="99.0" />
+                  <NumberField fx:id="playerTurnTotalDurationInput" prefHeight="37.0" prefWidth="99.0" />
                   <ChoiceBox fx:id="turnTotalDurationTypeChoice" prefWidth="150.0" />
                </children>
             </HBox>

@@ -52,6 +52,7 @@ public final class UI {
 		Platform.runLater(() -> {
 			stage.setScene(scene);
 			normalize();
+			stage.centerOnScreen();
 			switchCompletePublisher.publish(None.SELF);
 			switchCompletePublisher.complete();
 

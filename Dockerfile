@@ -1,3 +1,4 @@
+# NOTE: maven build must be executed before docker image build
 FROM maven:3.6.3-jdk-11
 
 WORKDIR /usr/src/app

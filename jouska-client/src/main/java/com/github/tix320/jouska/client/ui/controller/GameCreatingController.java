@@ -8,7 +8,7 @@ import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
-import com.github.tix320.jouska.client.ui.helper.component.NumberTextField;
+import com.github.tix320.jouska.client.ui.helper.component.NumberField;
 import com.github.tix320.jouska.core.application.game.BoardType;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
@@ -32,10 +32,10 @@ public class GameCreatingController implements Controller<Object> {
 	private TextField gameNameInput;
 
 	@FXML
-	private NumberTextField turnDurationInput;
+	private NumberField turnDurationInput;
 
 	@FXML
-	private NumberTextField playerTurnTotalDurationInput;
+	private NumberField playerTurnTotalDurationInput;
 
 	@FXML
 	private ChoiceBox<Integer> playersCountChoice;

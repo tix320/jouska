@@ -41,7 +41,7 @@ public class BotApp {
 		//
 		// AuthenticationService authenticationService = SONDER_CLIENT.getRPCService(AuthenticationService.class);
 
-		for (int i = 1; i <=16; i++) {
+		for (int i = 1; i <=6; i++) {
 			SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 					.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
 					.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))

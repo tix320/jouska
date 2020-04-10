@@ -49,6 +49,10 @@ public class PauseableTimer {
 		timer.shutdownNow();
 	}
 
+	public final synchronized boolean isDestroyed() {
+		return timer.isShutdown();
+	}
+
 	public final synchronized long getRemainingMilliSeconds() {
 		return remainingMilliSeconds;
 	}

@@ -8,11 +8,11 @@ import javafx.util.StringConverter;
 /**
  * @author Tigran Sargsyan on 27-Mar-20.
  */
-public class NumberTextField extends TextField {
+public class NumberField extends TextField {
 
 	private final SimpleIntegerProperty number = new SimpleIntegerProperty();
 
-	public NumberTextField() {
+	public NumberField() {
 		TextFields.makeNumeric(this);
 
 		Bindings.bindBidirectional(textProperty(), numberProperty(), new StringConverter<>() {

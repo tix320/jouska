@@ -213,9 +213,8 @@ public class GameController implements Controller<GameWatchDto> {
 
 	@Override
 	public void destroy() {
-		if (!destroyPublisher.isCompleted()) {
-			destroyPublisher.complete();
-		}
+		destroyPublisher.complete();
+		changesQueue.clear();
 		playerTurnTimers.values().forEach(PauseableTimer::destroy);
 	}
 
@@ -272,6 +271,9 @@ public class GameController implements Controller<GameWatchDto> {
 				})));
 
 		turnProperty.addListener((observable, previousPlayer, currentPlayer) -> {
+			if (destroyPublisher.isCompleted()) {
+				return;
+			}
 			if (previousPlayer != null) {
 				playerTurnTimers.get(previousPlayer.getColor()).pause();
 			}
