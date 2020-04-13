@@ -7,7 +7,7 @@ import com.github.tix320.jouska.core.application.game.InGamePlayer;
 /**
  * @author Tigran Sargsyan on 25-Mar-20.
  */
-public class GameCompleteDto extends GameChangeDto {
+public class GameCompleteDto implements GameChangeDto {
 
 	private final InGamePlayer winner;
 

@@ -7,7 +7,7 @@ import com.github.tix320.jouska.core.model.Player;
 /**
  * @author Tigran Sargsyan on 24-Mar-20.
  */
-public class PlayerLeaveDto extends GameChangeDto {
+public class PlayerLeaveDto implements GameChangeDto {
 
 	private final Player player;
 

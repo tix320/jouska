@@ -20,7 +20,6 @@ import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.util.PauseableTimer;
 import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
@@ -30,7 +29,7 @@ import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.animation.*;
 import javafx.application.Platform;
-import javafx.beans.binding.Bindings;
+import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
@@ -74,11 +73,14 @@ public class GameController implements Controller<GameWatchDto> {
 	private Label loseWinLabel;
 
 	@FXML
+	private Label gameSpeedLabel;
+
+	@FXML
 	private Slider gameSpeedSlider;
 
 	private PlayerMode playerMode;
 
-	private Map<PlayerColor, PauseableTimer> playerTurnTimers;
+	private Map<PlayerColor, Long> playerTurnRemainingMillis;
 
 	private Tile[][] tiles;
 	private Map<PlayerColor, HBox> statisticsNodes;
@@ -96,26 +98,20 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private MonoPublisher<None> destroyPublisher = Publisher.mono();
 
-	private SimpleObjectProperty<Duration> animationDuration = new SimpleObjectProperty<>(
-			Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS));
+	private SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
 
 	@Override
 	public void init(GameWatchDto gameWatchDto) {
 		if (gameWatchDto instanceof GamePlayDto) {
 			this.playerMode = PlayerMode.PLAY;
-			gameSpeedSlider.setVisible(false);
+			mainPane.getChildren().remove(gameSpeedLabel);
+			mainPane.getChildren().remove(gameSpeedSlider);
 		}
 		else {
 			this.playerMode = PlayerMode.WATCH;
-
-			gameSpeedSlider.setMin(0.1);
-			gameSpeedSlider.setMax(1);
-			gameSpeedSlider.setValue(0.1);
-
-			animationDuration.bind(
-					Bindings.createObjectBinding(() -> Duration.seconds(1.1 - gameSpeedSlider.getValue()),
-							gameSpeedSlider.valueProperty()));
 		}
+
+		gameSpeedCoefficient.bind(gameSpeedSlider.valueProperty());
 
 		this.gameId = gameWatchDto.getGameId();
 		this.gameSettings = gameWatchDto.getGameSettings();
@@ -157,6 +153,8 @@ public class GameController implements Controller<GameWatchDto> {
 		InGamePlayer firstPlayer = players.get(0);
 		turnProperty.set(firstPlayer);
 		startTurnTimer();
+		turnTotalTimeIndicator.setTime(LocalTime.ofSecondOfDay(gameSettings.getPlayerTurnTotalDurationSeconds()));
+		turnTotalTimeIndicator.run(gameSpeedCoefficient.get());
 
 		updateStatistics(game.getStatistics().summaryPoints());
 		turned.set(false);
@@ -183,8 +181,8 @@ public class GameController implements Controller<GameWatchDto> {
 			if (gameChange == null) {
 				return true;
 			}
-			if (gameChange instanceof PlayerTurnDto) {
-				PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
+			if (gameChange instanceof PlayerTimedTurnDto) {
+				PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
 				turn(playerTurn);
 				List<InGamePlayer> losers = game.getLosers();
 				if (losers.contains(myPlayer)) {
@@ -215,7 +213,6 @@ public class GameController implements Controller<GameWatchDto> {
 	public void destroy() {
 		destroyPublisher.complete();
 		changesQueue.clear();
-		playerTurnTimers.values().forEach(PauseableTimer::destroy);
 	}
 
 	@FXML
@@ -264,44 +261,48 @@ public class GameController implements Controller<GameWatchDto> {
 	}
 
 	private void initTotalTurnTimers(List<InGamePlayer> players) {
-		playerTurnTimers = players.stream()
+		playerTurnRemainingMillis = players.stream()
 				.map(InGamePlayer::getColor)
-				.collect(toMap(color -> color, color -> new PauseableTimer(
-						TimeUnit.SECONDS.toMillis(gameSettings.getPlayerTurnTotalDurationSeconds()), () -> {
-				})));
-
-		turnProperty.addListener((observable, previousPlayer, currentPlayer) -> {
-			if (destroyPublisher.isCompleted()) {
-				return;
-			}
-			if (previousPlayer != null) {
-				playerTurnTimers.get(previousPlayer.getColor()).pause();
-			}
-			PauseableTimer timer = playerTurnTimers.get(currentPlayer.getColor());
-			long remainingMilliSeconds = timer.getRemainingMilliSeconds();
-			turnTotalTimeIndicator.setTime(
-					LocalTime.ofSecondOfDay(TimeUnit.MILLISECONDS.toSeconds(remainingMilliSeconds)));
-			turnTotalTimeIndicator.run();
-			timer.resume();
-		});
+				.collect(toMap(color -> color, color -> gameSettings.getPlayerTurnTotalDurationSeconds() * 1000L));
 	}
 
 	private void startTurnTimer() {
 		Platform.runLater(() -> {
 			int turnDurationSeconds = gameSettings.getTurnDurationSeconds();
 			turnTimeIndicator.setTime(LocalTime.ofSecondOfDay(turnDurationSeconds));
-			turnTimeIndicator.run();
+			turnTimeIndicator.run(gameSpeedCoefficient.get());
 		});
 	}
 
-	public void turn(PlayerTurnDto playerTurnDto) {
+	public void turn(PlayerTimedTurnDto playerTurnDto) {
 		Point point = playerTurnDto.getPoint();
+		InGamePlayer previousPlayer = game.getCurrentPlayer();
 		CellChange rootChange = game.turn(point);
+		if (playerMode == PlayerMode.WATCH) {
+			long turnDurationMillis = gameSettings.getTurnDurationSeconds() * 1000L;
+			long remainingTurnMillis = playerTurnDto.getRemainingTurnMillis();
+			long timeToSleep = (long) ((turnDurationMillis - remainingTurnMillis) / gameSpeedCoefficient.get());
+			Try.run(() -> Thread.sleep(timeToSleep));
+		}
 		animateCellChanges(rootChange);
 		Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
 		updateStatistics(statistics);
 		InGamePlayer currentPlayer = game.getCurrentPlayer();
-		Platform.runLater(() -> turnProperty.set(currentPlayer));
+		Platform.runLater(() -> {
+			turnProperty.set(currentPlayer);
+
+			if (destroyPublisher.isCompleted()) {
+				return;
+			}
+
+			playerTurnRemainingMillis.put(previousPlayer.getColor(), playerTurnDto.getRemainingPlayerTotalTurnMillis());
+
+			long currentPlayerRemainingMillis = playerTurnRemainingMillis.get(currentPlayer.getColor());
+
+			turnTotalTimeIndicator.setTime(
+					LocalTime.ofSecondOfDay(TimeUnit.MILLISECONDS.toSeconds(currentPlayerRemainingMillis)));
+			turnTotalTimeIndicator.run(gameSpeedCoefficient.get());
+		});
 		startTurnTimer();
 	}
 
@@ -367,9 +368,10 @@ public class GameController implements Controller<GameWatchDto> {
 	}
 
 	public void animateLeave(PlayerWithPoints playerWithPoints) {
+		Duration animationDuration = calculateAnimationDuration();
 		List<Point> pointsBelongedToPlayer = playerWithPoints.getPoints();
 		Transition[] transitions = pointsBelongedToPlayer.stream()
-				.map(point -> makeTileTransition(point, new BoardCell(null, 0)))
+				.map(point -> makeTileTransition(point, new BoardCell(null, 0), animationDuration))
 				.toArray(Transition[]::new);
 
 		ParallelTransition fullTransition = new ParallelTransition(transitions);
@@ -446,7 +448,7 @@ public class GameController implements Controller<GameWatchDto> {
 				BoardCell boardCell = board[i][j];
 				if (boardCell.getColor() != null) {
 					tiles[i][j].makeAppearTransition(boardCell.getColor(), boardCell.getPoints(),
-							animationDuration.get()).play();
+							Duration.seconds(Constants.GAME_BOARD_TILE_ANIMATION_SECONDS)).play();
 				}
 			}
 		}
@@ -470,12 +472,14 @@ public class GameController implements Controller<GameWatchDto> {
 	}
 
 	private void animateCellChanges(CellChange root) {
+		Duration animationDuration = calculateAnimationDuration();
+
 		SequentialTransition fullAnimation = new SequentialTransition();
 
 		Publisher<None> onFinishPublisher = Publisher.mono();
 		fullAnimation.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
 
-		fullAnimation.getChildren().add(makeTileTransition(root.getPoint(), root.getBoardCell()));
+		fullAnimation.getChildren().add(makeTileTransition(root.getPoint(), root.getBoardCell(), animationDuration));
 
 		if (root.getChildren().isEmpty()) {
 			fullAnimation.play();
@@ -506,12 +510,14 @@ public class GameController implements Controller<GameWatchDto> {
 				CellChange collapsingChange = cellChange.getChildren().get(0);
 				changesStack.addAll(collapsingChange.getChildren());
 				cellChange = collapsingChange;
-				transition.getChildren().add(makeTileTransition(cellChange.getPoint(), cellChange.getBoardCell()));
+				transition.getChildren()
+						.add(makeTileTransition(cellChange.getPoint(), cellChange.getBoardCell(), animationDuration));
 			}
 
 			ParallelTransition childrenTransition = new ParallelTransition();
 			for (CellChange child : cellChange.getChildren()) {
-				Transition childTransition = makeTileTransition(child.getPoint(), child.getBoardCell());
+				Transition childTransition = makeTileTransition(child.getPoint(), child.getBoardCell(),
+						animationDuration);
 				childrenTransition.getChildren().add(childTransition);
 			}
 			transition.getChildren().add(childrenTransition);
@@ -523,7 +529,7 @@ public class GameController implements Controller<GameWatchDto> {
 		onFinishPublisher.asObservable().blockUntilComplete();
 	}
 
-	private Transition makeTileTransition(Point point, BoardCell boardCell) {
+	private Transition makeTileTransition(Point point, BoardCell boardCell, Duration duration) {
 		int i = point.i;
 		int j = point.j;
 		Tile tile = tiles[i][j];
@@ -531,16 +537,21 @@ public class GameController implements Controller<GameWatchDto> {
 		PlayerColor player = boardCell.getColor();
 		switch (points) {
 			case 0:
-				return tile.makeDisappearTransition(animationDuration.get());
+				return tile.makeDisappearTransition(duration);
 			case 1:
-				return tile.makeAppearTransition(player, points, animationDuration.get());
+				return tile.makeAppearTransition(player, points, duration);
 			case 2:
 			case 3:
 			case 4:
-				return tile.makeDisAppearAndAppearTransition(player, points, animationDuration.get());
+				return tile.makeDisAppearAndAppearTransition(player, points, duration);
 			default:
 				throw new IllegalStateException(points + "");
 		}
+	}
+
+	private Duration calculateAnimationDuration() {
+		double animationSeconds = Constants.GAME_BOARD_TILE_ANIMATION_SECONDS / gameSpeedCoefficient.get();
+		return Duration.seconds(animationSeconds);
 	}
 
 	public void onLeaveClick() {

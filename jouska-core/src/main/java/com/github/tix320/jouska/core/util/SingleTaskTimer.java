@@ -10,6 +10,8 @@ import java.util.concurrent.TimeUnit;
  */
 public class SingleTaskTimer {
 
+	private long endTimeMillis;
+
 	private final ScheduledExecutorService timer;
 
 	private ScheduledFuture<?> lastTask;
@@ -20,15 +22,21 @@ public class SingleTaskTimer {
 
 	public final synchronized void schedule(Runnable runnable, long delayMillis) {
 		cancel();
-
 		createTaskAndSchedule(runnable, delayMillis);
 	}
 
-	public final synchronized void cancel() {
+	/**
+	 * Return remaining milliseconds to complete timer.
+	 *
+	 * @return remaining millis
+	 */
+	public final synchronized long cancel() {
 		if (lastTask != null) {
 			lastTask.cancel(false);
 			lastTask = null;
 		}
+
+		return Math.max(endTimeMillis - System.currentTimeMillis(), 0);
 	}
 
 	public final synchronized void destroy() {
@@ -37,6 +45,7 @@ public class SingleTaskTimer {
 	}
 
 	private void createTaskAndSchedule(Runnable runnable, long delay) {
+		this.endTimeMillis = System.currentTimeMillis() + delay;
 		lastTask = timer.schedule(runnable, delay, TimeUnit.MILLISECONDS);
 	}
 }

@@ -22,7 +22,6 @@ public class GameEntity {
 	@Reference
 	private PlayerEntity creator;
 
-	@BsonProperty(useDiscriminator = true)
 	private GameSettings settings;
 
 	private GameState state;

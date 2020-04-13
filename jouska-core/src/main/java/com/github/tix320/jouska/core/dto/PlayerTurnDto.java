@@ -7,7 +7,7 @@ import com.github.tix320.jouska.core.application.game.Point;
 /**
  * @author Tigran Sargsyan on 23-Mar-20.
  */
-public class PlayerTurnDto extends GameChangeDto {
+public class PlayerTurnDto implements GameChangeDto {
 
 	private final Point point;
 

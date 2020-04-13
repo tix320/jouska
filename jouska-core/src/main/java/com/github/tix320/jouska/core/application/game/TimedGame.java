@@ -3,6 +3,7 @@ package com.github.tix320.jouska.core.application.game;
 import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.model.Player;
@@ -26,12 +27,15 @@ public final class TimedGame implements Game {
 
 	private final Stock<GameChange> changes;
 
+	private AtomicReference<TurnInfo> currentTurnInfo;
+
 	public static TimedGame create(Game game, TimedGameSettings settings) {
 		return new TimedGame(game, settings);
 	}
 
 	private TimedGame(Game game, TimedGameSettings settings) {
 		this.changes = Stock.forObject();
+		this.currentTurnInfo = new AtomicReference<>();
 		this.game = game;
 		this.turnDurationSeconds = settings.getTurnDurationSeconds();
 		this.turnTimer = new SingleTaskTimer();
@@ -44,7 +48,17 @@ public final class TimedGame implements Game {
 
 	@Override
 	public synchronized void start() {
-		game.changes().asObservable().subscribe(changes::add);
+		game.changes().asObservable().map(gameChange -> {
+			if (gameChange instanceof PlayerTurn) {
+				PlayerTurn playerTurn = (PlayerTurn) gameChange;
+				TurnInfo turnInfo = currentTurnInfo.get();
+				return new PlayerTimedTurn(playerTurn.getCellChange(), turnInfo.getRemainingTurnMillis(),
+						turnInfo.getRemainingPlayerTotalTurnMillis());
+			}
+			return gameChange;
+
+		}).subscribe(changes::add);
+
 		completed().subscribe(players -> {
 			turnTimer.destroy();
 			playerTimers.values().forEach(PauseableTimer::destroy);
@@ -65,9 +79,11 @@ public final class TimedGame implements Game {
 	@Override
 	public synchronized CellChange turn(Point point) {
 		Player currentPlayer = game.getCurrentPlayer().getRealPlayer();
+		long remainingTurnMillis = turnTimer.cancel();
+		long remainingPlayerTurnMillis = playerTimers.get(currentPlayer).pause();
+		currentTurnInfo.set(new TurnInfo(remainingTurnMillis, remainingPlayerTurnMillis));
+
 		CellChange cellChange = game.turn(point);
-		turnTimer.cancel();
-		playerTimers.get(currentPlayer).pause();
 		double seconds = calculateApproximateAnimationTime(cellChange);
 		Player currentPLayer = getCurrentPlayer().getRealPlayer();
 		int nextTurnSeconds = ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable.
@@ -209,17 +225,14 @@ public final class TimedGame implements Game {
 		@Override
 		public void run() {
 			synchronized (TimedGame.this) {
+				if (!game.getCurrentPlayer().getRealPlayer().equals(player)) {
+					return; // Player
+				}
+
 				List<Point> points = getPointsBelongedToPlayer(player);
 				int randomIndex = (int) (Math.random() * points.size());
 				Point randomPoint = points.get(randomIndex);
-				try {
-					turn(randomPoint);
-				}
-				catch (IllegalTurnActorException e) { // Real player already made their turn, skip our random turn
-					System.err.println(
-							"Do not pay attention to this error. If you do not have any bugs, then this is normal: " + e
-									.getMessage());
-				}
+				turn(randomPoint);
 			}
 		}
 	}
@@ -232,6 +245,26 @@ public final class TimedGame implements Game {
 					kick(player);
 				}
 			});
+		}
+	}
+
+	private final static class TurnInfo {
+
+		private final long remainingTurnMillis;
+
+		private final long remainingPlayerTotalTurnMillis;
+
+		private TurnInfo(long remainingTurnMillis, long remainingPlayerTotalTurnMillis) {
+			this.remainingTurnMillis = remainingTurnMillis;
+			this.remainingPlayerTotalTurnMillis = remainingPlayerTotalTurnMillis;
+		}
+
+		public long getRemainingTurnMillis() {
+			return remainingTurnMillis;
+		}
+
+		public long getRemainingPlayerTotalTurnMillis() {
+			return remainingPlayerTotalTurnMillis;
 		}
 	}
 

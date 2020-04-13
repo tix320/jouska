@@ -6,7 +6,7 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.github.tix320.jouska.core.application.game.GameChange;
 import com.github.tix320.jouska.core.application.game.GameComplete;
 import com.github.tix320.jouska.core.application.game.PlayerKick;
-import com.github.tix320.jouska.core.application.game.PlayerTurn;
+import com.github.tix320.jouska.core.application.game.PlayerTimedTurn;
 
 /**
  * @author Tigran Sargsyan on 25-Mar-20.
@@ -14,14 +14,15 @@ import com.github.tix320.jouska.core.application.game.PlayerTurn;
 @JsonSubTypes({
 		@JsonSubTypes.Type(value = GameCompleteDto.class, name = "complete"),
 		@JsonSubTypes.Type(value = PlayerLeaveDto.class, name = "leave"),
-		@JsonSubTypes.Type(value = PlayerTurnDto.class, name = "turn")})
+		@JsonSubTypes.Type(value = PlayerTimedTurnDto.class, name = "turn")})
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, property = "type")
-public abstract class GameChangeDto {
+public interface GameChangeDto {
 
-	public static GameChangeDto fromModel(GameChange gameChange) {
-		if (gameChange instanceof PlayerTurn) {
-			PlayerTurn playerTurn = (PlayerTurn) gameChange;
-			return new PlayerTurnDto(playerTurn.getCellChange().getPoint());
+	static GameChangeDto fromModel(GameChange gameChange) {
+		if (gameChange instanceof PlayerTimedTurn) {
+			PlayerTimedTurn playerTurn = (PlayerTimedTurn) gameChange;
+			return new PlayerTimedTurnDto(playerTurn.getCellChange().getPoint(), playerTurn.getRemainingTurnMillis(),
+					playerTurn.getRemainingPlayerTotalTurnMillis());
 		}
 		else if (gameChange instanceof PlayerKick) {
 			PlayerKick playerKick = (PlayerKick) gameChange;

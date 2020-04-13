@@ -16,9 +16,13 @@ public final class TimerLabel extends LocalTimeLabel {
 	private final AtomicReference<Timeline> timeline = new AtomicReference<>(null);
 
 	public void run() {
+		run(1);
+	}
+
+	public void run(double speedCoefficient) {
 		stop();
 
-		Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1), ae -> {
+		Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1 / speedCoefficient), ae -> {
 			LocalTime time = getTime();
 			if (time.equals(LocalTime.MIN)) {
 				stop();

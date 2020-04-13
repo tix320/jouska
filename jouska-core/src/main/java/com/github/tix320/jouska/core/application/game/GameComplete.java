@@ -5,7 +5,7 @@ import java.util.List;
 /**
  * @author Tigran Sargsyan on 25-Mar-20.
  */
-public class GameComplete extends GameChange {
+public class GameComplete implements GameChange {
 
 	private final InGamePlayer winner;
 

@@ -14,7 +14,7 @@ public class PauseableTimer {
 
 	private final ScheduledExecutorService timer;
 
-	private ScheduledFuture<?> lastTask;
+	private ScheduledFuture<?> task;
 
 	private long lastStartTimestamp;
 
@@ -27,21 +27,27 @@ public class PauseableTimer {
 	}
 
 	public final synchronized void resume() {
-		if (lastTask != null) {
+		if (task != null) {
 			return;
 		}
 		createTaskAndSchedule(remainingMilliSeconds);
 		lastStartTimestamp = System.currentTimeMillis();
 	}
 
-	public final synchronized void pause() {
-		if (lastTask == null) {
-			return;
+	/**
+	 * Return remaining milliseconds to complete timer.
+	 *
+	 * @return remaining millis
+	 */
+	public final synchronized long pause() {
+		if (task == null) {
+			return remainingMilliSeconds;
 		}
 
-		lastTask.cancel(false);
-		lastTask = null;
+		task.cancel(false);
+		task = null;
 		recalculateRemainingSeconds();
+		return remainingMilliSeconds;
 	}
 
 	public final synchronized void destroy() {
@@ -63,6 +69,6 @@ public class PauseableTimer {
 	}
 
 	private void createTaskAndSchedule(long delay) {
-		lastTask = timer.schedule(realTask, delay, TimeUnit.MILLISECONDS);
+		task = timer.schedule(realTask, delay, TimeUnit.MILLISECONDS);
 	}
 }
