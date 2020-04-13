@@ -11,6 +11,10 @@ public class GameComplete extends GameChange {
 
 	private final List<InGamePlayer> losers;
 
+	private GameComplete() {
+		this(null, null);
+	}
+
 	public GameComplete(InGamePlayer winner, List<InGamePlayer> losers) {
 		this.winner = winner;
 		this.losers = losers;

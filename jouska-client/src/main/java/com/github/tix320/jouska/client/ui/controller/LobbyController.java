@@ -19,7 +19,7 @@ import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleLongProperty;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
@@ -52,7 +52,7 @@ public class LobbyController implements Controller<Object> {
 
 	private Timeline timeline;
 
-	private SimpleLongProperty waitingToConnectGameId = new SimpleLongProperty();
+	private SimpleStringProperty waitingToConnectGameId = new SimpleStringProperty("");
 
 	private MonoPublisher<None> destroyPublisher = Publisher.mono();
 
@@ -77,7 +77,7 @@ public class LobbyController implements Controller<Object> {
 		timeline.setCycleCount(Animation.INDEFINITE);
 
 		waitingToConnectGameId.addListener((observableValue, number, gameId) -> {
-			if (gameId.longValue() == -1) {
+			if (gameId == null) {
 				waitingPlayersLabel.setVisible(false);
 				cancelWaitButton.setVisible(false);
 				cancelWaitButton.setDisable(true);
@@ -94,13 +94,13 @@ public class LobbyController implements Controller<Object> {
 			}
 		});
 
-		waitingToConnectGameId.set(-1);
+		waitingToConnectGameId.set(null);
 
 		EventDispatcher.on(GameStartedEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
 				.conditionalSubscribe(event -> {
 					GamePlayDto gamePlayDto = event.getGamePlayDto();
-					if (gamePlayDto.getGameId() == waitingToConnectGameId.get()) {
+					if (gamePlayDto.getGameId().equals(waitingToConnectGameId.get())) {
 						UI.switchComponent(ComponentType.GAME, gamePlayDto);
 						return false;
 					}
@@ -120,7 +120,6 @@ public class LobbyController implements Controller<Object> {
 	private void subscribeToGameList() {
 		GAME_SERVICE.games().takeUntil(destroyPublisher.asObservable()).subscribe(gameViews -> {
 			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
-			Collections.reverse(gameItems);
 			gameItems.forEach(gameItem -> {
 				gameItem.disableJoinButtonOn(disable);
 				gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
@@ -140,7 +139,6 @@ public class LobbyController implements Controller<Object> {
 			List<ConnectedPlayerItem> connectedPlayerItems = players.stream()
 					.map(ConnectedPlayerItem::new)
 					.collect(Collectors.toList());
-			Collections.reverse(connectedPlayerItems);
 			Platform.runLater(() -> {
 				ObservableList<Node> playersNode = connectedPlayersPane.getChildren();
 				playersNode.clear();
@@ -149,7 +147,7 @@ public class LobbyController implements Controller<Object> {
 		});
 	}
 
-	private void joinGame(long gameId) {
+	private void joinGame(String gameId) {
 		disable.set(true);
 
 		GAME_SERVICE.join(gameId).subscribe(answer -> {
@@ -193,12 +191,15 @@ public class LobbyController implements Controller<Object> {
 		});
 	}
 
-	private void watchGame(long gameId) {
+	private void watchGame(String gameId) {
 		GAME_SERVICE.watch(gameId).subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
 	}
 
 	public void cancelWait() {
-		GAME_SERVICE.leave(waitingToConnectGameId.get());
-		waitingToConnectGameId.set(-1);
+		String id = waitingToConnectGameId.get();
+		if (id != null) {
+			GAME_SERVICE.leave(id);
+			waitingToConnectGameId.set(null);
+		}
 	}
 }

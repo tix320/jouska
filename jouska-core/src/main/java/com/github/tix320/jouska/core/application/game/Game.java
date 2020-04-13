@@ -5,7 +5,7 @@ import java.util.Optional;
 
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
 
 public interface Game {
 
@@ -15,7 +15,7 @@ public interface Game {
 
 	BoardCell[][] getBoard();
 
-	Observable<GameChange> changes();
+	ReadOnlyStock<GameChange> changes();
 
 	List<Point> getPointsBelongedToPlayer(Player player);
 
@@ -39,9 +39,11 @@ public interface Game {
 
 	void forceCompleteGame(Player winner);
 
-	MonoObservable<? extends Game> completed();
+	GameState getState();
 
 	boolean isStarted();
 
 	boolean isCompleted();
+
+	MonoObservable<? extends Game> completed();
 }

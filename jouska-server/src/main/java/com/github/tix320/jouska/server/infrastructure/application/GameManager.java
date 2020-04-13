@@ -18,6 +18,7 @@ import com.github.tix320.jouska.core.dto.GamePlayDto;
 import com.github.tix320.jouska.core.dto.GameWatchDto;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.server.entity.GameEntity;
 import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
 import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
@@ -25,18 +26,16 @@ import com.github.tix320.jouska.server.infrastructure.service.GameService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.MapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.util.IDGenerator;
 import com.github.tix320.kiwi.api.util.None;
 
 import static com.github.tix320.jouska.server.app.Services.GAME_ORIGIN;
 
 public class GameManager {
-	private static final IDGenerator ID_GENERATOR = new IDGenerator(1);
-	private static final MapProperty<Long, GameInfo> games = Property.forMap(new ConcurrentHashMap<>());
+	private static final MapProperty<String, GameInfo> games = Property.forMap(new ConcurrentHashMap<>());
 
-	public static long createNewGame(CreateGameCommand createGameCommand, Player creator) {
-		long gameId = ID_GENERATOR.next();
+	public static String createNewGame(CreateGameCommand createGameCommand, Player creator) {
 		GameSettings gameSettings = createGameCommand.getGameSettings();
+		String gameId = GameService.saveGame(gameSettings, creator.getId());
 
 		games.put(gameId, new GameInfo(gameId, gameSettings, creator));
 
@@ -44,11 +43,12 @@ public class GameManager {
 	}
 
 	public static void registerGames(List<GameRegistration> games) {
-		Map<Long, GameInfo> gamesById = new HashMap<>();
+		Map<String, GameInfo> gamesById = new HashMap<>();
 		for (GameRegistration gameRegistration : games) {
-			long id = ID_GENERATOR.next();
-			GameInfo gameInfo = new GameInfo(id, gameRegistration.getGameWithSettings().getSettings(),
-					gameRegistration.getCreator());
+			GameSettings settings = gameRegistration.getGameWithSettings().getSettings();
+			Player creator = gameRegistration.getCreator();
+			String id = GameService.saveGame(settings, creator.getId());
+			GameInfo gameInfo = new GameInfo(id, settings, creator);
 
 			Game game = gameRegistration.getGameWithSettings().getGame();
 			gameInfo.setGame(game);
@@ -78,7 +78,7 @@ public class GameManager {
 		});
 	}
 
-	public static GameConnectionAnswer joinGame(long gameId, Player player) {
+	public static GameConnectionAnswer joinGame(String gameId, Player player) {
 		AtomicReference<GameConnectionAnswer> answer = new AtomicReference<>(GameConnectionAnswer.GAME_NOT_FOUND);
 		games.computeIfPresent(gameId, (key, gameInfo) -> {
 			if (!hasAccessToGame(gameInfo, player)) {
@@ -104,7 +104,7 @@ public class GameManager {
 		return answer.get();
 	}
 
-	public static void leaveGame(long gameId, Player player) {
+	public static void leaveGame(String gameId, Player player) {
 		games.computeIfPresent(gameId, (key, gameInfo) -> {
 			if (!hasAccessToGame(gameInfo, player)) {
 				throw new IllegalAccessException();
@@ -122,17 +122,24 @@ public class GameManager {
 		});
 	}
 
-	public static GameWatchDto watchGame(long gameId) {
+	public static GameWatchDto watchGame(String gameId) {
 		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null || gameInfo.getGame().isEmpty()) {
-			throw new IllegalArgumentException(String.format("Game `%s` does not exists", gameId));
+		if (gameInfo == null) {
+			GameEntity gameEntity = GameService.getGame(gameId, List.of("settings", "gamePlayers"))
+					.orElseThrow(
+							() -> new IllegalArgumentException(String.format("Game `%s` does not exists", gameId)));
+
+			return new GameWatchDto(gameId, (TimedGameSettings) gameEntity.getSettings(), gameEntity.getGamePlayers());
+		}
+		if (gameInfo.getGame().isEmpty()) {
+			throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
 		}
 
 		Game game = gameInfo.getGame().orElseThrow();
 		return new GameWatchDto(gameId, (TimedGameSettings) gameInfo.getSettings(), game.getPlayers());
 	}
 
-	public static void turnInGame(long gameId, Player player, Point point) {
+	public static void turnInGame(String gameId, Player player, Point point) {
 		GameInfo gameInfo = games.get(gameId);
 		if (gameInfo == null) {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
@@ -146,17 +153,17 @@ public class GameManager {
 		turnInGame(gameInfo, player, point);
 	}
 
-	public static Game getGame(long gameId, Player caller) {
+	public static Optional<Game> getGame(String gameId, Player caller) {
 		GameInfo gameInfo = games.get(gameId);
 		if (gameInfo == null) {
-			throw new IllegalArgumentException(String.format("Game %s not found", gameId));
+			return Optional.empty();
 		}
 
 		if (!hasAccessToGame(gameInfo, caller)) {
 			throw new IllegalAccessException();
 		}
 
-		return gameInfo.getGame().orElseThrow();
+		return gameInfo.getGame();
 	}
 
 	private static void turnInGame(GameInfo gameInfo, Player player, Point point) {
@@ -172,7 +179,7 @@ public class GameManager {
 		game.turn(point);
 	}
 
-	public static void startGame(long gameId, Player caller) {
+	public static void startGame(String gameId, Player caller) {
 		games.computeIfPresent(gameId, (id, gameInfo) -> {
 			Optional<Game> optionalGame = gameInfo.getGame();
 			if (optionalGame.isPresent() && optionalGame.get().isStarted()) {
@@ -242,14 +249,14 @@ public class GameManager {
 	}
 
 	private static void onGameComplete(GameInfo gameInfo) {
-		long gameId = gameInfo.getId();
+		String gameId = gameInfo.getId();
 		Game game = gameInfo.getGame().orElseThrow();
 		GameSettings gameSettings = gameInfo.getSettings();
 		InGamePlayer winner = game.getWinner().orElseThrow();
 		games.remove(gameId);
 		System.out.println(String.format("Game %s(%s) ended: Players %s Winner is %s", gameSettings.getName(), gameId,
 				game.getPlayers(), winner));
-		GameService.saveGame(game);
+		GameService.updateGame(gameId, game);
 	}
 
 	private static boolean containsPlayerInGame(Game game, Player player) {

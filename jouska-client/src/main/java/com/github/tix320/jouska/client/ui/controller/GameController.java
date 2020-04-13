@@ -83,7 +83,7 @@ public class GameController implements Controller<GameWatchDto> {
 	private Tile[][] tiles;
 	private Map<PlayerColor, HBox> statisticsNodes;
 
-	private long gameId;
+	private String gameId;
 	private Game game;
 	private TimedGameSettings gameSettings;
 	private InGamePlayer myPlayer;

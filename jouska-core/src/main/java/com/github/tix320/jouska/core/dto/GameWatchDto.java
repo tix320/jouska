@@ -10,23 +10,23 @@ import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings
  */
 public class GameWatchDto {
 
-	private final long gameId;
+	private final String gameId;
 
 	private final TimedGameSettings gameSettings;
 
 	private final List<InGamePlayer> players;
 
 	protected GameWatchDto() {
-		this(-1, null, null);
+		this(null, null, null);
 	}
 
-	public GameWatchDto(long gameId, TimedGameSettings gameSettings, List<InGamePlayer> players) {
+	public GameWatchDto(String gameId, TimedGameSettings gameSettings, List<InGamePlayer> players) {
 		this.gameId = gameId;
 		this.gameSettings = gameSettings;
 		this.players = players;
 	}
 
-	public long getGameId() {
+	public String getGameId() {
 		return gameId;
 	}
 

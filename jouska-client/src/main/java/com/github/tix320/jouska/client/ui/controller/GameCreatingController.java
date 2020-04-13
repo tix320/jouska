@@ -108,7 +108,7 @@ public class GameCreatingController implements Controller<Object> {
 						new TimedGameSettings(gameNameInput.getText(), BoardType.STANDARD,
 								playersCountChoice.getValue(), new HashSet<>(players), turnDuration.get(),
 								playerTurnTotalDurationSeconds)))
-						.subscribe(Subscriber.<Long>builder().onPublish(
+						.subscribe(Subscriber.<String>builder().onPublish(
 								gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)))
 								.onError(throwable -> {
 									throwable.printStackTrace();

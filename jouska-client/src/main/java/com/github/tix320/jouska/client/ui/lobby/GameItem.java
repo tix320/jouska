@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
+import com.github.tix320.jouska.core.application.game.GameState;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.GameView;
@@ -13,8 +14,11 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.HBox;
 
 public class GameItem extends AnchorPane {
 
@@ -31,6 +35,12 @@ public class GameItem extends AnchorPane {
 	private Label turnTotalDurationLabel;
 
 	@FXML
+	private HBox joinAndWatchHolder;
+
+	@FXML
+	private HBox startHolder;
+
+	@FXML
 	private Button joinButton;
 
 	@FXML
@@ -38,6 +48,7 @@ public class GameItem extends AnchorPane {
 
 	@FXML
 	private Button startButton;
+
 
 	private final GameView gameView;
 
@@ -62,6 +73,14 @@ public class GameItem extends AnchorPane {
 		startButton.setOnMouseClicked(handler);
 	}
 
+	@FXML
+	private void copyGameId() {
+		String id = gameView.getId();
+		ClipboardContent content = new ClipboardContent();
+		content.putString(String.valueOf(id));
+		Clipboard.getSystemClipboard().setContent(content);
+	}
+
 	private void initView(GameView gameView) {
 		GameSettings gameSettings = gameView.getGameSettings();
 		setGameName(gameView);
@@ -70,21 +89,34 @@ public class GameItem extends AnchorPane {
 		setTurnTotalDuration(gameSettings);
 		resolveStartButtonAccessibility(gameView);
 		if (gameView.getGameSettings().getPlayersCount() != gameView.getConnectedPlayers().size()
-			|| gameView.isStarted()) {
+			|| gameView.getGameState() == GameState.STARTED) {
 			startButton.setDisable(true);
 		}
-		if (!gameView.isStarted()) {
+
+		if (gameView.getGameState() == GameState.COMPLETED) {
+			startHolder.getChildren().remove(startButton);
+			joinAndWatchHolder.getChildren().remove(joinButton);
+		}
+
+		if (gameView.getGameState() == GameState.INITIAL) {
 			watchButton.setDisable(true);
 		}
 	}
 
 	private void setGameName(GameView gameView) {
-		this.gameNameLabel.setText(gameView.getGameSettings().getName() + " ( " + gameView.getId() + " )");
+		this.gameNameLabel.setText(gameView.getGameSettings().getName());
 	}
 
 	private void setPlayersCount(GameView gameView) {
 		GameSettings gameSettings = gameView.getGameSettings();
-		this.playersCountLabel.setText(gameView.getConnectedPlayers().size() + "/" + gameSettings.getPlayersCount());
+		if (gameView.getGameState() == GameState.COMPLETED) {
+			this.playersCountLabel.setText(String.valueOf(gameView.getGameSettings().getPlayersCount()));
+			this.getStyleClass().add("gameItemCompleted");
+		}
+		else {
+			this.playersCountLabel.setText(
+					gameView.getConnectedPlayers().size() + "/" + gameSettings.getPlayersCount());
+		}
 	}
 
 	private void setTurnDuration(GameSettings gameSettings) {
@@ -111,8 +143,7 @@ public class GameItem extends AnchorPane {
 		Player currentPlayer = CurrentUserContext.getPlayer();
 
 		if (!currentPlayer.equals(creator) && !currentPlayer.isAdmin()) {
-			startButton.setDisable(true);
-			startButton.setVisible(false);
+			startHolder.getChildren().remove(startButton);
 		}
 	}
 
@@ -122,8 +153,8 @@ public class GameItem extends AnchorPane {
 
 	public void disableJoinButtonOn(ObservableBooleanValue disableProperty) {
 		joinButton.disableProperty()
-				.bind(new SimpleBooleanProperty(isFull()).or(new SimpleBooleanProperty(gameView.isStarted()))
-						.or(disableProperty));
+				.bind(new SimpleBooleanProperty(isFull()).or(
+						new SimpleBooleanProperty(gameView.getGameState() != GameState.INITIAL)).or(disableProperty));
 	}
 
 	private boolean isFull() {

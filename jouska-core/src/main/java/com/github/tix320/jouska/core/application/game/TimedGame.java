@@ -9,7 +9,7 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.PauseableTimer;
 import com.github.tix320.jouska.core.util.SingleTaskTimer;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
 
 import static java.util.stream.Collectors.toMap;
@@ -24,7 +24,7 @@ public final class TimedGame implements Game {
 
 	private final Map<Player, PlayerTimer> playerTimers;
 
-	private final Stock<TimedGameChange> changes;
+	private final Stock<GameChange> changes;
 
 	public static TimedGame create(Game game, TimedGameSettings settings) {
 		return new TimedGame(game, settings);
@@ -44,6 +44,7 @@ public final class TimedGame implements Game {
 
 	@Override
 	public synchronized void start() {
+		game.changes().asObservable().subscribe(changes::add);
 		completed().subscribe(players -> {
 			turnTimer.destroy();
 			playerTimers.values().forEach(PauseableTimer::destroy);
@@ -80,8 +81,8 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
-	public Observable<GameChange> changes() {
-		return Observable.concat(game.changes(), changes.asObservable());
+	public ReadOnlyStock<GameChange> changes() {
+		return changes.toReadOnly();
 	}
 
 	@Override
@@ -140,8 +141,13 @@ public final class TimedGame implements Game {
 	}
 
 	@Override
+	public GameState getState() {
+		return game.getState();
+	}
+
+	@Override
 	public MonoObservable<? extends Game> completed() {
-		return game.completed();
+		return game.completed().peek(o -> changes.close()).toMono();
 	}
 
 	@Override

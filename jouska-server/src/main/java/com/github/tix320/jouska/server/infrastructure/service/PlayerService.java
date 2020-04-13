@@ -82,7 +82,7 @@ public class PlayerService {
 	}
 
 	private static Optional<PlayerEntity> findPlayerByCredentials(LoginCommand loginCommand) {
-		Query<PlayerEntity> query = DataSource.INSTANCE.find(PlayerEntity.class);
+		Query<PlayerEntity> query = DataSource.getInstance().find(PlayerEntity.class);
 		query.and(query.criteria("nickname").equal(loginCommand.getNickname()),
 				query.criteria("password").equal(loginCommand.getPassword()));
 
@@ -93,15 +93,8 @@ public class PlayerService {
 		return findPlayerEntityById(playerId).map(PlayerService::entityToModel);
 	}
 
-	public static Optional<Player> findPlayerByNickname(String nickname) {
-		Query<PlayerEntity> query = DataSource.INSTANCE.find(PlayerEntity.class);
-		query.and(query.criteria("nickname").equal(nickname));
-
-		return Optional.ofNullable(query.first()).map(PlayerService::entityToModel);
-	}
-
 	public static List<Player> findPlayersByNickname(List<String> nicknames) {
-		Query<PlayerEntity> query = DataSource.INSTANCE.find(PlayerEntity.class);
+		Query<PlayerEntity> query = DataSource.getInstance().find(PlayerEntity.class);
 		query.and(query.criteria("nickname").in(nicknames));
 
 		Map<String, PlayerEntity> playerEntities = query.find()
@@ -116,7 +109,7 @@ public class PlayerService {
 	}
 
 	public static Optional<PlayerEntity> findPlayerEntityById(String playerId) {
-		return Optional.ofNullable(DataSource.INSTANCE.get(PlayerEntity.class, new ObjectId(playerId)));
+		return Optional.ofNullable(DataSource.getInstance().get(PlayerEntity.class, new ObjectId(playerId)));
 	}
 
 	private static Player entityToModel(PlayerEntity entity) {

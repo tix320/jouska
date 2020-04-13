@@ -14,7 +14,7 @@ public final class GamePlayDto extends GameWatchDto {
 		myPlayer = null;
 	}
 
-	public GamePlayDto(long gameId, TimedGameSettings gameSettings, List<InGamePlayer> players, PlayerColor myPlayer) {
+	public GamePlayDto(String gameId, TimedGameSettings gameSettings, List<InGamePlayer> players, PlayerColor myPlayer) {
 		super(gameId, gameSettings, players);
 		this.myPlayer = myPlayer;
 	}

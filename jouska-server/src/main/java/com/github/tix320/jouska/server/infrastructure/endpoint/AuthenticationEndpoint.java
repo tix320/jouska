@@ -1,19 +1,21 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
-import com.github.tix320.jouska.core.dto.*;
+import java.util.Set;
+
+import com.github.tix320.jouska.core.dto.LoginAnswer;
+import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.RegistrationAnswer;
+import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.entity.PlayerEntity;
-import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
 import com.mongodb.DuplicateKeyException;
-
-import java.util.Set;
 
 @Endpoint("auth")
 public class AuthenticationEndpoint {
@@ -38,7 +40,7 @@ public class AuthenticationEndpoint {
 		PlayerEntity playerEntity = new PlayerEntity(registrationCommand.getNickname(),
 				registrationCommand.getPassword(), RoleName.PLAYER);
 		try {
-			DataSource.INSTANCE.save(playerEntity);
+			DataSource.getInstance().save(playerEntity);
 			return RegistrationAnswer.SUCCESS;
 		}
 		catch (DuplicateKeyException e) {

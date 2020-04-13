@@ -19,17 +19,17 @@ public interface ClientGameManagementOrigin {
 	Observable<List<GameView>> games();
 
 	@Origin("create")
-	MonoObservable<Long> create(CreateGameCommand createGameCommand);
+	MonoObservable<String> create(CreateGameCommand createGameCommand);
 
 	@Origin("start")
-	void startGame(long gameId);
+	void startGame(String gameId);
 
 	@Origin
-	MonoObservable<GameConnectionAnswer> join(long gameId);
+	MonoObservable<GameConnectionAnswer> join(String gameId);
 
 	@Origin
-	void leave(long gameId);
+	void leave(String gameId);
 
 	@Origin("watch")
-	MonoObservable<GameWatchDto> watch(long gameId);
+	MonoObservable<GameWatchDto> watch(String gameId);
 }

@@ -7,6 +7,10 @@ public class PlayerKick extends GameChange {
 
 	private final PlayerWithPoints playerWithPoints;
 
+	private PlayerKick() {
+		this(null);
+	}
+
 	public PlayerKick(PlayerWithPoints playerWithPoints) {
 		this.playerWithPoints = playerWithPoints;
 	}

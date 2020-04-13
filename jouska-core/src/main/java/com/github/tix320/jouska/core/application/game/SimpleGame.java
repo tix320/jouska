@@ -9,7 +9,8 @@ import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
 import com.github.tix320.kiwi.api.reactive.stock.Stock;
 import com.github.tix320.kiwi.api.util.collection.Tuple;
 
@@ -26,7 +27,7 @@ public final class SimpleGame implements Game {
 	private final List<InGamePlayer> activePlayers;
 	private final AtomicReference<InGamePlayer> currentPlayer;
 	private final Stock<GameChange> changes;
-	private final AtomicReference<GameState> gameState;
+	private final Property<GameState> gameState;
 	private final AtomicReference<InGamePlayer> winner;
 	private final List<InGamePlayer> lostPlayers;
 	private final List<PlayerWithPoints> kickPlayers;
@@ -50,7 +51,7 @@ public final class SimpleGame implements Game {
 
 	private SimpleGame(GameBoard board, List<InGamePlayer> players) {
 		this.changes = Stock.forObject();
-		this.gameState = new AtomicReference<>(GameState.INITIAL);
+		this.gameState = Property.forObject(GameState.INITIAL);
 		this.summaryStatistics = new HashMap<>();
 		this.lostPlayers = new ArrayList<>();
 		this.winner = new AtomicReference<>();
@@ -84,12 +85,12 @@ public final class SimpleGame implements Game {
 
 	@Override
 	public synchronized void start() {
-		if (gameState.get() != GameState.INITIAL) {
+		if (gameState.getValue() != GameState.INITIAL) {
 			throw new RuntimeException("Game Already started");
 		}
 
 		initBoard();
-		gameState.set(GameState.STARTED);
+		gameState.setValue(GameState.STARTED);
 	}
 
 	public synchronized CellChange turn(Point point) {
@@ -114,7 +115,7 @@ public final class SimpleGame implements Game {
 		changes.add(new PlayerTurn(cellChange));
 
 		if (needComplete) {
-			completeGame();
+			completeGame(activePlayers.get(0));
 		}
 
 		return cellChange;
@@ -124,8 +125,8 @@ public final class SimpleGame implements Game {
 		return board;
 	}
 
-	public Observable<GameChange> changes() {
-		return changes.asObservable();
+	public ReadOnlyStock<GameChange> changes() {
+		return changes.toReadOnly();
 	}
 
 	@Override
@@ -204,7 +205,7 @@ public final class SimpleGame implements Game {
 		boolean needComplete = checkPlayers();
 
 		if (needComplete) {
-			completeGame();
+			completeGame(activePlayers.get(0));
 		}
 
 		return playerWithPoints;
@@ -219,27 +220,28 @@ public final class SimpleGame implements Game {
 		remainingPlayers.remove(winnerPlayer);
 
 		lostPlayers.addAll(remainingPlayers);
-		this.winner.set(winnerPlayer);
+		completeGame(winnerPlayer);
+	}
 
-		gameState.set(GameState.COMPLETED);
-		changes.add(new GameComplete(winnerPlayer, lostPlayers));
-		changes.close();
+	@Override
+	public GameState getState() {
+		return gameState.getValue();
 	}
 
 	@Override
 	public MonoObservable<? extends Game> completed() {
-		return changes.asObservable().filter(change -> change instanceof GameComplete).map(ignored -> this).toMono();
+		return gameState.asObservable().filter(state -> state == GameState.COMPLETED).map(state -> this).toMono();
 	}
 
 	@Override
 	public synchronized boolean isStarted() {
-		GameState state = gameState.get();
+		GameState state = gameState.getValue();
 		return state == GameState.STARTED || state == GameState.COMPLETED;
 	}
 
 	@Override
 	public synchronized boolean isCompleted() {
-		return gameState.get() == GameState.COMPLETED;
+		return gameState.getValue() == GameState.COMPLETED;
 	}
 
 	private List<InGamePlayer> resolveActivePlayers() {
@@ -385,12 +387,12 @@ public final class SimpleGame implements Game {
 		}
 	}
 
-	private void completeGame() {
-		InGamePlayer winner = activePlayers.get(0);
+	private void completeGame(InGamePlayer winner) {
 		this.winner.set(winner);
-		gameState.set(GameState.COMPLETED);
 		changes.add(new GameComplete(winner, lostPlayers));
 		changes.close();
+		gameState.setValue(GameState.COMPLETED);
+		gameState.close();
 	}
 
 	private InGamePlayer getPlayerByColor(PlayerColor playerColor) {
@@ -450,20 +452,20 @@ public final class SimpleGame implements Game {
 	}
 
 	private void failIfNotStarted() {
-		GameState state = gameState.get();
+		GameState state = gameState.getValue();
 		if (state == GameState.INITIAL) {
 			throw new IllegalStateException("Game does not started");
 		}
 	}
 
 	private void failIfCompleted() {
-		if (gameState.get() == GameState.COMPLETED) {
+		if (gameState.getValue() == GameState.COMPLETED) {
 			throw new IllegalStateException("Game already completed");
 		}
 	}
 
 	private void failIfNotInProgress() {
-		if (gameState.get() != GameState.STARTED) {
+		if (gameState.getValue() != GameState.STARTED) {
 			throw new IllegalStateException("Game does not started or completed");
 		}
 	}

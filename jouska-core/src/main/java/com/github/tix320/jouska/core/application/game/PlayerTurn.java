@@ -7,6 +7,10 @@ public class PlayerTurn extends GameChange {
 
 	private final CellChange cellChange;
 
+	private PlayerTurn() {
+		this(null);
+	}
+
 	public PlayerTurn(CellChange cellChange) {
 		this.cellChange = cellChange;
 	}

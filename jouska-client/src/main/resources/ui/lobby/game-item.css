@@ -3,13 +3,32 @@
     -fx-font-size: 18px;
 }
 
-#gameItem {
+.gameItem {
     -fx-background-color: #169abe;
     -fx-background-radius: 25px;
     -fx-pref-height: 200;
     -fx-pref-width: 200;
     -fx-start-margin: 10px;
 }
+
+.gameItemCompleted {
+    -fx-background-color: #5dbe03;
+}
+
+#copyButton {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20px;
+    -fx-padding: 2px;
+}
+
+#copyButton:hover {
+    -fx-background-color: #82be3c;
+}
+
+#copyButton:pressed {
+    -fx-background-color: #ffc023;
+}
+
 
 .vbox {
     -fx-spacing: 10px;
@@ -61,4 +80,12 @@
 
 #startButton:pressed {
     -fx-background-color: #ff6120;
+}
+
+.tooltip {
+    -fx-font: normal bold 16 Langdon;
+    -fx-base: #AE3522;
+    -fx-text-fill: orange;
+    -fx-show-delay: 100ms;
+    -fx-hide-delay: 100ms;
 }

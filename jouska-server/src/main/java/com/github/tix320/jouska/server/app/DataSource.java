@@ -9,9 +9,16 @@ import dev.morphia.Morphia;
 
 public class DataSource {
 
-	public static Datastore INSTANCE;
+	private static Datastore INSTANCE;
 
-	public static void init() {
+	public static Datastore getInstance() {
+		if (INSTANCE == null) {
+			INSTANCE = createDatasource();
+		}
+		return INSTANCE;
+	}
+
+	private static Datastore createDatasource() {
 		String dbHost = getProperty("jouskaDbHost", "localhost");
 		int dbPort = Integer.parseInt(getProperty("jouskaDbPort", "27017"));
 		String dbName = getProperty("jouskaDbName", "jouska");
@@ -35,17 +42,14 @@ public class DataSource {
 		final Datastore datastore = morphia.createDatastore(
 				new MongoClient(serverAddress, credential, MongoClientOptions.builder().build()), dbName);
 		datastore.ensureIndexes();
-		INSTANCE = datastore;
+
+		return datastore;
 	}
 
 	private static String getProperty(String key, String defaultValue) {
-		String value = System.getProperty(key);
+		String value = System.getenv(key);
 		if (value == null) {
-			value = System.getenv(key);
-
-			if (value == null) {
-				value = defaultValue;
-			}
+			value = System.getProperty(key, defaultValue);
 		}
 
 		return value;
