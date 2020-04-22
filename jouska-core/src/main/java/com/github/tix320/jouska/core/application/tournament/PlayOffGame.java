@@ -3,19 +3,18 @@ package com.github.tix320.jouska.core.application.tournament;
 import java.util.Optional;
 
 import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.application.game.GameWithSettings;
-import com.github.tix320.jouska.core.application.game.InGamePlayer;
+import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.model.Player;
 
 public final class PlayOffGame {
 	private final Player firstPlayer;
 	private final Player secondPlayer;
-	private final GameWithSettings gameWithSettings;
+	private final Game game;
 
-	public PlayOffGame(Player firstPlayer, Player secondPlayer, GameWithSettings gameWithSettings) {
+	public PlayOffGame(Player firstPlayer, Player secondPlayer, Game game) {
 		this.firstPlayer = firstPlayer;
 		this.secondPlayer = secondPlayer;
-		this.gameWithSettings = gameWithSettings;
+		this.game = game;
 	}
 
 	public Player getFirstPlayer() {
@@ -26,17 +25,12 @@ public final class PlayOffGame {
 		return secondPlayer;
 	}
 
-	public GameWithSettings getGameWithSettings() {
-		return gameWithSettings;
+	public Game getGame() {
+		return game;
 	}
 
 	public int getWinnerNumber() {
-		if (gameWithSettings == null) {
-			return -1;
-		}
-
-		Game game = gameWithSettings.getGame();
-		Optional<InGamePlayer> winner = game.getWinner();
+		Optional<GamePlayer> winner = Optional.ofNullable(game).flatMap(Game::getWinner);
 		if (winner.isPresent()) {
 			if (winner.get().getRealPlayer().equals(firstPlayer)) {
 				return 1;

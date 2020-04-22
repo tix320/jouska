@@ -3,7 +3,7 @@ package com.github.tix320.jouska.client.ui.controller;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.ui.helper.component.PastePreventPasswordField;
-import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -54,7 +54,7 @@ public class RegistrationController implements Controller<Object> {
 					switch (registrationAnswer) {
 						case SUCCESS:
 							UI.switchComponent(ComponentType.LOGIN,
-									new LoginCommand(nicknameInput.getText(), passwordInput.getText()));
+									new Credentials(nicknameInput.getText(), passwordInput.getText()));
 							break;
 						case NICKNAME_ALREADY_EXISTS:
 							showError("Nickname already exists");

@@ -7,5 +7,5 @@ public interface Statistics {
 	/**
 	 * Returns player's point on board.
 	 */
-	Map<InGamePlayer, Integer> summaryPoints();
+	Map<GamePlayer, Integer> summaryPoints();
 }

@@ -5,17 +5,22 @@ package com.github.tix320.jouska.core.application.game;
  */
 public class PlayerTurn implements GameChange {
 
-	private final CellChange cellChange;
+	private final Point point;
 
 	private PlayerTurn() {
 		this(null);
 	}
 
-	public PlayerTurn(CellChange cellChange) {
-		this.cellChange = cellChange;
+	public PlayerTurn(Point point) {
+		this.point = point;
 	}
 
-	public CellChange getCellChange() {
-		return cellChange;
+	public Point getPoint() {
+		return point;
+	}
+
+	@Override
+	public void accept(GameChangeVisitor visitor) {
+		visitor.visit(this);
 	}
 }

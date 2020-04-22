@@ -3,7 +3,7 @@ package com.github.tix320.jouska.core.application.game;
 /**
  * @author Tigran Sargsyan on 14-Apr-20.
  */
-public class PlayerTimedTurn extends PlayerTurn implements TimedGameChange {
+public class PlayerTimedTurn extends PlayerTurn {
 
 	private final long remainingTurnMillis;
 
@@ -13,8 +13,8 @@ public class PlayerTimedTurn extends PlayerTurn implements TimedGameChange {
 		this(null, -1, -1);
 	}
 
-	public PlayerTimedTurn(CellChange cellChange, long remainingTurnMillis, long remainingPlayerTotalTurnMillis) {
-		super(cellChange);
+	public PlayerTimedTurn(Point point, long remainingTurnMillis, long remainingPlayerTotalTurnMillis) {
+		super(point);
 		this.remainingTurnMillis = remainingTurnMillis;
 		this.remainingPlayerTotalTurnMillis = remainingPlayerTotalTurnMillis;
 	}
@@ -25,5 +25,10 @@ public class PlayerTimedTurn extends PlayerTurn implements TimedGameChange {
 
 	public long getRemainingPlayerTotalTurnMillis() {
 		return remainingPlayerTotalTurnMillis;
+	}
+
+	@Override
+	public void accept(GameChangeVisitor visitor) {
+		visitor.visit(this);
 	}
 }

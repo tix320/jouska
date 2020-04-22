@@ -15,6 +15,12 @@ import com.github.tix320.sonder.api.common.rpc.extra.ExtraParamDefinition;
  */
 public class UserExtraArgExtractor implements EndpointExtraArgExtractor<CallerUser, Player> {
 
+	private final PlayerService playerService;
+
+	public UserExtraArgExtractor() {
+		playerService = new PlayerService();
+	}
+
 	@Override
 	public ExtraParamDefinition<CallerUser, Player> getParamDefinition() {
 		return new ExtraParamDefinition<>(CallerUser.class, Player.class, false);
@@ -28,7 +34,7 @@ public class UserExtraArgExtractor implements EndpointExtraArgExtractor<CallerUs
 				.orElseThrow(() -> new NotAuthenticatedException(
 						String.format("Client with id %s not authenticated for method call %s", clientId, method)));
 
-		Player player = PlayerService.findPlayerById(playerId).orElseThrow();
+		Player player = playerService.getPlayerById(playerId).orElseThrow();
 
 		Role role = method.getAnnotation(Role.class);
 

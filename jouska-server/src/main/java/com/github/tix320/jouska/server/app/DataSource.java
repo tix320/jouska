@@ -6,6 +6,8 @@ import com.mongodb.MongoCredential;
 import com.mongodb.ServerAddress;
 import dev.morphia.Datastore;
 import dev.morphia.Morphia;
+import dev.morphia.mapping.Mapper;
+import dev.morphia.mapping.MapperOptions;
 
 public class DataSource {
 
@@ -39,8 +41,9 @@ public class DataSource {
 		ServerAddress serverAddress = new ServerAddress(dbHost, dbPort);
 		MongoCredential credential = MongoCredential.createScramSha1Credential(dbUsername, "admin",
 				dbPassword.toCharArray());
+		Mapper mapper = configureMapper();
 		final Datastore datastore = morphia.createDatastore(
-				new MongoClient(serverAddress, credential, MongoClientOptions.builder().build()), dbName);
+				new MongoClient(serverAddress, credential, MongoClientOptions.builder().build()), mapper, dbName);
 		datastore.ensureIndexes();
 
 		return datastore;
@@ -53,5 +56,11 @@ public class DataSource {
 		}
 
 		return value;
+	}
+
+	private static Mapper configureMapper() {
+		MapperOptions mapperOptions = new MapperOptions();
+		mapperOptions.setStoreEmpties(true);
+		return new Mapper(mapperOptions);
 	}
 }

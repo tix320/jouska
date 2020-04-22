@@ -6,57 +6,67 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.application.game.GameWithSettings;
-import com.github.tix320.jouska.core.application.game.InGamePlayer;
-import com.github.tix320.jouska.core.application.game.TournamentState;
-import com.github.tix320.jouska.core.application.game.creation.GameFactory;
+import com.github.tix320.jouska.core.application.game.GamePlayer;
+import com.github.tix320.jouska.core.application.game.PlayerColor;
+import com.github.tix320.jouska.core.application.game.creation.ClassicGroupSettings;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.RestorableGroupSettings;
+import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.util.None;
 
-public class ClassicGroup implements Group {
+public class ClassicGroup implements RestorableGroup {
 
 	private static final int WIN_POINTS = 1;
 
 	private final List<GroupPlayer> players;
 
-	private final List<GameWithSettings> games;
+	private final ClassicGroupSettings settings;
 
-	private final Property<TournamentState> groupState;
+	private final List<Game> games;
+
+	private final Property<GroupState> state;
 
 	private final AtomicReference<List<Player>> winners;
 
-	public ClassicGroup(GameSettings gameSettings, List<Player> players) {
+	public static ClassicGroup create(Set<Player> players, ClassicGroupSettings settings) {
+		GameSettings baseGameSettings = settings.getBaseGameSettings();
+
 		if (players.size() < 2 || players.size() > 4) {
 			throw new IllegalArgumentException("Players count must be [2,4]");
 		}
 
-		int gamePLayersCount = gameSettings.getPlayersCount();
+		int gamePLayersCount = baseGameSettings.getPlayersCount();
 		if (gamePLayersCount != 2) {
 			throw new IllegalStateException(
-					String.format("Invalid players count %s. Classic group game must be for two players",
+					String.format("Invalid players count %s. Classic group games must be for two players",
 							gamePLayersCount));
 		}
 
+		return new ClassicGroup(players, settings);
+	}
+
+	private ClassicGroup(Set<Player> players, ClassicGroupSettings settings) {
 		this.players = players.stream().map(GroupPlayer::new).collect(Collectors.toList());
-		this.groupState = Property.forObject(TournamentState.IN_PROGRESS);
-		this.games = generateGames(players, gameSettings);
+		this.settings = settings;
+		this.games = new ArrayList<>();
+		this.state = Property.forObject(GroupState.INITIAL);
 		this.winners = new AtomicReference<>();
+	}
 
-		List<MonoObservable<? extends Game>> onCompleteObservables = this.games.stream()
-				.map(gameWithSettings -> gameWithSettings.getGame()
-						.completed()
-						.peek(ignored -> handleGameComplete(gameWithSettings.getGame()))
-						.toMono())
-				.collect(Collectors.toList());
+	@Override
+	public synchronized void start() {
+		failIfStarted();
 
-		Observable.zip(onCompleteObservables).subscribe(ignored -> {
-			winners.set(resolveGroupWinners());
-			groupState.setValue(TournamentState.COMPLETED);
-		});
+		List<Game> games = generateGames(players.stream().map(GroupPlayer::getPlayer).collect(Collectors.toSet()),
+				settings.getBaseGameSettings());
+		state.setValue(GroupState.RUNNING);
+
+		games.forEach(this::registerGame);
+
+		subscribeToAllGamesComplete();
 	}
 
 	@Override
@@ -65,43 +75,71 @@ public class ClassicGroup implements Group {
 	}
 
 	@Override
-	public Optional<List<Player>> getWinners() {
+	public synchronized Optional<List<Player>> getWinners() {
 		return Optional.ofNullable(winners.get());
 	}
 
 	@Override
-	public List<GameWithSettings> getGames() {
+	public synchronized List<Game> getGames() {
+		if (state.getValue() == GroupState.INITIAL) {
+			throw new TournamentIllegalStateException("Group not started");
+		}
 		return Collections.unmodifiableList(games);
 	}
 
 	@Override
-	public MonoObservable<None> completed() {
-		return groupState.asObservable()
-				.filter(tournamentState -> tournamentState == TournamentState.COMPLETED)
-				.map(tournamentState -> None.SELF)
+	public MonoObservable<ClassicGroup> completed() {
+		return state.asObservable()
+				.filter(groupState -> groupState == GroupState.COMPLETED)
+				.map(tournamentState -> this)
 				.toMono();
 	}
 
-	private List<GameWithSettings> generateGames(List<Player> players, GameSettings gameSettings) {
-		List<GameWithSettings> games = new ArrayList<>();
-		for (int i = 0; i < players.size(); i++) {
-			for (int j = i + 1; j < players.size(); j++) {
-				Player firstPlayer = players.get(i);
-				Player secondPlayer = players.get(j);
-				gameSettings = gameSettings.changeName(
-						String.format("%s VS %s", firstPlayer.getNickname(), secondPlayer.getNickname()));
+	@Override
+	public RestorableGroupSettings getSettings() {
+		return settings;
+	}
 
-				Game game = GameFactory.create(gameSettings, Set.of(firstPlayer, secondPlayer));
-				games.add(new GameWithSettings(game, gameSettings));
-			}
+	@Override
+	public void restore(List<Game> games) throws RestoreException {
+		int gamesCount = groupGamesCountByPlayersCount(players.size());
+		if (gamesCount != games.size()) {
+			throw new IllegalStateException();
 		}
-		return games;
+
+		for (Game game : games) {
+			registerGame(game);
+		}
+		state.setValue(GroupState.RUNNING);
+
+		subscribeToAllGamesComplete();
+	}
+
+	private int groupGamesCountByPlayersCount(int playersCount) {
+		return (playersCount * (playersCount - 1)) / 2;
+	}
+
+	private void subscribeToAllGamesComplete() {
+		allGamesCompleteness().subscribe(games1 -> onAllGamesComplete());
+	}
+
+	private MonoObservable<List<Game>> allGamesCompleteness() {
+		List<MonoObservable<? extends Game>> completedObservables = this.games.stream()
+				.map(Game::completed)
+				.collect(Collectors.toList());
+
+		return Observable.zip(completedObservables).toMono();
+	}
+
+	private void registerGame(Game game) {
+		games.add(game);
+		game.completed().subscribe(this::handleGameComplete);
 	}
 
 	private void handleGameComplete(Game game) {
-		InGamePlayer winner = game.getWinner().orElseThrow();
-		InGamePlayer loser = game.getLosers().get(0);
-		Map<InGamePlayer, Integer> gameSummaryPoints = game.getStatistics().summaryPoints();
+		GamePlayer winner = game.getWinner().orElseThrow();
+		GamePlayer loser = game.getLosers().get(0);
+		Map<GamePlayer, Integer> gameSummaryPoints = game.getStatistics().summaryPoints();
 
 		GroupPlayer gameWinner = findGroupPlayer(winner.getRealPlayer());
 		GroupPlayer gameLoser = findGroupPlayer(winner.getRealPlayer());
@@ -112,7 +150,17 @@ public class ClassicGroup implements Group {
 		gameLoser.addTotalGamesPoints(gameSummaryPoints.get(loser));
 	}
 
-	private List<Player> resolveGroupWinners() {
+	private void onAllGamesComplete() {
+		Property.inAtomicContext(() -> {
+			List<Player> players = determineGroupWinners();
+			Property.inAtomicContext(() -> {
+				winners.set(players);
+				state.setValue(GroupState.COMPLETED);
+			});
+		});
+	}
+
+	private List<Player> determineGroupWinners() {
 		List<GroupPlayer> sortedPlayers = players.stream()
 				.sorted(Comparator.comparing(GroupPlayer::getGroupPoints)
 						.thenComparing(GroupPlayer::getTotalGamesPoints)
@@ -135,6 +183,33 @@ public class ClassicGroup implements Group {
 			}
 		}
 		throw new IllegalStateException(player + "");
+	}
+
+	private void failIfStarted() {
+		GroupState state = this.state.getValue();
+		if (state != GroupState.INITIAL) {
+			throw new TournamentIllegalStateException("Group already started");
+		}
+	}
+
+	private static List<Game> generateGames(Set<Player> players, GameSettings gameSettings) {
+		List<Player> playersList = new ArrayList<>(players);
+		List<Game> games = new ArrayList<>();
+		for (int i = 0; i < playersList.size(); i++) {
+			for (int j = i + 1; j < playersList.size(); j++) {
+				Player firstPlayer = playersList.get(i);
+				Player secondPlayer = playersList.get(j);
+				gameSettings = gameSettings.changeName(
+						String.format("%s VS %s", firstPlayer.getNickname(), secondPlayer.getNickname()));
+
+				Game game = gameSettings.createGame();
+				game.addPlayer(new GamePlayer(firstPlayer, PlayerColor.RED));
+				game.addPlayer(new GamePlayer(secondPlayer, PlayerColor.BLUE));
+				game.shufflePLayers();
+				games.add(game);
+			}
+		}
+		return games;
 	}
 
 	public static class GroupPlayer {
@@ -160,11 +235,11 @@ public class ClassicGroup implements Group {
 			return totalGamesPoints.get();
 		}
 
-		private synchronized void addGroupPoints(int points) {
+		private void addGroupPoints(int points) {
 			groupPoints.addAndGet(points);
 		}
 
-		private synchronized void addTotalGamesPoints(int points) {
+		private void addTotalGamesPoints(int points) {
 			totalGamesPoints.addAndGet(points);
 		}
 	}

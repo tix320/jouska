@@ -2,14 +2,14 @@ package com.github.tix320.jouska.server.infrastructure.endpoint;
 
 import java.util.Set;
 
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
-import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.RegistrationAnswer;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.DataSource;
-import com.github.tix320.jouska.server.entity.PlayerEntity;
+import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
@@ -20,19 +20,25 @@ import com.mongodb.DuplicateKeyException;
 @Endpoint("auth")
 public class AuthenticationEndpoint {
 
+	private final PlayerService playerService;
+
+	public AuthenticationEndpoint() {
+		playerService = new PlayerService();
+	}
+
 	@Endpoint("login")
-	public LoginAnswer login(LoginCommand loginCommand, @ClientID long clientId) {
-		return PlayerService.login(clientId, loginCommand);
+	public LoginAnswer login(Credentials credentials, @ClientID long clientId) {
+		return playerService.login(clientId, credentials);
 	}
 
 	@Endpoint("forceLogin")
-	public LoginAnswer forceLogin(LoginCommand loginCommand, @ClientID long clientId) {
-		return PlayerService.forceLogin(clientId, loginCommand);
+	public LoginAnswer forceLogin(Credentials credentials, @ClientID long clientId) {
+		return playerService.forceLogin(clientId, credentials);
 	}
 
 	@Endpoint("logout")
 	public void logout(@ClientID long clientId) {
-		PlayerService.logout(clientId);
+		playerService.logout(clientId);
 	}
 
 	@Endpoint("register")
@@ -51,6 +57,6 @@ public class AuthenticationEndpoint {
 	@Endpoint("connected-players")
 	@Subscription
 	public Observable<Set<Player>> connectPlayers() {
-		return PlayerService.getConnectedPlayers();
+		return playerService.getConnectedPlayers();
 	}
 }

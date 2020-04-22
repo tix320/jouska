@@ -70,13 +70,13 @@ public class TournamentLobbyController implements Controller<Object> {
 
 	private void joinTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
-		long tournamentId = tournamentView.getId();
+		String tournamentId = tournamentView.getId();
 		TOURNAMENT_SERVICE.join(tournamentId).subscribe(System.out::println);
 	}
 
 	private void viewTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
-		long tournamentId = tournamentView.getId();
+		String tournamentId = tournamentView.getId();
 		TOURNAMENT_SERVICE.getTournamentStructure(tournamentId).subscribe(tournamentStructure -> {
 			if (tournamentStructure != null) {
 				EventDispatcher.fire(

@@ -2,18 +2,18 @@ package com.github.tix320.jouska.client.ui.controller;
 
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
+import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.core.event.EventDispatcher;
+import com.github.tix320.jouska.core.util.LoopThread;
 import com.github.tix320.jouska.core.util.Threads;
-import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
@@ -52,7 +52,7 @@ public final class MenuController implements Controller<Object> {
 
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 
-	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	private BlockingQueue<NotificationEvent<?, ?>> notificationsQueue;
 
@@ -133,21 +133,16 @@ public final class MenuController implements Controller<Object> {
 	}
 
 	private void runNotificationConsumer() {
-		AtomicBoolean running = Threads.runLoop(() -> {
-			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
-			NotificationEvent<?, ?> notificationEvent = Try.supplyOrRethrow(
-					() -> notificationsQueue.poll(5, TimeUnit.SECONDS));
-			if (notificationEvent == null) {
-				return true;
-			}
-			ComponentType componentType = notificationEvent.getComponentType();
-			Component component = UI.loadComponent(componentType, notificationEvent);
+		LoopThread loopThread = Threads.runLoop(() -> {
+			NotificationEvent<?, ?> notificationEvent = notificationsQueue.take();
+			NotificationType notificationType = notificationEvent.getNotificationType();
+			Component component = UI.loadNotificationComponent(notificationType, notificationEvent);
 
 			if (!(component.getController() instanceof NotificationController)) {
 				throw new IllegalStateException("");
 			}
 
-			NotificationController<?, ?> notificationController = (NotificationController<?, ?>) component.getController();
+			NotificationController<?> notificationController = (NotificationController<?>) component.getController();
 
 			Parent content = component.getRoot();
 
@@ -202,7 +197,7 @@ public final class MenuController implements Controller<Object> {
 
 			return true;
 		});
-		destroyPublisher.asObservable().subscribe(none -> running.set(false));
+		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
 	}
 
 	public enum MenuContentType {

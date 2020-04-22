@@ -7,99 +7,149 @@ import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
+import com.github.tix320.jouska.core.application.game.creation.SimpleGameSettings;
+import com.github.tix320.jouska.core.infrastructure.RestoreException;
+import com.github.tix320.jouska.core.infrastructure.UnsupportedChangeException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.stock.ReadOnlyStock;
-import com.github.tix320.kiwi.api.reactive.stock.Stock;
-import com.github.tix320.kiwi.api.util.collection.Tuple;
+import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
+import com.github.tix320.kiwi.api.reactive.property.Stock;
 
 import static java.util.stream.Collectors.toMap;
 
-public final class SimpleGame implements Game {
+public final class SimpleGame implements RestorableGame {
 
 	private static final int MAX_POINTS = 4;
 
-	private final List<InGamePlayer> players;
+	private final SimpleGameSettings settings;
+	private final List<GamePlayer> players;
 
 	// ------------ Game State
-	private final BoardCell[][] board;
-	private final List<InGamePlayer> activePlayers;
-	private final AtomicReference<InGamePlayer> currentPlayer;
+	private GameBoard board; // init after start
+	private final List<GamePlayer> activePlayers;
+	private final AtomicReference<GamePlayer> currentPlayer;
 	private final Stock<GameChange> changes;
 	private final Property<GameState> gameState;
-	private final AtomicReference<InGamePlayer> winner;
-	private final List<InGamePlayer> lostPlayers;
+	private final AtomicReference<GamePlayer> winner;
+	private final List<GamePlayer> lostPlayers;
 	private final List<PlayerWithPoints> kickPlayers;
-	private final Map<InGamePlayer, Integer> summaryStatistics;
+	private final Map<GamePlayer, Integer> summaryStatistics;
 
-	public static SimpleGame createPredefined(GameBoard board, List<InGamePlayer> players) {
-		return new SimpleGame(board, players);
+	public static SimpleGame create(SimpleGameSettings gameSettings) {
+		return new SimpleGame(gameSettings);
 	}
 
-	public static SimpleGame createRandom(GameSettings gameSettings, Set<Player> players) {
-		if (gameSettings.getPlayersCount() != players.size()) {
-			throw new IllegalStateException();
-		}
-
-		Tuple<List<InGamePlayer>, GameBoard> tuple = prepare(gameSettings, players);
-		GameBoard board = tuple.second();
-		List<InGamePlayer> gamePLayers = tuple.first();
-
-		return new SimpleGame(board, gamePLayers);
-	}
-
-	private SimpleGame(GameBoard board, List<InGamePlayer> players) {
+	private SimpleGame(SimpleGameSettings settings) {
+		this.settings = settings;
 		this.changes = Stock.forObject();
 		this.gameState = Property.forObject(GameState.INITIAL);
 		this.summaryStatistics = new HashMap<>();
 		this.lostPlayers = new ArrayList<>();
 		this.winner = new AtomicReference<>();
 		this.kickPlayers = new ArrayList<>();
-		this.players = List.copyOf(players);
-		this.activePlayers = new ArrayList<>(players);
-		this.currentPlayer = new AtomicReference<>(players.get(0));
-		this.board = board.getMatrix();
+		this.players = new ArrayList<>();
+		this.activePlayers = new ArrayList<>();
+		this.currentPlayer = new AtomicReference<>();
 	}
 
-	private static Tuple<List<InGamePlayer>, GameBoard> prepare(GameSettings gameSettings, Set<Player> players) {
-		int playersCount = gameSettings.getPlayersCount();
+	@Override
+	public RestorableGameSettings getSettings() {
+		return settings;
+	}
+
+	@Override
+	public synchronized void addPlayer(GamePlayer player) {
+		failIfStarted();
+
+		int playersCount = settings.getPlayersCount();
+		if (playersCount == players.size()) {
+			throw new GameAlreadyFullException(String.format("Already full. Count %s", playersCount));
+		}
+
+		if (getPlayers().contains(player.getRealPlayer())) {
+			throw new IllegalArgumentException("Player already added");
+		}
+
+		players.add(player);
+	}
+
+	@Override
+	public synchronized boolean removePlayer(Player player) {
+		failIfStarted();
+
+		return players.removeIf(gamePlayer -> gamePlayer.getRealPlayer().equals(player));
+	}
+
+	@Override
+	public synchronized void shufflePLayers() {
+		failIfStarted();
+
+		int playersCount = settings.getPlayersCount();
 
 		PlayerColor[] colors = PlayerColor.random(playersCount);
 
-		List<Player> playersList = players.stream().collect(Collectors.collectingAndThen(Collectors.toList(), list -> {
-			Collections.shuffle(list);
-			return list;
-		}));
-
-		List<InGamePlayer> gamePlayers = new ArrayList<>(playersList.size());
-		for (int i = 0; i < playersList.size(); i++) {
-			Player player = playersList.get(i);
+		List<GamePlayer> gamePlayers = new ArrayList<>(players.size());
+		for (int i = 0; i < players.size(); i++) {
+			Player player = players.get(i).getRealPlayer();
 			PlayerColor playerColor = colors[i];
-			gamePlayers.add(new InGamePlayer(player, playerColor));
+			gamePlayers.add(new GamePlayer(player, playerColor));
 		}
 
-		GameBoard board = GameBoards.createByType(gameSettings.getBoardType(), Arrays.asList(colors));
-		return new Tuple<>(gamePlayers, board);
+		players.clear();
+		players.addAll(gamePlayers);
 	}
 
 	@Override
 	public synchronized void start() {
-		if (gameState.getValue() != GameState.INITIAL) {
-			throw new RuntimeException("Game Already started");
+		failIfStarted();
+
+		int playersCount = settings.getPlayersCount();
+		if (playersCount != players.size()) {
+			throw new GameIllegalStateException(String.format("Game players not fully. Count %s", playersCount));
 		}
 
-		initBoard();
-		gameState.setValue(GameState.STARTED);
+		Set<PlayerColor> uniqueColors = players.stream().map(GamePlayer::getColor).collect(Collectors.toSet());
+		if (uniqueColors.size() != players.size()) {
+			throw new GameIllegalStateException("Not unique colors");
+		}
+
+		this.board = GameBoards.createByType(settings.getBoardType(),
+				players.stream().map(GamePlayer::getColor).collect(Collectors.toList()));
+
+		this.activePlayers.addAll(players);
+		this.currentPlayer.set(players.get(0));
+
+		calculateInitialStatistics();
+
+		gameState.setValue(GameState.RUNNING);
 	}
 
+	@Override
+	public synchronized void restore(List<GameChange> changes) throws UnsupportedChangeException {
+		if (gameState.getValue() != GameState.INITIAL) {
+			throw new RestoreException("Game already started");
+		}
+
+		ChangeVisitor changeVisitor = new ChangeVisitor();
+		for (GameChange change : changes) {
+			if (isCompleted()) {
+				throw new IllegalStateException(
+						"Game completed based on changes. but still remained changes, which was not applied");
+			}
+			change.accept(changeVisitor);
+		}
+	}
+
+	@Override
 	public synchronized CellChange turn(Point point) {
 		failIfNotInProgress();
 		int i = point.i;
 		int j = point.j;
-		BoardCell boardCell = board[i][j];
+		BoardCell boardCell = board.get(i, j);
 		PlayerColor player = boardCell.getColor();
-		InGamePlayer currentPlayer = this.currentPlayer.get();
+		GamePlayer currentPlayer = this.currentPlayer.get();
 		if (currentPlayer.getColor() != player) {
 			throw new IllegalTurnActorException(
 					String.format("Current player %s cannot turn on cell %s:%s, which belongs to player %s",
@@ -110,9 +160,9 @@ public final class SimpleGame implements Game {
 
 		resolveNextPlayer();
 		checkStatistics();
-		boolean needComplete = checkPlayers();
+		boolean needComplete = activePlayers.size() == 1;
 
-		changes.add(new PlayerTurn(cellChange));
+		changes.add(new PlayerTurn(point));
 
 		if (needComplete) {
 			completeGame(activePlayers.get(0));
@@ -121,24 +171,20 @@ public final class SimpleGame implements Game {
 		return cellChange;
 	}
 
-	public BoardCell[][] getBoard() {
-		return board;
-	}
-
 	public ReadOnlyStock<GameChange> changes() {
 		return changes.toReadOnly();
 	}
 
 	@Override
 	public synchronized List<Point> getPointsBelongedToPlayer(Player player) {
-		failIfNotStarted();
-		InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
+		GamePlayer gamePlayer = findGamePlayerByPlayer(player);
 
 		PlayerColor playerColor = gamePlayer.getColor();
 		List<Point> points = new ArrayList<>();
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board[i].length; j++) {
-				if (board[i][j].getColor() == playerColor) {
+		GameBoard board = this.board;
+		for (int i = 0; i < board.getHeight(); i++) {
+			for (int j = 0; j < board.getWidth(); j++) {
+				if (board.get(i, j).getColor() == playerColor) {
 					points.add(new Point(i, j));
 				}
 			}
@@ -148,23 +194,28 @@ public final class SimpleGame implements Game {
 	}
 
 	@Override
-	public List<InGamePlayer> getPlayers() {
-		return players;
+	public synchronized List<Player> getPlayers() {
+		return players.stream().map(GamePlayer::getRealPlayer).collect(Collectors.toUnmodifiableList());
 	}
 
 	@Override
-	public synchronized List<InGamePlayer> getActivePlayers() {
+	public synchronized List<GamePlayer> getPlayersWithColors() {
+		return Collections.unmodifiableList(players);
+	}
+
+	@Override
+	public synchronized List<GamePlayer> getActivePlayers() {
 		return Collections.unmodifiableList(activePlayers);
 	}
 
-	public synchronized InGamePlayer getCurrentPlayer() {
+	public synchronized GamePlayer getCurrentPlayer() {
 		failIfCompleted();
 		return currentPlayer.get();
 	}
 
-	public synchronized Optional<InGamePlayer> ownerOfPoint(Point point) {
+	public synchronized Optional<GamePlayer> ownerOfPoint(Point point) {
 		failIfNotStarted();
-		PlayerColor color = board[point.i][point.j].getColor();
+		PlayerColor color = board.get(point.i, point.j).getColor();
 		if (color == null) {
 			return Optional.empty();
 		}
@@ -175,12 +226,12 @@ public final class SimpleGame implements Game {
 		return () -> Collections.unmodifiableMap(summaryStatistics);
 	}
 
-	public synchronized List<InGamePlayer> getLosers() {
+	public synchronized List<GamePlayer> getLosers() {
 		return Collections.unmodifiableList(lostPlayers);
 	}
 
 	@Override
-	public synchronized Optional<InGamePlayer> getWinner() {
+	public synchronized Optional<GamePlayer> getWinner() {
 		return Optional.ofNullable(winner.get());
 	}
 
@@ -196,13 +247,14 @@ public final class SimpleGame implements Game {
 		for (Point point : pointsBelongedToPlayer) {
 			putInfoToPoint(point, new BoardCell(null, 0));
 		}
-		InGamePlayer gamePlayer = findGamePlayerByPlayer(player);
+		GamePlayer gamePlayer = findGamePlayerByPlayer(player);
 		PlayerWithPoints playerWithPoints = new PlayerWithPoints(gamePlayer, pointsBelongedToPlayer);
 		kickPlayers.add(playerWithPoints);
 		lostPlayers.add(gamePlayer);
+		activePlayers.remove(gamePlayer);
 		changes.add(new PlayerKick(playerWithPoints));
 
-		boolean needComplete = checkPlayers();
+		boolean needComplete = activePlayers.size() == 1;
 
 		if (needComplete) {
 			completeGame(activePlayers.get(0));
@@ -214,8 +266,8 @@ public final class SimpleGame implements Game {
 	@Override
 	public synchronized void forceCompleteGame(Player winner) {
 		failIfNotInProgress();
-		InGamePlayer winnerPlayer = findGamePlayerByPlayer(winner);
-		List<InGamePlayer> remainingPlayers = new ArrayList<>(activePlayers);
+		GamePlayer winnerPlayer = findGamePlayerByPlayer(winner);
+		List<GamePlayer> remainingPlayers = new ArrayList<>(activePlayers);
 
 		remainingPlayers.remove(winnerPlayer);
 
@@ -224,7 +276,7 @@ public final class SimpleGame implements Game {
 	}
 
 	@Override
-	public GameState getState() {
+	public synchronized GameState getState() {
 		return gameState.getValue();
 	}
 
@@ -236,7 +288,7 @@ public final class SimpleGame implements Game {
 	@Override
 	public synchronized boolean isStarted() {
 		GameState state = gameState.getValue();
-		return state == GameState.STARTED || state == GameState.COMPLETED;
+		return state == GameState.RUNNING || state == GameState.COMPLETED;
 	}
 
 	@Override
@@ -244,23 +296,16 @@ public final class SimpleGame implements Game {
 		return gameState.getValue() == GameState.COMPLETED;
 	}
 
-	private List<InGamePlayer> resolveActivePlayers() {
-		List<InGamePlayer> activePLayers = new ArrayList<>(this.players);
-		activePLayers.removeAll(this.lostPlayers);
-		activePLayers.removeAll(
-				this.kickPlayers.stream().map(PlayerWithPoints::getPlayer).collect(Collectors.toList()));
-		return activePLayers;
-	}
-
-	private void initBoard() {
-		Map<InGamePlayer, Integer> statistics = players.stream().collect(toMap(player -> player, player -> 0));
-		for (int i = 0; i < board.length; i++) {
-			for (int j = 0; j < board[i].length; j++) {
-				BoardCell boardCell = board[i][j];
+	private void calculateInitialStatistics() {
+		Map<GamePlayer, Integer> statistics = players.stream().collect(toMap(player -> player, player -> 0));
+		GameBoard board = this.board;
+		for (int i = 0; i < board.getHeight(); i++) {
+			for (int j = 0; j < board.getWidth(); j++) {
+				BoardCell boardCell = board.get(i, j);
 				PlayerColor color = boardCell.getColor();
-				board[i][j] = boardCell;
+				board.set(i, j, boardCell);
 				if (color != null) {
-					InGamePlayer player = getPlayerByColor(boardCell.getColor());
+					GamePlayer player = getPlayerByColor(boardCell.getColor());
 					statistics.compute(player, (p, points) -> {
 						if (points == null) {
 							throw new IllegalStateException();
@@ -342,10 +387,10 @@ public final class SimpleGame implements Game {
 	}
 
 	private void resolveNextPlayer() {
-		InGamePlayer currentPlayer = this.currentPlayer.get();
+		GamePlayer currentPlayer = this.currentPlayer.get();
 
 		while (true) {
-			InGamePlayer nextPlayer = getNextPlayerOf(currentPlayer);
+			GamePlayer nextPlayer = getNextPlayerOf(currentPlayer);
 			if (activePlayers.contains(nextPlayer)) {
 				this.currentPlayer.set(nextPlayer);
 				break;
@@ -357,27 +402,17 @@ public final class SimpleGame implements Game {
 	}
 
 	private void checkStatistics() {
-		for (Entry<InGamePlayer, Integer> entry : summaryStatistics.entrySet()) {
-			InGamePlayer player = entry.getKey();
+		for (Entry<GamePlayer, Integer> entry : summaryStatistics.entrySet()) {
+			GamePlayer player = entry.getKey();
 			Integer points = entry.getValue();
 			if (points == 0) {
 				lostPlayers.add(player);
+				activePlayers.remove(player);
 			}
 		}
 	}
 
-	private boolean checkPlayers() {
-		activePlayers.clear();
-		activePlayers.addAll(resolveActivePlayers());
-
-		if (activePlayers.size() == 0) {
-			throw new IllegalStateException();
-		}
-
-		return activePlayers.size() == 1;
-	}
-
-	private InGamePlayer getNextPlayerOf(InGamePlayer player) {
+	private GamePlayer getNextPlayerOf(GamePlayer player) {
 		int index = players.indexOf(player);
 		if (index == players.size() - 1) {
 			return players.get(0);
@@ -387,7 +422,7 @@ public final class SimpleGame implements Game {
 		}
 	}
 
-	private void completeGame(InGamePlayer winner) {
+	private void completeGame(GamePlayer winner) {
 		this.winner.set(winner);
 		changes.add(new GameComplete(winner, lostPlayers));
 		changes.close();
@@ -395,7 +430,7 @@ public final class SimpleGame implements Game {
 		gameState.close();
 	}
 
-	private InGamePlayer getPlayerByColor(PlayerColor playerColor) {
+	private GamePlayer getPlayerByColor(PlayerColor playerColor) {
 		return players.stream()
 				.filter(inGamePlayer -> inGamePlayer.getColor().equals(playerColor))
 				.findFirst()
@@ -406,13 +441,13 @@ public final class SimpleGame implements Game {
 	private int getPointsOf(Point point) {
 		int i = point.i;
 		int j = point.j;
-		BoardCell boardCell = board[i][j];
+		BoardCell boardCell = board.get(i, j);
 		return boardCell.getPoints();
 	}
 
 	private void putInfoToPoint(Point point, BoardCell boardCell) {
-		BoardCell existBoardCell = board[point.i][point.j];
-		board[point.i][point.j] = boardCell;
+		BoardCell existBoardCell = board.get(point.i, point.j);
+		board.set(point.i, point.j, boardCell);
 
 		if (existBoardCell.getColor() != null) {
 			changeColorStatistics(existBoardCell.getColor(), -existBoardCell.getPoints());
@@ -439,43 +474,55 @@ public final class SimpleGame implements Game {
 		if (i - 1 >= 0) {
 			points.add(new Point(i - 1, j));
 		}
-		if (i + 1 < board.length) {
+		if (i + 1 < board.getHeight()) {
 			points.add(new Point(i + 1, j));
 		}
 		if (j - 1 >= 0) {
 			points.add(new Point(i, j - 1));
 		}
-		if (j + 1 < board[0].length) {
+		if (j + 1 < board.getWidth()) {
 			points.add(new Point(i, j + 1));
 		}
 		return points;
 	}
 
+	private void failIfStarted() {
+		GameState state = gameState.getValue();
+		if (state != GameState.INITIAL) {
+			throw new GameIllegalStateException("Game already started");
+		}
+	}
+
 	private void failIfNotStarted() {
 		GameState state = gameState.getValue();
 		if (state == GameState.INITIAL) {
-			throw new IllegalStateException("Game does not started");
+			throw new GameIllegalStateException("Game does not started");
 		}
 	}
 
 	private void failIfCompleted() {
 		if (gameState.getValue() == GameState.COMPLETED) {
-			throw new IllegalStateException("Game already completed");
+			throw new GameIllegalStateException("Game already completed");
 		}
 	}
 
 	private void failIfNotInProgress() {
-		if (gameState.getValue() != GameState.STARTED) {
-			throw new IllegalStateException("Game does not started or completed");
+		if (gameState.getValue() != GameState.RUNNING) {
+			throw new GameIllegalStateException("Game does not started or completed");
 		}
 	}
 
-	private InGamePlayer findGamePlayerByPlayer(Player player) {
-		return getPlayers().stream()
+	private GamePlayer findGamePlayerByPlayer(Player player) {
+		return getPlayersWithColors().stream()
 				.filter(inGamePlayer -> inGamePlayer.getRealPlayer().equals(player))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException(
 						String.format("Player %s does not participating in this game", player)));
+	}
+
+	@Override
+	public Object getLock() {
+		return this;
 	}
 
 	private static class PointWithCellChange {
@@ -485,6 +532,29 @@ public final class SimpleGame implements Game {
 		public PointWithCellChange(Point point, CellChange cellChange) {
 			this.point = point;
 			this.cellChange = cellChange;
+		}
+	}
+
+	private final class ChangeVisitor implements GameChangeVisitor {
+
+		@Override
+		public void visit(PlayerTurn playerTurn) {
+			turn(playerTurn.getPoint());
+		}
+
+		@Override
+		public void visit(PlayerTimedTurn playerTimedTurn) {
+			throw new UnsupportedChangeException(playerTimedTurn.getClass().toString());
+		}
+
+		@Override
+		public void visit(PlayerKick playerKick) {
+			kick(playerKick.getPlayerWithPoints().getPlayer().getRealPlayer());
+		}
+
+		@Override
+		public void visit(GameComplete gameComplete) {
+
 		}
 	}
 }

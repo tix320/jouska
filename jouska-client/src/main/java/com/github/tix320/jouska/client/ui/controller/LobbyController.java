@@ -1,16 +1,21 @@
 package com.github.tix320.jouska.client.ui.controller;
 
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
-import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.ui.lobby.ConnectedPlayerItem;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
-import com.github.tix320.jouska.core.dto.GamePlayDto;
-import com.github.tix320.jouska.core.event.EventDispatcher;
+import com.github.tix320.jouska.core.application.game.GameState;
+import com.github.tix320.jouska.core.dto.GameListFilter;
+import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.jouska.core.dto.TournamentView;
+import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
+import com.github.tix320.kiwi.api.reactive.observable.Subscription;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -20,19 +25,18 @@ import javafx.animation.Timeline;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
+import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.scene.Node;
-import javafx.scene.control.Alert;
+import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
-import javafx.scene.control.Label;
 import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
+import javafx.util.StringConverter;
 
-import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
-import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
+import static com.github.tix320.jouska.client.app.Services.*;
 
 public class LobbyController implements Controller<Object> {
 
@@ -40,6 +44,12 @@ public class LobbyController implements Controller<Object> {
 
 	@FXML
 	private FlowPane gameItemsPane;
+
+	@FXML
+	private ChoiceBox<TournamentView> tournamentFilter;
+
+	@FXML
+	private CheckBox completedCheckBox;
 
 	@FXML
 	private Label waitingPlayersLabel;
@@ -50,17 +60,18 @@ public class LobbyController implements Controller<Object> {
 	@FXML
 	private VBox connectedPlayersPane;
 
+	private final TournamentView ALL = new TournamentView("", "Tournament", -1, -1, null, false);
+
 	private Timeline timeline;
 
-	private SimpleStringProperty waitingToConnectGameId = new SimpleStringProperty("");
+	private final SimpleStringProperty waitingToConnectGameId = new SimpleStringProperty("");
 
-	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+	private final AtomicReference<Subscription> gamesListSubscription = new AtomicReference<>();
+
+	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	@Override
 	public void init(Object data) {
-		subscribeToGameList();
-		subscribeToConnectedPlayersList();
-
 		timeline = new Timeline(new KeyFrame(Duration.seconds(0.5), ae -> {
 			String text = waitingPlayersLabel.getText();
 			int indexOfDot = text.indexOf('.');
@@ -96,17 +107,28 @@ public class LobbyController implements Controller<Object> {
 
 		waitingToConnectGameId.set(null);
 
-		EventDispatcher.on(GameStartedEvent.class)
-				.takeUntil(destroyPublisher.asObservable())
-				.conditionalSubscribe(event -> {
-					GamePlayDto gamePlayDto = event.getGamePlayDto();
-					if (gamePlayDto.getGameId().equals(waitingToConnectGameId.get())) {
-						UI.switchComponent(ComponentType.GAME, gamePlayDto);
-						return false;
-					}
+		tournamentFilter.setConverter(new StringConverter<>() {
+			@Override
+			public String toString(TournamentView object) {
+				return object.getName();
+			}
 
-					return true;
-				});
+			@Override
+			public TournamentView fromString(String string) {
+				return null;
+			}
+		});
+
+		tournamentFilter.setValue(ALL);
+
+		tournamentFilter.valueProperty()
+				.addListener((observable, oldValue, selectedTournament) -> subscribeWithCurrentFilter());
+		completedCheckBox.selectedProperty()
+				.addListener((observable, oldValue, selected) -> subscribeWithCurrentFilter());
+
+		subscribeToTournamentList();
+		subscribeToConnectedPlayersList();
+		subscribeWithCurrentFilter();
 	}
 
 	@Override
@@ -117,19 +139,59 @@ public class LobbyController implements Controller<Object> {
 		destroyPublisher.complete();
 	}
 
-	private void subscribeToGameList() {
-		GAME_SERVICE.games().takeUntil(destroyPublisher.asObservable()).subscribe(gameViews -> {
-			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
-			gameItems.forEach(gameItem -> {
-				gameItem.disableJoinButtonOn(disable);
-				gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
-				gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
-				gameItem.setOnStartClick(event -> GAME_SERVICE.startGame(gameItem.getGameView().getId()));
-			});
+	private void subscribeWithCurrentFilter() {
+		String tournamentId = null;
+		TournamentView value = tournamentFilter.getValue();
+		if (value != ALL) {
+			tournamentId = value.getId();
+		}
+
+		boolean selected = completedCheckBox.isSelected();
+
+		Set<GameState> states = new HashSet<>();
+		states.add(GameState.INITIAL);
+		states.add(GameState.RUNNING);
+		if (selected) {
+			states.add(GameState.COMPLETED);
+		}
+
+		subscribeToGameList(new GameListFilter(tournamentId, states));
+	}
+
+	private void subscribeToGameList(GameListFilter gameListFilter) {
+		Subscription subscription = gamesListSubscription.get();
+		if (subscription != null) {
+			subscription.unsubscribe();
+		}
+
+		GAME_SERVICE.games(gameListFilter)
+				.takeUntil(destroyPublisher.asObservable())
+				.subscribe(Subscriber.<List<GameView>>builder().onSubscribe(gamesListSubscription::set)
+						.onPublish(gameViews -> {
+							List<GameItem> gameItems = gameViews.stream()
+									.map(GameItem::new)
+									.collect(Collectors.toList());
+							gameItems.forEach(gameItem -> {
+								gameItem.disableJoinButtonOn(disable);
+								gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
+								gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
+								gameItem.setOnStartClick(
+										event -> GAME_SERVICE.startGame(gameItem.getGameView().getId()));
+							});
+							Platform.runLater(() -> {
+								ObservableList<Node> gameList = gameItemsPane.getChildren();
+								gameList.clear();
+								gameList.addAll(gameItems);
+							});
+						}));
+	}
+
+	private void subscribeToTournamentList() {
+		TOURNAMENT_SERVICE.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
 			Platform.runLater(() -> {
-				ObservableList<Node> gameList = gameItemsPane.getChildren();
-				gameList.clear();
-				gameList.addAll(gameItems);
+				ObservableList<TournamentView> items = FXCollections.observableArrayList(tournamentViews);
+				items.add(ALL);
+				tournamentFilter.setItems(items);
 			});
 		});
 	}
@@ -152,16 +214,6 @@ public class LobbyController implements Controller<Object> {
 
 		GAME_SERVICE.join(gameId).subscribe(answer -> {
 			switch (answer) {
-				case GAME_NOT_FOUND:
-					Platform.runLater(() -> {
-						Alert warning = new Alert(AlertType.WARNING);
-						warning.setTitle("Warning");
-						warning.setHeaderText("Game not found.");
-						warning.setContentText("Game deleted or already completed.");
-						warning.showAndWait();
-					});
-					disable.set(false);
-					break;
 				case ALREADY_FULL:
 					Platform.runLater(() -> {
 						Alert alert = new Alert(AlertType.WARNING);

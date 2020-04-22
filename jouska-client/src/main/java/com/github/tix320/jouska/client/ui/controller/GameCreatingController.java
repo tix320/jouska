@@ -10,8 +10,9 @@ import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEve
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberField;
 import com.github.tix320.jouska.core.application.game.BoardType;
-import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.CreateGameCommand;
+import com.github.tix320.jouska.core.dto.SimpleGameSettingsDto;
+import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import javafx.animation.FadeTransition;
@@ -104,10 +105,10 @@ public class GameCreatingController implements Controller<Object> {
 				loading.set(false);
 			}
 			else {
-				GAME_SERVICE.create(new CreateGameCommand(
-						new TimedGameSettings(gameNameInput.getText(), BoardType.STANDARD,
-								playersCountChoice.getValue(), new HashSet<>(players), turnDuration.get(),
-								playerTurnTotalDurationSeconds)))
+				GAME_SERVICE.create(new CreateGameCommand(new TimedGameSettingsDto(
+						new SimpleGameSettingsDto(gameNameInput.getText(), BoardType.STANDARD,
+								playersCountChoice.getValue()), turnDuration.get(), playerTurnTotalDurationSeconds),
+						new HashSet<>(players)))
 						.subscribe(Subscriber.<String>builder().onPublish(
 								gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)))
 								.onError(throwable -> {

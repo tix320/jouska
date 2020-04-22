@@ -12,7 +12,7 @@ public class MathUtils {
 		// First n in the below
 		// condition is for the
 		// case where n is 0
-		if (n > 0 && (n & (n - 1)) == 0)
+		if (n > 0 && isPowerOfTwo(n))
 			return n;
 
 		while (n != 0) {

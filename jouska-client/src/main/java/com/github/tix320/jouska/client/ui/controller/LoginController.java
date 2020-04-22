@@ -6,7 +6,7 @@ import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
-import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.Credentials;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -16,7 +16,7 @@ import javafx.util.Duration;
 
 import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 
-public class LoginController implements Controller<LoginCommand> {
+public class LoginController implements Controller<Credentials> {
 
 	@FXML
 	private TextField nicknameInput;
@@ -31,10 +31,10 @@ public class LoginController implements Controller<LoginCommand> {
 	private Label errorLabel;
 
 	@Override
-	public void init(LoginCommand loginCommand) {
-		if (loginCommand != null) {
-			nicknameInput.setText(loginCommand.getNickname());
-			passwordInput.setText(loginCommand.getPassword());
+	public void init(Credentials credentials) {
+		if (credentials != null) {
+			nicknameInput.setText(credentials.getNickname());
+			passwordInput.setText(credentials.getPassword());
 		}
 		loginButton.disableProperty()
 				.bind(nicknameInput.textProperty().isEmpty().or(passwordInput.textProperty().isEmpty()));
@@ -46,8 +46,8 @@ public class LoginController implements Controller<LoginCommand> {
 	}
 
 	public void login() {
-		LoginCommand loginCommand = new LoginCommand(nicknameInput.getText(), passwordInput.getText());
-		AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
+		Credentials credentials = new Credentials(nicknameInput.getText(), passwordInput.getText());
+		AUTHENTICATION_SERVICE.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {
 				case SUCCESS:
 					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
@@ -65,7 +65,7 @@ public class LoginController implements Controller<LoginCommand> {
 
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.isPresent() && result.get() == ButtonType.OK) {
-							AUTHENTICATION_SERVICE.forceLogin(loginCommand).subscribe(answer -> {
+							AUTHENTICATION_SERVICE.forceLogin(credentials).subscribe(answer -> {
 								switch (answer.getLoginResult()) {
 									case SUCCESS:
 										CurrentUserContext.setPlayer(answer.getPlayer());
@@ -80,7 +80,7 @@ public class LoginController implements Controller<LoginCommand> {
 							});
 						}
 						else {
-							UI.switchComponent(ComponentType.LOGIN, loginCommand);
+							UI.switchComponent(ComponentType.LOGIN, credentials);
 						}
 					});
 					break;

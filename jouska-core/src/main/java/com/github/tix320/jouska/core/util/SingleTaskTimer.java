@@ -4,6 +4,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Tigran Sargsyan on 27-Mar-20.
@@ -14,10 +15,17 @@ public class SingleTaskTimer {
 
 	private final ScheduledExecutorService timer;
 
+	private final AtomicReference<Thread> threadHolder;
+
 	private ScheduledFuture<?> lastTask;
 
 	public SingleTaskTimer() {
-		this.timer = Executors.newSingleThreadScheduledExecutor(Threads::daemon);
+		this.threadHolder = new AtomicReference<>();
+		this.timer = Executors.newSingleThreadScheduledExecutor(r -> {
+			Thread thread = Threads.daemon(r);
+			this.threadHolder.set(thread);
+			return thread;
+		});
 	}
 
 	public final synchronized void schedule(Runnable runnable, long delayMillis) {
@@ -42,6 +50,11 @@ public class SingleTaskTimer {
 	public final synchronized void destroy() {
 		cancel();
 		timer.shutdownNow();
+		// in case when timer thread stop itself, it becomes interrupted due the timer.shutdownNow() call,
+		// and continuous work of that thread is unspecified, because it may be terminated based on interrupted flag, so we are reset flag to false
+		if (Thread.currentThread() == threadHolder.get()) {
+			Thread.interrupted();
+		}
 	}
 
 	private void createTaskAndSchedule(Runnable runnable, long delay) {

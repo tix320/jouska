@@ -1,21 +1,19 @@
 package com.github.tix320.jouska.core.dto;
 
-import java.util.Set;
+import java.util.List;
 
 import com.github.tix320.jouska.core.application.game.GameState;
-import com.github.tix320.jouska.core.application.game.creation.GameSettings;
-import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.model.Player;
 
 public class GameView {
 
 	private final String id;
 
-	private final TimedGameSettings gameSettings;
+	private final GameSettingsDto gameSettings;
 
 	private final Player creator;
 
-	private final Set<Player> connectedPlayers;
+	private final List<Player> connectedPlayers;
 
 	private final GameState gameState;
 
@@ -23,7 +21,7 @@ public class GameView {
 		this(null, null, null, null, null);
 	}
 
-	public GameView(String id, TimedGameSettings gameSettings, Player creator, Set<Player> connectedPlayers,
+	public GameView(String id, GameSettingsDto gameSettings, Player creator, List<Player> connectedPlayers,
 					GameState gameState) {
 		this.id = id;
 		this.gameSettings = gameSettings;
@@ -36,7 +34,7 @@ public class GameView {
 		return id;
 	}
 
-	public GameSettings getGameSettings() {
+	public GameSettingsDto getGameSettings() {
 		return gameSettings;
 	}
 
@@ -44,7 +42,7 @@ public class GameView {
 		return creator;
 	}
 
-	public Set<Player> getConnectedPlayers() {
+	public List<Player> getConnectedPlayers() {
 		return connectedPlayers;
 	}
 

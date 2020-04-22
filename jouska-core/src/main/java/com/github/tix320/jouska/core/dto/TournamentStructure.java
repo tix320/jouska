@@ -6,23 +6,23 @@ import com.github.tix320.jouska.core.model.Player;
 
 public class TournamentStructure {
 
-	private final long id;
+	private final String id;
 
 	private final List<GroupView> groups;
 
 	private final PlayOffView playOffView;
 
 	private TournamentStructure() {
-		this(-1, null, null);
+		this(null, null, null);
 	}
 
-	public TournamentStructure(long id, List<GroupView> groups, PlayOffView playOffView) {
+	public TournamentStructure(String id, List<GroupView> groups, PlayOffView playOffView) {
 		this.id = id;
 		this.groups = groups;
 		this.playOffView = playOffView;
 	}
 
-	public long getId() {
+	public String getId() {
 		return id;
 	}
 

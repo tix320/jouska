@@ -7,10 +7,8 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
-import java.util.HashMap;
-import java.util.Map;
 
-import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.sonder.api.client.SonderClient;
@@ -41,7 +39,7 @@ public class BotApp {
 		//
 		// AuthenticationService authenticationService = SONDER_CLIENT.getRPCService(AuthenticationService.class);
 
-		for (int i = 1; i <=6; i++) {
+		for (int i = 1; i <=15; i++) {
 			SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 					.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
 					.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
@@ -50,11 +48,11 @@ public class BotApp {
 
 			String botNickname = "Bot" + i;
 			String botPassword = "foo";
-			sonderClient.getRPCService(AuthenticationService.class).forceLogin(new LoginCommand(botNickname, botPassword)).subscribe(loginAnswer -> {
+			sonderClient.getRPCService(AuthenticationService.class).forceLogin(new Credentials(botNickname, botPassword)).subscribe(loginAnswer -> {
 				if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
 					sonderClient.getRPCService(BotTournamentOrigin.class).getTournaments().toMono().subscribe(tournamentViews -> {
 						TournamentView tournamentView = tournamentViews.get(0);
-						long id = tournamentView.getId();
+						String id = tournamentView.getId();
 						sonderClient.getRPCService(BotTournamentOrigin.class).join(id);
 					});
 				}

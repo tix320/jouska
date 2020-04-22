@@ -23,4 +23,13 @@ public class EventDispatcher {
 				eventClass -> Publisher.simple());
 		publisher.publish(eventObject);
 	}
+
+	public static void fire(Event eventObject, Class<? extends Event> as) {
+		if (!as.isAssignableFrom(eventObject.getClass())) {
+			throw new IllegalArgumentException(
+					String.format("%s is not assignable from %s", as, eventObject.getClass()));
+		}
+		Publisher<Event> publisher = publishers.computeIfAbsent(as, eventClass -> Publisher.simple());
+		publisher.publish(eventObject);
+	}
 }

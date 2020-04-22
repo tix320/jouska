@@ -3,7 +3,7 @@ package com.github.tix320.jouska.bot;
 import java.util.List;
 
 import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.application.game.InGamePlayer;
+import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
 import com.github.tix320.jouska.core.dto.GameChangeDto;
 import com.github.tix320.jouska.core.dto.GameCompleteDto;
@@ -16,7 +16,7 @@ import com.github.tix320.kiwi.api.check.Try;
  */
 public final class Bot {
 
-	private final long gameId;
+	private final String gameId;
 
 	private final Game game;
 
@@ -24,7 +24,7 @@ public final class Bot {
 
 	// private final BotGameOrigin gameService;
 
-	public Bot(long gameId, Game game, PlayerColor myPlayer) {
+	public Bot(String gameId, Game game, PlayerColor myPlayer) {
 		this.gameId = gameId;
 		this.game = game;
 		this.myPlayer = myPlayer;
@@ -39,8 +39,8 @@ public final class Bot {
 			PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
 
 			game.turn(playerTurn.getPoint());
-			List<InGamePlayer> losers = game.getLosers();
-			for (InGamePlayer loser : losers) {
+			List<GamePlayer> losers = game.getLosers();
+			for (GamePlayer loser : losers) {
 				if (loser.getColor().equals(myPlayer)) {
 					// TODO Bot lose
 					break;

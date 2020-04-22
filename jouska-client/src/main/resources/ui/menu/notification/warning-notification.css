@@ -1,0 +1,25 @@
+.root * {
+    -fx-font-size: 15px;
+    -fx-font-family: "Comic Sans MS";
+}
+
+#notificationTextLabel {
+    -fx-alignment: CENTER;
+    -fx-text-inner-color: red;
+}
+
+#acceptButton {
+    -fx-background-color: #31c53a;
+}
+
+#acceptButton:hover {
+    -fx-background-color: #98c52e;
+}
+
+#acceptButton:pressed {
+    -fx-background-color: #31c53a;
+}
+
+.choiceButton {
+    -fx-background-radius: 10px;
+}

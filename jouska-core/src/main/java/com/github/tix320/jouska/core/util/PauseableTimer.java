@@ -4,6 +4,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * @author Tigran Sargsyan on 26-Mar-20.
@@ -14,6 +15,8 @@ public class PauseableTimer {
 
 	private final ScheduledExecutorService timer;
 
+	private final AtomicReference<Thread> threadHolder;
+
 	private ScheduledFuture<?> task;
 
 	private long lastStartTimestamp;
@@ -22,7 +25,12 @@ public class PauseableTimer {
 
 	public PauseableTimer(long delayMilliSeconds, Runnable task) {
 		this.realTask = task;
-		this.timer = Executors.newSingleThreadScheduledExecutor(Threads::daemon);
+		this.threadHolder = new AtomicReference<>();
+		this.timer = Executors.newSingleThreadScheduledExecutor(r -> {
+			Thread thread = Threads.daemon(r);
+			this.threadHolder.set(thread);
+			return thread;
+		});
 		this.remainingMilliSeconds = delayMilliSeconds;
 	}
 
@@ -53,6 +61,11 @@ public class PauseableTimer {
 	public final synchronized void destroy() {
 		pause();
 		timer.shutdownNow();
+		// in case when timer thread stop itself, it becomes interrupted due the timer.shutdownNow() call,
+		// and continuous work of thread is unspecified, because it may be terminated based on interrupted flag, so we are reset flag to false
+		if (Thread.currentThread() == threadHolder.get()) {
+			Thread.interrupted();
+		}
 	}
 
 	public final synchronized boolean isDestroyed() {

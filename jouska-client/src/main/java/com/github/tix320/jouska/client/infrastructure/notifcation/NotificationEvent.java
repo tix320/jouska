@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.client.infrastructure.notifcation;
 
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
 import com.github.tix320.jouska.core.event.Event;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
@@ -11,20 +12,20 @@ import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
  */
 public class NotificationEvent<I, O> implements Event {
 
-	private final ComponentType componentType;
+	private final NotificationType notificationType;
 
 	private final I data;
 
 	private final MonoPublisher<O> resolver;
 
-	public NotificationEvent(ComponentType componentType, I data) {
-		this.componentType = componentType;
+	public NotificationEvent(NotificationType notificationType, I data) {
+		this.notificationType = notificationType;
 		this.data = data;
 		this.resolver = Publisher.mono();
 	}
 
-	public ComponentType getComponentType() {
-		return componentType;
+	public NotificationType getNotificationType() {
+		return notificationType;
 	}
 
 	public I getData() {

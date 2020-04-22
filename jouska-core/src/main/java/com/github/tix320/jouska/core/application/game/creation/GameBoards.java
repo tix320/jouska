@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.core.application.game.creation;
 
 import java.util.List;
+import java.util.Objects;
 
 import com.github.tix320.jouska.core.application.game.*;
 
@@ -21,8 +22,9 @@ public final class GameBoards {
 	}
 
 	public static GameBoard defaultBoard(PlayerColor[] players) {
-		int height = 8;
-		int width = 12;
+		checkArrayNonNull(players);
+		int height = 7;
+		int width = 7;
 
 		int penultRowIndex;
 		switch (players.length) {
@@ -33,7 +35,8 @@ public final class GameBoards {
 				penultRowIndex = height - 2;
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(1, width / 2 - 1), new BoardCell(players[0], 3)),
-								new CellDomination(new Point(penultRowIndex, width / 2), new BoardCell(players[1], 3))));
+								new CellDomination(new Point(penultRowIndex, width / 2),
+										new BoardCell(players[1], 3))));
 			case 3:
 				penultRowIndex = height - 2;
 				return createBoard(height, width,
@@ -54,6 +57,7 @@ public final class GameBoards {
 	}
 
 	public static GameBoard testBoard(PlayerColor[] players) {
+		checkArrayNonNull(players);
 		int height = 8;
 		int width = 12;
 
@@ -65,7 +69,8 @@ public final class GameBoards {
 			case 2:
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(height / 2, width / 2), new BoardCell(players[0], 3)),
-								new CellDomination(new Point(height / 2 + 1, width / 2), new BoardCell(players[1], 3))));
+								new CellDomination(new Point(height / 2 + 1, width / 2),
+										new BoardCell(players[1], 3))));
 			case 3:
 				penultRowIndex = height - 2;
 				return createBoard(height, width,
@@ -99,6 +104,12 @@ public final class GameBoards {
 			boardCells[point.i][point.j] = boardCell;
 		}
 		return new GameBoard(boardCells);
+	}
+
+	private static void checkArrayNonNull(Object[] array) {
+		for (Object o : Objects.requireNonNull(array)) {
+			Objects.requireNonNull(o);
+		}
 	}
 
 	private static class CellDomination {

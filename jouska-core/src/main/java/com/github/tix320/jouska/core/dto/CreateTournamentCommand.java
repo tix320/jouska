@@ -1,20 +1,18 @@
 package com.github.tix320.jouska.core.dto;
 
-import com.github.tix320.jouska.core.application.game.creation.TournamentSettings;
-
 public class CreateTournamentCommand {
 
-	private final TournamentSettings tournamentSettings;
+	private final ClassicTournamentSettingsDto tournamentSettings;
 
 	private CreateTournamentCommand() {
 		this(null);
 	}
 
-	public CreateTournamentCommand(TournamentSettings tournamentSettings) {
+	public CreateTournamentCommand(ClassicTournamentSettingsDto tournamentSettings) {
 		this.tournamentSettings = tournamentSettings;
 	}
 
-	public TournamentSettings getTournamentSettings() {
+	public ClassicTournamentSettingsDto getTournamentSettings() {
 		return tournamentSettings;
 	}
 }

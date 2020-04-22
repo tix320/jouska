@@ -3,7 +3,7 @@ package com.github.tix320.jouska.core.application.game;
 /**
  * @author Tigran Sargsyan on 25-Mar-20.
  */
-public class PlayerKick implements GameChange {
+public final class PlayerKick implements GameChange {
 
 	private final PlayerWithPoints playerWithPoints;
 
@@ -17,5 +17,10 @@ public class PlayerKick implements GameChange {
 
 	public PlayerWithPoints getPlayerWithPoints() {
 		return playerWithPoints;
+	}
+
+	@Override
+	public void accept(GameChangeVisitor visitor) {
+		visitor.visit(this);
 	}
 }

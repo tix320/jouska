@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.client.service.origin;
 
 import com.github.tix320.jouska.core.dto.LoginAnswer;
-import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.RegistrationAnswer;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import com.github.tix320.jouska.core.model.Player;
@@ -17,10 +17,10 @@ import java.util.Set;
 public interface AuthenticationOrigin {
 
 	@Origin("login")
-	MonoObservable<LoginAnswer> login(LoginCommand loginCommand);
+	MonoObservable<LoginAnswer> login(Credentials credentials);
 
 	@Origin("forceLogin")
-	MonoObservable<LoginAnswer> forceLogin(LoginCommand loginCommand);
+	MonoObservable<LoginAnswer> forceLogin(Credentials credentials);
 
 	@Origin("logout")
 	MonoObservable<None> logout();

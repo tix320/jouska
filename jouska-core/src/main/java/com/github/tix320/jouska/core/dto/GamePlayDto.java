@@ -2,7 +2,7 @@ package com.github.tix320.jouska.core.dto;
 
 import java.util.List;
 
-import com.github.tix320.jouska.core.application.game.InGamePlayer;
+import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 
@@ -14,7 +14,7 @@ public final class GamePlayDto extends GameWatchDto {
 		myPlayer = null;
 	}
 
-	public GamePlayDto(String gameId, TimedGameSettings gameSettings, List<InGamePlayer> players, PlayerColor myPlayer) {
+	public GamePlayDto(String gameId, GameSettingsDto gameSettings, List<GamePlayer> players, PlayerColor myPlayer) {
 		super(gameId, gameSettings, players);
 		this.myPlayer = myPlayer;
 	}

@@ -21,7 +21,7 @@ public interface GameChangeDto {
 	static GameChangeDto fromModel(GameChange gameChange) {
 		if (gameChange instanceof PlayerTimedTurn) {
 			PlayerTimedTurn playerTurn = (PlayerTimedTurn) gameChange;
-			return new PlayerTimedTurnDto(playerTurn.getCellChange().getPoint(), playerTurn.getRemainingTurnMillis(),
+			return new PlayerTimedTurnDto(playerTurn.getPoint(), playerTurn.getRemainingTurnMillis(),
 					playerTurn.getRemainingPlayerTotalTurnMillis());
 		}
 		else if (gameChange instanceof PlayerKick) {
@@ -33,7 +33,7 @@ public interface GameChangeDto {
 			return new GameCompleteDto(gameComplete.getWinner());
 		}
 		else {
-			throw new IllegalArgumentException();
+			throw new IllegalArgumentException(gameChange.getClass().getSimpleName());
 		}
 	}
 }

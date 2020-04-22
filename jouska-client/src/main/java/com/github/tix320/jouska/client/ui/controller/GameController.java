@@ -17,9 +17,12 @@ import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.client.ui.helper.component.TimerLabel;
 import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
+import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.SimpleGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.util.LoopThread;
 import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
@@ -88,17 +91,17 @@ public class GameController implements Controller<GameWatchDto> {
 	private String gameId;
 	private Game game;
 	private TimedGameSettings gameSettings;
-	private InGamePlayer myPlayer;
+	private GamePlayer myPlayer;
 
-	private SimpleObjectProperty<InGamePlayer> turnProperty = new SimpleObjectProperty<>();
+	private final SimpleObjectProperty<GamePlayer> turnProperty = new SimpleObjectProperty<>();
 
-	private AtomicBoolean turned = new AtomicBoolean();
+	private final AtomicBoolean turned = new AtomicBoolean();
 
 	private BlockingQueue<GameChangeDto> changesQueue;
 
-	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
-	private SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
+	private final SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
 
 	@Override
 	public void init(GameWatchDto gameWatchDto) {
@@ -114,23 +117,27 @@ public class GameController implements Controller<GameWatchDto> {
 		gameSpeedCoefficient.bind(gameSpeedSlider.valueProperty());
 
 		this.gameId = gameWatchDto.getGameId();
-		this.gameSettings = gameWatchDto.getGameSettings();
+		GameSettings gameSettings = gameWatchDto.getGameSettings().toModel();
+		if (!(gameSettings instanceof TimedGameSettings)) {
+			throw new UnsupportedOperationException("Not implemented for non timed games");
+		}
+		this.gameSettings = (TimedGameSettings) gameSettings;
 
-		List<InGamePlayer> players = gameWatchDto.getPlayers();
-		GameBoard gameBoard = GameBoards.createByType(gameSettings.getBoardType(),
-				players.stream().map(InGamePlayer::getColor).collect(Collectors.toList()));
+		List<GamePlayer> players = gameWatchDto.getPlayers();
+		GameBoard gameBoard = GameBoards.createByType(this.gameSettings.getBoardType(),
+				players.stream().map(GamePlayer::getColor).collect(Collectors.toList()));
 
-		this.game = SimpleGame.createPredefined(gameBoard, players);
+		this.game = SimpleGame.create((SimpleGameSettings) this.gameSettings.getWrappedGameSettings());
+		players.forEach(gamePlayer -> game.addPlayer(gamePlayer));
 
 		if (playerMode == PlayerMode.PLAY) {
-			this.myPlayer = new InGamePlayer(CurrentUserContext.getPlayer(),
-					((GamePlayDto) gameWatchDto).getMyPlayer());
+			this.myPlayer = new GamePlayer(CurrentUserContext.getPlayer(), ((GamePlayDto) gameWatchDto).getMyPlayer());
 		}
 		else {
-			this.myPlayer = new InGamePlayer(CurrentUserContext.getPlayer(), null);
+			this.myPlayer = new GamePlayer(CurrentUserContext.getPlayer(), PlayerColor.RED);
 		}
 
-		this.gameNameLabel.setText("Game: " + gameSettings.getName());
+		this.gameNameLabel.setText("Game: " + this.gameSettings.getName());
 		this.changesQueue = new LinkedBlockingQueue<>();
 
 		createStatisticsBoardComponent(players);
@@ -150,11 +157,14 @@ public class GameController implements Controller<GameWatchDto> {
 
 		game.start();
 
-		InGamePlayer firstPlayer = players.get(0);
+		GamePlayer firstPlayer = players.get(0);
 		turnProperty.set(firstPlayer);
 		startTurnTimer();
-		turnTotalTimeIndicator.setTime(LocalTime.ofSecondOfDay(gameSettings.getPlayerTurnTotalDurationSeconds()));
-		turnTotalTimeIndicator.run(gameSpeedCoefficient.get());
+		Platform.runLater(() -> {
+			turnTotalTimeIndicator.setTime(
+					LocalTime.ofSecondOfDay(this.gameSettings.getPlayerTurnTotalDurationSeconds()));
+			turnTotalTimeIndicator.run(gameSpeedCoefficient.get());
+		});
 
 		updateStatistics(game.getStatistics().summaryPoints());
 		turned.set(false);
@@ -174,17 +184,13 @@ public class GameController implements Controller<GameWatchDto> {
 	}
 
 	private void runBoardChangesConsumer() {
-		AtomicBoolean running = Threads.runLoop(() -> {
+		LoopThread loopThread = Threads.runLoop(() -> {
 			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
-			GameChangeDto gameChange = Try.supplyOrRethrow(
-					() -> changesQueue.poll(gameSettings.getTurnDurationSeconds(), TimeUnit.SECONDS));
-			if (gameChange == null) {
-				return true;
-			}
+			GameChangeDto gameChange = changesQueue.take();
 			if (gameChange instanceof PlayerTimedTurnDto) {
 				PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
 				turn(playerTurn);
-				List<InGamePlayer> losers = game.getLosers();
+				List<GamePlayer> losers = game.getLosers();
 				if (losers.contains(myPlayer)) {
 					showLose();
 				}
@@ -206,7 +212,7 @@ public class GameController implements Controller<GameWatchDto> {
 			turned.set(false);
 			return true;
 		});
-		destroyPublisher.asObservable().subscribe(none -> running.set(false));
+		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
 	}
 
 	@Override
@@ -218,17 +224,12 @@ public class GameController implements Controller<GameWatchDto> {
 	@FXML
 	private void onFullScreenClick() {
 		Stage stage = UI.stage;
-		if (stage.isFullScreen()) {
-			stage.setFullScreen(false);
-		}
-		else {
-			stage.setFullScreen(true);
-		}
+		stage.setFullScreen(!stage.isFullScreen());
 	}
 
-	private void createStatisticsBoardComponent(List<InGamePlayer> players) {
+	private void createStatisticsBoardComponent(List<GamePlayer> players) {
 		statisticsNodes = new EnumMap<>(PlayerColor.class);
-		for (InGamePlayer player : players) {
+		for (GamePlayer player : players) {
 			HBox hBox = new HBox();
 			hBox.setSpacing(20);
 
@@ -260,9 +261,9 @@ public class GameController implements Controller<GameWatchDto> {
 		}
 	}
 
-	private void initTotalTurnTimers(List<InGamePlayer> players) {
+	private void initTotalTurnTimers(List<GamePlayer> players) {
 		playerTurnRemainingMillis = players.stream()
-				.map(InGamePlayer::getColor)
+				.map(GamePlayer::getColor)
 				.collect(toMap(color -> color, color -> gameSettings.getPlayerTurnTotalDurationSeconds() * 1000L));
 	}
 
@@ -276,7 +277,7 @@ public class GameController implements Controller<GameWatchDto> {
 
 	public void turn(PlayerTimedTurnDto playerTurnDto) {
 		Point point = playerTurnDto.getPoint();
-		InGamePlayer previousPlayer = game.getCurrentPlayer();
+		GamePlayer previousPlayer = game.getCurrentPlayer();
 		CellChange rootChange = game.turn(point);
 		if (playerMode == PlayerMode.WATCH) {
 			long turnDurationMillis = gameSettings.getTurnDurationSeconds() * 1000L;
@@ -284,10 +285,14 @@ public class GameController implements Controller<GameWatchDto> {
 			long timeToSleep = (long) ((turnDurationMillis - remainingTurnMillis) / gameSpeedCoefficient.get());
 			Try.run(() -> Thread.sleep(timeToSleep));
 		}
+		Platform.runLater(() -> {
+			turnTimeIndicator.stop();
+			turnTotalTimeIndicator.stop();
+		});
 		animateCellChanges(rootChange);
-		Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
+		Map<GamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
 		updateStatistics(statistics);
-		InGamePlayer currentPlayer = game.getCurrentPlayer();
+		GamePlayer currentPlayer = game.getCurrentPlayer();
 		Platform.runLater(() -> {
 			turnProperty.set(currentPlayer);
 
@@ -302,21 +307,24 @@ public class GameController implements Controller<GameWatchDto> {
 			turnTotalTimeIndicator.setTime(
 					LocalTime.ofSecondOfDay(TimeUnit.MILLISECONDS.toSeconds(currentPlayerRemainingMillis)));
 			turnTotalTimeIndicator.run(gameSpeedCoefficient.get());
+
+			int turnDurationSeconds = gameSettings.getTurnDurationSeconds();
+			turnTimeIndicator.setTime(LocalTime.ofSecondOfDay(turnDurationSeconds));
+			turnTimeIndicator.run(gameSpeedCoefficient.get());
 		});
-		startTurnTimer();
 	}
 
 	public void kickPlayer(PlayerLeaveDto playerLeaveDto) {
 		Player player = playerLeaveDto.getPlayer();
 		PlayerWithPoints playerWithPoints = game.kick(player);
 		animateLeave(playerWithPoints);
-		Map<InGamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
+		Map<GamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
 		updateStatistics(statistics);
 	}
 
 	private void onGameComplete() {
-		InGamePlayer winner = game.getWinner().orElseThrow();
-		List<InGamePlayer> losers = game.getLosers();
+		GamePlayer winner = game.getWinner().orElseThrow();
+		List<GamePlayer> losers = game.getLosers();
 		if (losers.contains(myPlayer)) {
 			showLose();
 		}
@@ -335,9 +343,9 @@ public class GameController implements Controller<GameWatchDto> {
 	}
 
 	private void resetTimersToZero() {
-		turnTimeIndicator.stop();
-		turnTotalTimeIndicator.stop();
 		Platform.runLater(() -> {
+			turnTimeIndicator.stop();
+			turnTotalTimeIndicator.stop();
 			turnTimeIndicator.setTime(LocalTime.MIDNIGHT);
 			turnTimeIndicator.setTextFill(Color.RED);
 			turnTotalTimeIndicator.setTime(LocalTime.MIDNIGHT);
@@ -359,7 +367,7 @@ public class GameController implements Controller<GameWatchDto> {
 		});
 	}
 
-	public void show3PartyWin(InGamePlayer winner) {
+	public void show3PartyWin(GamePlayer winner) {
 		Platform.runLater(() -> {
 			Transition transition = appearLoseWinLabel(winner.getRealPlayer().getNickname() + " wins",
 					Color.valueOf(winner.getColor().getColorCode()));
@@ -394,7 +402,7 @@ public class GameController implements Controller<GameWatchDto> {
 		return transition;
 	}
 
-	private void updateStatistics(Map<InGamePlayer, Integer> playerSummaryPoints) {
+	private void updateStatistics(Map<GamePlayer, Integer> playerSummaryPoints) {
 		playerSummaryPoints.forEach((player, points) -> {
 			Label label = (Label) statisticsNodes.get(player.getColor()).getChildren().get(1);
 			Platform.runLater(() -> label.setText(points + " -"));

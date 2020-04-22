@@ -4,7 +4,7 @@ import com.github.tix320.jouska.core.model.Player;
 
 public class TournamentView {
 
-	private final long id;
+	private final String id;
 
 	private final String name;
 
@@ -17,10 +17,10 @@ public class TournamentView {
 	private final boolean started;
 
 	public TournamentView() {
-		this(-1, null, -1, -1, null, false);
+		this(null, null, -1, -1, null, false);
 	}
 
-	public TournamentView(long id, String name, int playersCount, int maxPlayersCount, Player creator,
+	public TournamentView(String id, String name, int playersCount, int maxPlayersCount, Player creator,
 						  boolean isStarted) {
 		this.id = id;
 		this.name = name;
@@ -30,7 +30,7 @@ public class TournamentView {
 		this.started = isStarted;
 	}
 
-	public long getId() {
+	public String getId() {
 		return id;
 	}
 

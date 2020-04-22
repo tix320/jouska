@@ -1,8 +1,10 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
@@ -12,8 +14,17 @@ import com.github.tix320.sonder.api.common.rpc.Endpoint;
 @Endpoint("player")
 public class ServerPlayerEndpoint {
 
+	private final PlayerDao playerDao;
+
+	public ServerPlayerEndpoint() {
+		playerDao = new PlayerDao();
+	}
+
 	@Endpoint
 	public List<Player> getPlayersByNickname(List<String> nicknames) {
-		return PlayerService.findPlayersByNickname(nicknames);
+		return playerDao.findPlayersByNickname(nicknames)
+				.stream()
+				.map(PlayerService::convertEntityToModel)
+				.collect(Collectors.toList());
 	}
 }

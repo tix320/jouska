@@ -3,19 +3,19 @@ package com.github.tix320.jouska.core.application.game;
 import java.util.List;
 
 public class PlayerWithPoints {
-	private final InGamePlayer player;
+	private final GamePlayer player;
 	private final List<Point> points;
 
 	private PlayerWithPoints() {
 		this(null, null);
 	}
 
-	public PlayerWithPoints(InGamePlayer player, List<Point> points) {
+	public PlayerWithPoints(GamePlayer player, List<Point> points) {
 		this.player = player;
 		this.points = points;
 	}
 
-	public InGamePlayer getPlayer() {
+	public GamePlayer getPlayer() {
 		return player;
 	}
 

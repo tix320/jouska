@@ -2,9 +2,9 @@ package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.core.application.game.GameState;
-import com.github.tix320.jouska.core.application.game.creation.GameSettings;
-import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
+import com.github.tix320.jouska.core.dto.GameSettingsDto;
 import com.github.tix320.jouska.core.dto.GameView;
+import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.check.Try;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -82,14 +82,14 @@ public class GameItem extends AnchorPane {
 	}
 
 	private void initView(GameView gameView) {
-		GameSettings gameSettings = gameView.getGameSettings();
+		GameSettingsDto gameSettings = gameView.getGameSettings();
 		setGameName(gameView);
 		setPlayersCount(gameView);
 		setTurnDuration(gameSettings);
 		setTurnTotalDuration(gameSettings);
 		resolveStartButtonAccessibility(gameView);
 		if (gameView.getGameSettings().getPlayersCount() != gameView.getConnectedPlayers().size()
-			|| gameView.getGameState() == GameState.STARTED) {
+			|| gameView.getGameState() == GameState.RUNNING) {
 			startButton.setDisable(true);
 		}
 
@@ -108,7 +108,7 @@ public class GameItem extends AnchorPane {
 	}
 
 	private void setPlayersCount(GameView gameView) {
-		GameSettings gameSettings = gameView.getGameSettings();
+		GameSettingsDto gameSettings = gameView.getGameSettings();
 		if (gameView.getGameState() == GameState.COMPLETED) {
 			this.playersCountLabel.setText(String.valueOf(gameView.getGameSettings().getPlayersCount()));
 			this.getStyleClass().add("gameItemCompleted");
@@ -119,19 +119,19 @@ public class GameItem extends AnchorPane {
 		}
 	}
 
-	private void setTurnDuration(GameSettings gameSettings) {
-		if (gameSettings instanceof TimedGameSettings) {
-			this.turnDurationLabel.setText(((TimedGameSettings) gameSettings).getTurnDurationSeconds() + "s");
+	private void setTurnDuration(GameSettingsDto gameSettings) {
+		if (gameSettings instanceof TimedGameSettingsDto) {
+			this.turnDurationLabel.setText(((TimedGameSettingsDto) gameSettings).getTurnDurationSeconds() + "s");
 		}
 		else {
 			this.turnDurationLabel.setText("-");
 		}
 	}
 
-	private void setTurnTotalDuration(GameSettings gameSettings) {
-		if (gameSettings instanceof TimedGameSettings) {
+	private void setTurnTotalDuration(GameSettingsDto gameSettings) {
+		if (gameSettings instanceof TimedGameSettingsDto) {
 			this.turnTotalDurationLabel.setText(
-					((TimedGameSettings) gameSettings).getPlayerTurnTotalDurationSeconds() / 60 + "m");
+					((TimedGameSettingsDto) gameSettings).getPlayerTurnTotalDurationSeconds() / 60 + "m");
 		}
 		else {
 			this.turnTotalDurationLabel.setText("-");

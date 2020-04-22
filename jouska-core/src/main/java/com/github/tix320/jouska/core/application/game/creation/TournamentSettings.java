@@ -1,40 +1,23 @@
 package com.github.tix320.jouska.core.application.game.creation;
 
-public final class TournamentSettings {
+import com.github.tix320.jouska.core.application.tournament.Tournament;
 
-	private final String name;
+public interface TournamentSettings {
 
-	private final int playersCount;
+	String getName();
 
-	private final TimedGameSettings groupGameSettings;
+	int getMaxPlayersCount();
 
-	private final TimedGameSettings playOffGameSettings;
+	/**
+	 * Create tournament by this settings
+	 */
+	Tournament createTournament();
 
-	private TournamentSettings() {
-		this(null, -1, null, null);
-	}
+	GroupSettings getGroupSettings();
 
-	public TournamentSettings(String name, int playersCount, TimedGameSettings groupGameSettings,
-							  TimedGameSettings playOffGameSettings) {
-		this.name = name;
-		this.playersCount = playersCount;
-		this.groupGameSettings = groupGameSettings;
-		this.playOffGameSettings = playOffGameSettings;
-	}
+	PlayOffSettings getPlayOffSettings();
 
-	public String getName() {
-		return name;
-	}
+	TournamentSettings changeGroupSettings(GroupSettings groupSettings);
 
-	public int getPlayersCount() {
-		return playersCount;
-	}
-
-	public TimedGameSettings getGroupGameSettings() {
-		return groupGameSettings;
-	}
-
-	public TimedGameSettings getPlayOffGameSettings() {
-		return playOffGameSettings;
-	}
+	TournamentSettings changePlayOffSettings(PlayOffSettings playOffSettings);
 }

@@ -1,27 +1,28 @@
 package com.github.tix320.jouska.core.application.game.creation;
 
-import java.util.Set;
-
 import com.github.tix320.jouska.core.application.game.BoardType;
-import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.core.application.game.TimedGame;
 
 /**
  * @author Tigran Sargsyan on 26-Mar-20.
  */
-public class TimedGameSettings extends GameSettings {
+public class TimedGameSettings implements RestorableGameSettings {
+
+	private final GameSettings wrappedGameSettings;
 
 	private final int turnDurationSeconds;
 
 	private final int playerTurnTotalDurationSeconds;
 
 	private TimedGameSettings() {
-		turnDurationSeconds = -1;
-		playerTurnTotalDurationSeconds = -1;
+		this.wrappedGameSettings = null;
+		this.turnDurationSeconds = -1;
+		this.playerTurnTotalDurationSeconds = -1;
 	}
 
-	public TimedGameSettings(String name, BoardType boardType, int playersCount, Set<Player> accessedPlayers,
-							 int turnDurationSeconds, int playerTurnTotalDurationSeconds) {
-		super(name, boardType, playersCount, accessedPlayers);
+	public TimedGameSettings(GameSettings wrappedGameSettings, int turnDurationSeconds,
+							 int playerTurnTotalDurationSeconds) {
+		this.wrappedGameSettings = wrappedGameSettings;
 		this.turnDurationSeconds = turnDurationSeconds;
 		this.playerTurnTotalDurationSeconds = playerTurnTotalDurationSeconds;
 
@@ -35,6 +36,10 @@ public class TimedGameSettings extends GameSettings {
 		}
 	}
 
+	public GameSettings getWrappedGameSettings() {
+		return wrappedGameSettings;
+	}
+
 	public int getTurnDurationSeconds() {
 		return turnDurationSeconds;
 	}
@@ -44,14 +49,34 @@ public class TimedGameSettings extends GameSettings {
 	}
 
 	@Override
-	public GameSettings changeName(String name) {
-		return new TimedGameSettings(name, getBoardType(), getPlayersCount(), getAccessedPlayers(), turnDurationSeconds,
+	public String getName() {
+		return wrappedGameSettings.getName();
+	}
+
+	@Override
+	public BoardType getBoardType() {
+		return wrappedGameSettings.getBoardType();
+	}
+
+	@Override
+	public int getPlayersCount() {
+		return wrappedGameSettings.getPlayersCount();
+	}
+
+	@Override
+	public TimedGameSettings changeName(String name) {
+		return new TimedGameSettings(wrappedGameSettings.changeName(name), turnDurationSeconds,
 				playerTurnTotalDurationSeconds);
 	}
 
 	@Override
 	public TimedGameSettings changePlayersCount(int playersCount) {
-		return new TimedGameSettings(getName(), getBoardType(), playersCount, getAccessedPlayers(), turnDurationSeconds,
+		return new TimedGameSettings(wrappedGameSettings.changePlayersCount(playersCount), turnDurationSeconds,
 				playerTurnTotalDurationSeconds);
+	}
+
+	@Override
+	public TimedGame createGame() {
+		return TimedGame.create(this);
 	}
 }

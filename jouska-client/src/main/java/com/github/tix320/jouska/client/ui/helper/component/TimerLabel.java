@@ -3,6 +3,7 @@ package com.github.tix320.jouska.client.ui.helper.component;
 import java.time.LocalTime;
 import java.util.concurrent.atomic.AtomicReference;
 
+import com.github.tix320.jouska.client.ui.helper.FXHelper;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
 import javafx.animation.Timeline;
@@ -20,6 +21,7 @@ public final class TimerLabel extends LocalTimeLabel {
 	}
 
 	public void run(double speedCoefficient) {
+		FXHelper.checkFxThread();
 		stop();
 
 		Timeline timeline = new Timeline(new KeyFrame(Duration.seconds(1 / speedCoefficient), ae -> {
@@ -39,6 +41,7 @@ public final class TimerLabel extends LocalTimeLabel {
 	}
 
 	public void stop() {
+		FXHelper.checkFxThread();
 		this.timeline.updateAndGet(timeline -> {
 			if (timeline != null) {
 				timeline.stop();

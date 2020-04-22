@@ -2,273 +2,284 @@ package com.github.tix320.jouska.server.infrastructure.application;
 
 import java.time.Duration;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.application.game.InGamePlayer;
-import com.github.tix320.jouska.core.application.game.Point;
-import com.github.tix320.jouska.core.application.game.creation.GameFactory;
+import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
+import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
-import com.github.tix320.jouska.core.dto.CreateGameCommand;
-import com.github.tix320.jouska.core.dto.GameConnectionAnswer;
-import com.github.tix320.jouska.core.dto.GamePlayDto;
-import com.github.tix320.jouska.core.dto.GameWatchDto;
+import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.server.entity.GameEntity;
 import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
 import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
-import com.github.tix320.jouska.server.infrastructure.service.GameService;
+import com.github.tix320.jouska.server.infrastructure.application.dbo.DBGame;
+import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
+import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
+import com.github.tix320.jouska.server.infrastructure.helper.Converters;
+import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.MapProperty;
-import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
 import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.kiwi.api.util.collection.Tuple;
 
 import static com.github.tix320.jouska.server.app.Services.GAME_ORIGIN;
 
 public class GameManager {
-	private static final MapProperty<String, GameInfo> games = Property.forMap(new ConcurrentHashMap<>());
 
-	public static String createNewGame(CreateGameCommand createGameCommand, Player creator) {
-		GameSettings gameSettings = createGameCommand.getGameSettings();
-		String gameId = GameService.saveGame(gameSettings, creator.getId());
+	private static final SinglePublisher<None> changesPublisher = new SinglePublisher<>(None.SELF);
 
-		games.put(gameId, new GameInfo(gameId, gameSettings, creator));
+	private static final GameDao gameDao = new GameDao();
 
-		return gameId;
+	public static Observable<Collection<DBGame>> games(Player caller) {
+		return Observable.combineLatest(changesPublisher.asObservable(), DBGame.all().asObservable())
+				.map(Tuple::second)
+				.map(Map::values)
+				.map(gameInfos -> {
+					if (caller.isAdmin()) {
+						return gameInfos;
+					}
+					else {
+						return gameInfos.stream()
+								.filter(dbGame -> hasAccessToGame(dbGame, caller))
+								.collect(Collectors.toList());
+					}
+				});
 	}
 
-	public static void registerGames(List<GameRegistration> games) {
-		Map<String, GameInfo> gamesById = new HashMap<>();
-		for (GameRegistration gameRegistration : games) {
-			GameSettings settings = gameRegistration.getGameWithSettings().getSettings();
-			Player creator = gameRegistration.getCreator();
-			String id = GameService.saveGame(settings, creator.getId());
-			GameInfo gameInfo = new GameInfo(id, settings, creator);
-
-			Game game = gameRegistration.getGameWithSettings().getGame();
-			gameInfo.setGame(game);
-			gameInfo.getConnectedPlayers()
-					.addAll(game.getPlayers().stream().map(InGamePlayer::getRealPlayer).collect(Collectors.toList()));
-
-			if (game.isCompleted()) {
-				onGameComplete(gameInfo);
-			}
-			else {
-				gamesById.put(id, gameInfo);
-			}
+	public static String createGame(GameSettings settings, Player creator, Set<Player> accessedPlayers) {
+		if (settings instanceof RestorableGameSettings) {
+			DBGame dbGame = DBGame.createNew(creator, accessedPlayers, (RestorableGameSettings) settings);
+			return dbGame.getId();
 		}
-		GameManager.games.putAll(gamesById);
-	}
-
-	public static Observable<Collection<GameInfo>> games(Player caller) {
-		return games.asObservable().map(Map::values).map(gameInfos -> {
-			if (caller.isAdmin()) {
-				return gameInfos;
-			}
-			else {
-				return gameInfos.stream()
-						.filter(gameInfo -> hasAccessToGame(gameInfo, caller))
-						.collect(Collectors.toList());
-			}
-		});
+		throw new UnsupportedOperationException();
 	}
 
 	public static GameConnectionAnswer joinGame(String gameId, Player player) {
-		AtomicReference<GameConnectionAnswer> answer = new AtomicReference<>(GameConnectionAnswer.GAME_NOT_FOUND);
-		games.computeIfPresent(gameId, (key, gameInfo) -> {
-			if (!hasAccessToGame(gameInfo, player)) {
-				throw new IllegalAccessException();
-			}
+		DBGame game = DBGame.all().get(gameId);
 
-			if (gameInfo.getGame().isPresent()) {
-				answer.set(GameConnectionAnswer.ALREADY_STARTED);
-			}
-
-			int playersCount = gameInfo.getSettings().getPlayersCount();
-			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-			if (connectedPlayers.size() < playersCount) { // free
-				answer.set(GameConnectionAnswer.CONNECTED);
-				connectedPlayers.add(player);
-			}
-			else {
-				answer.set(GameConnectionAnswer.ALREADY_FULL);
-			}
-
-			return gameInfo;
-		});
-		return answer.get();
-	}
-
-	public static void leaveGame(String gameId, Player player) {
-		games.computeIfPresent(gameId, (key, gameInfo) -> {
-			if (!hasAccessToGame(gameInfo, player)) {
-				throw new IllegalAccessException();
-			}
-
-			if (gameInfo.getGame().isPresent()) {
-
-				gameInfo.getGame().get().kick(player);
-			}
-
-			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
-			connectedPlayers.remove(player);
-
-			return gameInfo;
-		});
-	}
-
-	public static GameWatchDto watchGame(String gameId) {
-		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null) {
-			GameEntity gameEntity = GameService.getGame(gameId, List.of("settings", "gamePlayers"))
-					.orElseThrow(
-							() -> new IllegalArgumentException(String.format("Game `%s` does not exists", gameId)));
-
-			return new GameWatchDto(gameId, (TimedGameSettings) gameEntity.getSettings(), gameEntity.getGamePlayers());
-		}
-		if (gameInfo.getGame().isEmpty()) {
-			throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
-		}
-
-		Game game = gameInfo.getGame().orElseThrow();
-		return new GameWatchDto(gameId, (TimedGameSettings) gameInfo.getSettings(), game.getPlayers());
-	}
-
-	public static void turnInGame(String gameId, Player player, Point point) {
-		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null) {
+		if (game == null) {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
 
-		Game game = gameInfo.getGame().orElseThrow();
-		if (!containsPlayerInGame(game, player)) {
-			throw new IllegalStateException(String.format("Player %s is not a player of game %s", player, gameId));
-		}
-
-		turnInGame(gameInfo, player, point);
-	}
-
-	public static Optional<Game> getGame(String gameId, Player caller) {
-		GameInfo gameInfo = games.get(gameId);
-		if (gameInfo == null) {
-			return Optional.empty();
-		}
-
-		if (!hasAccessToGame(gameInfo, caller)) {
+		if (!hasAccessToGame(game, player)) {
 			throw new IllegalAccessException();
 		}
 
-		return gameInfo.getGame();
+		try {
+			game.addPlayer(new GamePlayer(player,
+					PlayerColor.RED)); // color will be replaced later, via method game.shufflePlayers()
+			changesPublisher.publish(None.SELF);
+			return GameConnectionAnswer.CONNECTED;
+		}
+		catch (GameIllegalStateException e) {
+			return GameConnectionAnswer.ALREADY_STARTED;
+		}
+		catch (GameAlreadyFullException e) {
+			return GameConnectionAnswer.ALREADY_FULL;
+		}
 	}
 
-	private static void turnInGame(GameInfo gameInfo, Player player, Point point) {
-		Game game = gameInfo.getGame().orElseThrow();
+	public static void leaveGame(String gameId, Player player) {
+		DBGame game = DBGame.all().get(gameId);
 
-		InGamePlayer currentGamePlayer = game.getCurrentPlayer();
-
-		if (!player.equals(currentGamePlayer.getRealPlayer())) {
-			throw new IllegalStateException(
-					String.format("Now is turn of %s, not %s", currentGamePlayer.getRealPlayer(), player));
+		if (game == null) {
+			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
 
-		game.turn(point);
+		if (!hasAccessToGame(game, player)) {
+			throw new IllegalAccessException();
+		}
+
+		boolean removed = false;
+		//noinspection SynchronizationOnLocalVariableOrMethodParameter: This is not simple local variable, it is taken from property `games`
+		synchronized (game) {
+			if (game.isStarted()) {
+				game.kick(player);
+			}
+			else {
+				removed = game.removePlayer(player);
+			}
+		}
+		if (removed) {
+			changesPublisher.publish(None.SELF);
+		}
+	}
+
+	public static GameWatchDto watchGame(String gameId) {
+		DBGame game = DBGame.all().get(gameId);
+		if (game == null) {
+			GameEntity gameEntity = gameDao.findById(gameId, List.of("settings", "players"))
+					.orElseThrow(
+							() -> new IllegalArgumentException(String.format("Game `%s` does not exists", gameId)));
+
+			return new GameWatchDto(gameId, GameSettingsDto.fromModel(gameEntity.getSettings()),
+					Converters.gamePlayerEntityToInGamePlayer(gameEntity.getPlayers()));
+		}
+		if (!game.isStarted()) {
+			throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
+		}
+
+		return new GameWatchDto(gameId, GameSettingsDto.fromModel(game.getSettings()), game.getPlayersWithColors());
+	}
+
+	public static void turnInGame(String gameId, Player player, Point point) {
+		DBGame game = DBGame.all().get(gameId);
+		if (game == null) {
+			throw new IllegalStateException(String.format("Game %s not found", gameId));
+		}
+
+		//noinspection SynchronizationOnLocalVariableOrMethodParameter: This is not simple local variable, it is taken from property `games`
+		synchronized (game) {
+			if (!game.isStarted()) {
+				throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
+			}
+
+			if (!game.getPlayers().contains(player)) {
+				throw new IllegalStateException(String.format("Player %s is not a player of game %s", player, gameId));
+			}
+
+			GamePlayer currentGamePlayer = game.getCurrentPlayer();
+
+			if (!player.equals(currentGamePlayer.getRealPlayer())) {
+				throw new IllegalStateException(
+						String.format("Now is turn of %s, not %s", currentGamePlayer.getRealPlayer(), player));
+			}
+
+			game.turn(point);
+		}
+	}
+
+	public static Optional<Game> getGame(String gameId, Player caller) {
+		DBGame game = DBGame.all().get(gameId);
+		if (game == null) {
+			return Optional.empty();
+		}
+
+		if (!hasAccessToGame(game, caller)) {
+			throw new IllegalAccessException();
+		}
+
+		return Optional.of(game);
 	}
 
 	public static void startGame(String gameId, Player caller) {
-		games.computeIfPresent(gameId, (id, gameInfo) -> {
-			Optional<Game> optionalGame = gameInfo.getGame();
-			if (optionalGame.isPresent() && optionalGame.get().isStarted()) {
-				throw new IllegalStateException(String.format("Game %s already started", id));
-			}
-			if (!gameInfo.getCreator().equals(caller) && !caller.isAdmin()) {
-				throw new IllegalAccessException();
+		DBGame game = DBGame.all().get(gameId);
+
+		if (!game.getCreator().equals(caller) && !caller.isAdmin()) {
+			throw new IllegalAccessException();
+		}
+
+		synchronized (game) {
+			if (game.isStarted()) {
+				throw new IllegalStateException(String.format("Game %s already started", gameId));
 			}
 
-			if (gameInfo.getConnectedPlayers().size() != gameInfo.getSettings().getPlayersCount()) { // full
+			if (game.getPlayers().size() != game.getSettings().getPlayersCount()) { // full
 				throw new IllegalStateException("Not fully");
 			}
 
-			TimedGameSettings gameSettings = (TimedGameSettings) gameInfo.getSettings();
-			Set<Player> connectedPlayers = gameInfo.getConnectedPlayers();
+			TimedGameSettings gameSettings = (TimedGameSettings) game.getSettings();
 
-			Game game = optionalGame.orElseGet(() -> GameFactory.create(gameSettings, connectedPlayers));
-			gameInfo.setGame(game);
+			List<GamePlayer> gamePlayers = game.getPlayersWithColors();
 
-			List<InGamePlayer> gamePlayers = game.getPlayers();
-
-			game.completed().subscribe(ignored -> onGameComplete(gameInfo));
-
-			List<Observable<None>> playersReady = new ArrayList<>();
-			for (InGamePlayer player : gamePlayers) {
-				ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
-						.ifPresentOrElse(clientId -> {
-							Observable<None> playerReady = GAME_ORIGIN.notifyGameStarted(
-									new GamePlayDto(gameId, gameSettings, gamePlayers, player.getColor()), clientId);
-							playersReady.add(playerReady.getOnTimout(Duration.ofSeconds(30), () -> None.SELF));
-						}, () -> logPlayerConnectionNotFound(player.getRealPlayer()));
+			List<Long> clientIds = new ArrayList<>();
+			for (GamePlayer player : gamePlayers) {
+				clientIds.add(ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
+						.orElse(null)); // null indicates offline
 			}
+
+			List<Player> offlinePlayers = new ArrayList<>();
+
+			for (int i = 0; i < clientIds.size(); i++) {
+				Long clientId = clientIds.get(i);
+				if (clientId == null) {
+					offlinePlayers.add(gamePlayers.get(i).getRealPlayer());
+				}
+			}
+
+			if (!offlinePlayers.isEmpty()) {
+				Long callerClientId = ClientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
+
+				if (callerClientId == null) {
+					System.err.println(String.format("Cannot start game %s(%s) and caller also %s(%s) become offline",
+							gameSettings.getName(), gameId, caller.getNickname(), caller.getId()));
+					return;
+				}
+
+				GAME_ORIGIN.notifyGamePlayersOffline(
+						new GamePlayersOfflineWarning(gameSettings.getName(), offlinePlayers), callerClientId);
+
+				System.err.println(String.format("Cannot start game %s(%s), because there are offline players",
+						gameSettings.getName(), gameId));
+				return;
+			}
+
+			List<MonoObservable<Confirmation>> playersReady = clientIds.stream()
+					.map(clientId -> GAME_ORIGIN.notifyGameStartingSoon(gameSettings.getName(), clientId)
+							.getOnTimout(Duration.ofSeconds(30), () -> Confirmation.REJECT))
+					.collect(Collectors.toList());
 
 			EventDispatcher.on(PlayerLogoutEvent.class).takeUntil(game.completed()).subscribe(event -> {
 				Player logoutPlayer = event.getPlayer();
-				if (containsPlayerInGame(game, logoutPlayer)) {
+				if (game.getPlayers().contains(logoutPlayer)) {
 					game.kick(logoutPlayer);
 				}
 			});
 
 			EventDispatcher.on(PlayerDisconnectedEvent.class).takeUntil(game.completed()).subscribe(event -> {
 				Player disconnectedPlayer = event.getPlayer();
-				if (containsPlayerInGame(game, disconnectedPlayer)) {
+				if (game.getPlayers().contains(disconnectedPlayer)) {
 					game.kick(disconnectedPlayer);
 				}
 			});
 
-			Observable.zip(playersReady).subscribe(nones -> {
+			Observable.zip(playersReady).subscribe(confirmations -> {
+				game.shufflePLayers();
+
+				List<Player> rejectedPlayers = new ArrayList<>();
+				for (int i = 0; i < confirmations.size(); i++) {
+					long clientId = clientIds.get(i);
+					Confirmation confirmation = confirmations.get(i);
+					GamePlayer gamePlayer = gamePlayers.get(i);
+					if (confirmation == Confirmation.REJECT) {
+						Player player = gamePlayer.getRealPlayer();
+						rejectedPlayers.add(player);
+					}
+					else {
+						GAME_ORIGIN.notifyGameStarted(
+								new GamePlayDto(gameId, GameSettingsDto.fromModel(gameSettings), gamePlayers,
+										gamePlayer.getColor()), clientId);
+					}
+				}
+
 				game.start();
 				System.out.println(String.format("Game %s (%s) started", gameSettings.getName(), gameId));
-			});
+				changesPublisher.publish(None.SELF);
 
-			return gameInfo;
-		});
+				rejectedPlayers.forEach(game::kick);
+
+				game.completed().subscribe(GameManager::onGameComplete);
+			});
+		}
 	}
 
-	private static boolean hasAccessToGame(GameInfo game, Player player) {
+	private static boolean hasAccessToGame(DBGame game, Player player) {
 		if (player.isAdmin() || game.getCreator().equals(player)) {
 			return true;
 		}
 
-		if (game.getSettings().getAccessedPlayers().isEmpty()) {
-			return true;
-		}
+		Set<Player> accessedPlayers = game.getAccessedPlayers();
 
-		return game.getSettings().getAccessedPlayers().contains(player);
+		return accessedPlayers.isEmpty() || accessedPlayers.contains(player);
 	}
 
-	private static void onGameComplete(GameInfo gameInfo) {
-		String gameId = gameInfo.getId();
-		Game game = gameInfo.getGame().orElseThrow();
-		GameSettings gameSettings = gameInfo.getSettings();
-		InGamePlayer winner = game.getWinner().orElseThrow();
-		games.remove(gameId);
+	private static void onGameComplete(DBGame game) {
+		String gameId = game.getId();
+		GameSettings gameSettings = game.getSettings();
+		GamePlayer winner = game.getWinner().orElseThrow();
 		System.out.println(String.format("Game %s(%s) ended: Players %s Winner is %s", gameSettings.getName(), gameId,
-				game.getPlayers(), winner));
-		GameService.updateGame(gameId, game);
-	}
-
-	private static boolean containsPlayerInGame(Game game, Player player) {
-		for (InGamePlayer gamePlayer : game.getPlayers()) {
-			if (player.equals(gamePlayer.getRealPlayer())) {
-				return true;
-			}
-		}
-		return false;
-	}
-
-	private static void logPlayerConnectionNotFound(Player player) {
-		new IllegalStateException(String.format("No connection found for player %s", player)).printStackTrace();
+				game.getPlayersWithColors(), winner));
 	}
 }

@@ -7,24 +7,29 @@ import java.util.List;
  */
 public class GameComplete implements GameChange {
 
-	private final InGamePlayer winner;
+	private final GamePlayer winner;
 
-	private final List<InGamePlayer> losers;
+	private final List<GamePlayer> losers;
 
 	private GameComplete() {
 		this(null, null);
 	}
 
-	public GameComplete(InGamePlayer winner, List<InGamePlayer> losers) {
+	public GameComplete(GamePlayer winner, List<GamePlayer> losers) {
 		this.winner = winner;
 		this.losers = losers;
 	}
 
-	public InGamePlayer getWinner() {
+	public GamePlayer getWinner() {
 		return winner;
 	}
 
-	public List<InGamePlayer> getLosers() {
+	public List<GamePlayer> getLosers() {
 		return losers;
+	}
+
+	@Override
+	public void accept(GameChangeVisitor visitor) {
+		visitor.visit(this);
 	}
 }

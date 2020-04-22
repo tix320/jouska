@@ -1,133 +1,105 @@
 package com.github.tix320.jouska.server.infrastructure.service;
 
-import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
-import com.github.tix320.jouska.core.dto.LoginCommand;
 import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.server.app.DataSource;
-import com.github.tix320.jouska.server.entity.PlayerEntity;
 import com.github.tix320.jouska.server.event.PlayerLoginEvent;
 import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
+import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.NotAuthenticatedException;
+import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import dev.morphia.query.Query;
-import org.bson.types.ObjectId;
 
 import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_ORIGIN;
-import static java.util.stream.Collectors.toMap;
 
 public class PlayerService {
 
-	public static LoginAnswer login(long clientId, LoginCommand loginCommand) {
-		Optional<PlayerEntity> playerByCredentials = findPlayerByCredentials(loginCommand);
+	private final PlayerDao playerDao;
+
+	public PlayerService() {
+		playerDao = new PlayerDao();
+	}
+
+	public LoginAnswer login(long clientId, Credentials credentials) {
+		Optional<PlayerEntity> playerByCredentials = playerDao.findPlayerByCredentials(credentials);
 		if (playerByCredentials.isEmpty()) {
 			return new LoginAnswer(LoginResult.INVALID_CREDENTIALS, null);
 		}
 
 		PlayerEntity playerEntity = playerByCredentials.get();
 
-		Optional<Long> clientIdByPlayer = ClientPlayerMappingResolver.getClientIdByPlayer(
-				playerEntity.getId().toHexString());
+		Optional<Long> clientIdByPlayer = ClientPlayerMappingResolver.getClientIdByPlayer(playerEntity.getId());
 
 		if (clientIdByPlayer.isPresent()) {
-			return new LoginAnswer(LoginResult.ALREADY_LOGGED, entityToModel(playerEntity));
+			return new LoginAnswer(LoginResult.ALREADY_LOGGED, convertEntityToModel(playerEntity));
 		}
 		else {
-			ClientPlayerMappingResolver.setMapping(clientId, playerEntity.getId().toHexString());
+			ClientPlayerMappingResolver.setMapping(clientId, playerEntity.getId());
 
-			Player player = entityToModel(playerEntity);
+			Player player = convertEntityToModel(playerEntity);
 			EventDispatcher.fire(new PlayerLoginEvent(player));
 			return new LoginAnswer(LoginResult.SUCCESS, player);
 		}
 	}
 
-	public static LoginAnswer forceLogin(long clientId, LoginCommand loginCommand) {
-		Optional<PlayerEntity> playerByCredentials = findPlayerByCredentials(loginCommand);
+	public LoginAnswer forceLogin(long clientId, Credentials credentials) {
+		Optional<PlayerEntity> playerByCredentials = playerDao.findPlayerByCredentials(credentials);
 		if (playerByCredentials.isEmpty()) {
 			return new LoginAnswer(LoginResult.INVALID_CREDENTIALS, null);
 		}
 
 		PlayerEntity playerEntity = playerByCredentials.get();
 
-		String playerId = playerEntity.getId().toHexString();
+		String playerId = playerEntity.getId();
 
 		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
 		if (existingClientId != null) {
 			AUTHENTICATION_ORIGIN.logout(existingClientId);
-			EventDispatcher.fire(new PlayerLogoutEvent(entityToModel(playerEntity)));
+			EventDispatcher.fire(new PlayerLogoutEvent(convertEntityToModel(playerEntity)));
 		}
 
 		ClientPlayerMappingResolver.setMapping(clientId, playerId);
-		Player player = entityToModel(playerEntity);
+		Player player = convertEntityToModel(playerEntity);
 		EventDispatcher.fire(new PlayerLoginEvent(player));
 		return new LoginAnswer(LoginResult.SUCCESS, player);
 	}
 
 
-	public static void logout(long clientId) {
+	public void logout(long clientId) {
 		String playerId = ClientPlayerMappingResolver.removeByClientId(clientId);
 		if (playerId == null) {
 			throw new NotAuthenticatedException(String.format("Client `%s` not authenticated yet", clientId));
 		}
-		PlayerEntity player = findPlayerEntityById(playerId).orElseThrow();
-		EventDispatcher.fire(new PlayerLogoutEvent(entityToModel(player)));
+		PlayerEntity player = playerDao.findById(playerId).orElseThrow();
+		EventDispatcher.fire(new PlayerLogoutEvent(convertEntityToModel(player)));
 	}
 
-	private static Optional<PlayerEntity> findPlayerByCredentials(LoginCommand loginCommand) {
-		Query<PlayerEntity> query = DataSource.getInstance().find(PlayerEntity.class);
-		query.and(query.criteria("nickname").equal(loginCommand.getNickname()),
-				query.criteria("password").equal(loginCommand.getPassword()));
-
-		return Optional.ofNullable(query.first());
+	public Observable<Set<Player>> getConnectedPlayers() {
+		return ClientPlayerMappingResolver.getConnectedPlayers()
+				.map(data -> data.values()
+						.stream()
+						.map(this::getPlayerById)
+						.filter(Optional::isPresent)
+						.map(Optional::get)
+						.collect(Collectors.toSet()));
 	}
 
-	public static Optional<Player> findPlayerById(String playerId) {
-		return findPlayerEntityById(playerId).map(PlayerService::entityToModel);
+	public Optional<Player> getPlayerById(String playerId) {
+		return playerDao.findById(playerId).map(PlayerService::convertEntityToModel);
 	}
 
-	public static List<Player> findPlayersByNickname(List<String> nicknames) {
-		Query<PlayerEntity> query = DataSource.getInstance().find(PlayerEntity.class);
-		query.and(query.criteria("nickname").in(nicknames));
-
-		Map<String, PlayerEntity> playerEntities = query.find()
-				.toList()
-				.stream()
-				.collect(toMap(PlayerEntity::getNickname, entity -> entity));
-
-		return nicknames.stream()
-				.map(playerEntities::get)
-				.map(PlayerService::entityToModel)
-				.collect(Collectors.toList());
-	}
-
-	public static Optional<PlayerEntity> findPlayerEntityById(String playerId) {
-		return Optional.ofNullable(DataSource.getInstance().get(PlayerEntity.class, new ObjectId(playerId)));
-	}
-
-	private static Player entityToModel(PlayerEntity entity) {
+	public static Player convertEntityToModel(PlayerEntity entity) {
 		if (entity == null) {
 			return null;
 		}
 
-		return new Player(entity.getId().toHexString(), entity.getNickname(), entity.getRole());
-	}
-
-
-	public static Observable<Set<Player>> getConnectedPlayers() {
-		return ClientPlayerMappingResolver.getConnectedPlayers()
-				.map(data -> data.values()
-						.stream()
-						.map(PlayerService::findPlayerById)
-						.filter(Optional::isPresent)
-						.map(Optional::get)
-						.collect(Collectors.toSet()));
+		return new Player(entity.getId(), entity.getNickname(), entity.getRole());
 	}
 }

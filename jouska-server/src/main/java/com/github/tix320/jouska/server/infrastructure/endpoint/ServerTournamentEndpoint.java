@@ -5,8 +5,10 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import com.github.tix320.jouska.core.application.game.creation.RestorableTournamentSettings;
 import com.github.tix320.jouska.core.application.tournament.PlayOff;
 import com.github.tix320.jouska.core.application.tournament.Tournament;
+import com.github.tix320.jouska.core.application.tournament.TournamentState;
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.dto.TournamentStructure.GroupPlayerView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.GroupView;
@@ -29,17 +31,15 @@ public class ServerTournamentEndpoint {
 	@Subscription
 	public Observable<List<TournamentView>> tournaments(@CallerUser Player player) {
 		return TournamentManager.tournaments()
-				.map(tournamentInfos -> tournamentInfos.stream()
-						.map(tournamentInfo -> new TournamentView(tournamentInfo.getId(),
-								tournamentInfo.getTournamentSettings().getName(),
-								tournamentInfo.getRegisteredPlayers().size(),
-								tournamentInfo.getTournamentSettings().getPlayersCount(), tournamentInfo.getCreator(),
-								tournamentInfo.getTournament().isPresent()))
+				.map(tournaments -> tournaments.stream()
+						.map(tournament -> new TournamentView(tournament.getId(), tournament.getSettings().getName(),
+								tournament.getPlayers().size(), tournament.getSettings().getMaxPlayersCount(),
+								tournament.getCreator(), tournament.getState() != TournamentState.INITIAL))
 						.collect(Collectors.toList()));
 	}
 
 	@Endpoint
-	public TournamentStructure getTournamentStructure(long tournamentId, @CallerUser Player player) {
+	public TournamentStructure getTournamentStructure(String tournamentId, @CallerUser Player player) {
 		Tournament tournament = TournamentManager.getTournament(tournamentId);
 		AtomicInteger groupIndex = new AtomicInteger(1);
 		List<GroupView> groups = tournament.getGroups()
@@ -52,7 +52,7 @@ public class ServerTournamentEndpoint {
 				.collect(Collectors.toList());
 
 		PlayOffView playOffView;
-		PlayOff playOff = Try.supply(() -> tournament.playOff().get(Duration.ofSeconds(0)))
+		PlayOff playOff = Try.supply(() -> tournament.playOff().getValue())
 				.recover(TimeoutException.class, e -> null)
 				.forceGet();
 
@@ -60,7 +60,8 @@ public class ServerTournamentEndpoint {
 			playOffView = null;
 		}
 		else {
-			List<List<PlayOffGameView>> playOffGamesViews = playOff.getGamesStructure()
+			List<List<PlayOffGameView>> playOffGamesViews = playOff.getTours()
+					.get(Duration.ZERO)
 					.stream()
 					.map(tour -> tour.stream()
 							.map(playOffGame -> new PlayOffGameView(playOffGame.getFirstPlayer(),
@@ -77,18 +78,19 @@ public class ServerTournamentEndpoint {
 
 	@Endpoint("create")
 	@Role(RoleName.ADMIN)
-	public long create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
-		return TournamentManager.createNewTournament(createTournamentCommand, player);
+	public String create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
+		return TournamentManager.createTournament(
+				(RestorableTournamentSettings) createTournamentCommand.getTournamentSettings().toModel(), player);
 	}
 
 	@Endpoint("join")
-	public TournamentJoinAnswer join(long tournamentId, @CallerUser Player player) {
+	public Confirmation join(String tournamentId, @CallerUser Player player) {
 		return TournamentManager.joinTournament(tournamentId, player);
 	}
 
 	@Endpoint
 	@Role(RoleName.ADMIN)
-	public void startTournament(long tournamentId, @CallerUser Player player) {
+	public void startTournament(String tournamentId, @CallerUser Player player) {
 		TournamentManager.startTournament(tournamentId);
 	}
 }

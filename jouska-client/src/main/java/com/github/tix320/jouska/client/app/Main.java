@@ -8,7 +8,7 @@ import java.util.Optional;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
-import com.github.tix320.jouska.core.dto.LoginCommand;
+import com.github.tix320.jouska.core.dto.Credentials;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -45,9 +45,9 @@ public class Main extends Application {
 									UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
 								}
 								else {
-									LoginCommand loginCommand = new LoginCommand(Configuration.getNickname(),
+									Credentials credentials = new Credentials(Configuration.getNickname(),
 											Configuration.getPassword());
-									AUTHENTICATION_SERVICE.login(loginCommand).subscribe(loginAnswer -> {
+									AUTHENTICATION_SERVICE.login(credentials).subscribe(loginAnswer -> {
 										switch (loginAnswer.getLoginResult()) {
 											case SUCCESS:
 												CurrentUserContext.setPlayer(loginAnswer.getPlayer());
@@ -64,7 +64,7 @@ public class Main extends Application {
 
 													Optional<ButtonType> result = alert.showAndWait();
 													if (result.isPresent() && result.get() == ButtonType.OK) {
-														AUTHENTICATION_SERVICE.forceLogin(loginCommand)
+														AUTHENTICATION_SERVICE.forceLogin(credentials)
 																.subscribe(answer -> {
 																	switch (answer.getLoginResult()) {
 																		case SUCCESS:
@@ -83,7 +83,7 @@ public class Main extends Application {
 																});
 													}
 													else {
-														UI.switchComponent(ComponentType.LOGIN, loginCommand);
+														UI.switchComponent(ComponentType.LOGIN, credentials);
 													}
 												});
 												break;

@@ -4,8 +4,16 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.Version;
+import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
+import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
 import com.github.tix320.jouska.client.ui.controller.Component;
 import com.github.tix320.jouska.client.ui.controller.Controller;
+import com.github.tix320.jouska.client.ui.controller.notification.GamePlayersOfflineNotificationController;
+import com.github.tix320.jouska.client.ui.controller.notification.GameStartSoonNotificationController;
+import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
+import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
+import com.github.tix320.jouska.core.event.EventDispatcher;
+import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -33,6 +41,10 @@ public final class UI {
 		else {
 			throw new IllegalStateException("Application already initialized");
 		}
+
+		// TODO this is not place for this
+		EventDispatcher.on(GameStartedEvent.class)
+				.subscribe(event -> UI.switchComponent(ComponentType.GAME, event.getGamePlayDto()));
 	}
 
 	public static MonoObservable<None> switchComponent(ComponentType componentType) {
@@ -68,22 +80,44 @@ public final class UI {
 	}
 
 	public static Component loadComponent(ComponentType componentType, Object data) {
+		FXMLLoader loader = loadFxml(componentType, null);
+		Parent root = loader.getRoot();
+
+		Controller<Object> controller = loader.getController();
+		controller.init(data);
+		return new ComponentImpl(root, controller);
+	}
+
+	public static Component loadNotificationComponent(NotificationType notificationType, NotificationEvent<?, ?> data) {
+		ComponentType componentType = notificationType.componentType;
+
+		@SuppressWarnings("unchecked")
+		NotificationController<NotificationEvent<?, ?>> controller = (NotificationController<NotificationEvent<?, ?>>) Try
+				.supplyOrRethrow(() -> notificationType.controllerClass.getConstructors()[0].newInstance());
+		FXMLLoader fxmlLoader = loadFxml(componentType, controller);
+
+		controller.init(data);
+		return new ComponentImpl(fxmlLoader.getRoot(), controller);
+	}
+
+	private static FXMLLoader loadFxml(ComponentType componentType, Object controller) {
 		String resourceUrl = componentType.fxmlPath;
 		URL resource = UI.class.getResource(resourceUrl);
 		if (resource == null) {
 			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
 		}
 		FXMLLoader loader = new FXMLLoader(resource);
-		Parent root;
+		if (controller != null) {
+			loader.setController(controller);
+		}
 		try {
-			root = loader.load();
+			loader.load();
 		}
 		catch (IOException e) {
 			throw new IllegalArgumentException(String.format("Scene %s not found", componentType), e);
 		}
-		Controller<Object> controller = loader.getController();
-		controller.init(data);
-		return new ComponentImpl(root, controller);
+
+		return loader;
 	}
 
 	public static void close() {
@@ -107,13 +141,28 @@ public final class UI {
 		TOURNAMENT_CREATE("/ui/tournament/tournament-create.fxml"),
 		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-view.fxml"),
 		GAME("/ui/game/game.fxml"),
-
-		TOURNAMENT_ACCEPT_NOTIFICATION("/ui/tournament/accept-player-notification.fxml");
+		CONFIRM_NOTIFICATION("/ui/menu/notification/confirm-notification.fxml"),
+		WARNING_NOTIFICATION("/ui/menu/notification/warning-notification.fxml");
 
 		private final String fxmlPath;
 
 		ComponentType(String fxmlPath) {
 			this.fxmlPath = fxmlPath;
+		}
+	}
+
+	public enum NotificationType {
+		TOURNAMENT_ACCEPT(ComponentType.CONFIRM_NOTIFICATION, TournamentAcceptPlayerNotificationController.class),
+		GAME_PLAYERS_OFFLINE(ComponentType.WARNING_NOTIFICATION, GamePlayersOfflineNotificationController.class),
+		GAME_START_SOON(ComponentType.CONFIRM_NOTIFICATION, GameStartSoonNotificationController.class);
+
+		private final ComponentType componentType;
+
+		private final Class<? extends NotificationController<?>> controllerClass;
+
+		NotificationType(ComponentType componentType, Class<? extends NotificationController<?>> controllerClass) {
+			this.componentType = componentType;
+			this.controllerClass = controllerClass;
 		}
 	}
 
