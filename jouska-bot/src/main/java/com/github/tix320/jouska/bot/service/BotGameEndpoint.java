@@ -1,7 +1,8 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.service;
 
 import java.util.List;
 
+import com.github.tix320.jouska.bot.Bot;
 import com.github.tix320.jouska.core.application.game.Game;
 import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.application.game.PlayerColor;

@@ -9,6 +9,10 @@ public class LoopThread {
 	private final Thread thread;
 
 	public LoopThread(LoopRunner runner) {
+		this(runner, true);
+	}
+
+	public LoopThread(LoopRunner runner, boolean isDaemon) {
 		thread = new Thread(() -> {
 			while (!Thread.currentThread().isInterrupted()) {
 				try {
@@ -26,7 +30,7 @@ public class LoopThread {
 			}
 		});
 
-		thread.setDaemon(true);
+		thread.setDaemon(isDaemon);
 	}
 
 	public void start() {

@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.process;
 
 import java.io.*;
 import java.lang.ProcessBuilder.Redirect;

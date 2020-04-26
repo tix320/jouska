@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.service;
 
 import com.github.tix320.jouska.core.application.game.Point;
 import com.github.tix320.jouska.core.dto.GameChangeDto;

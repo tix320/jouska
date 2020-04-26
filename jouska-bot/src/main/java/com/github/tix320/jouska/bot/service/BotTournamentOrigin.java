@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.service;
 
 import java.util.List;
 

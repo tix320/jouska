@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.process;
 
 import com.github.tix320.jouska.core.application.game.BoardCell;
 import com.github.tix320.jouska.core.application.game.PlayerColor;

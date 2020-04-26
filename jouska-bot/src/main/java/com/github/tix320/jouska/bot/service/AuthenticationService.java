@@ -1,7 +1,7 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.service;
 
-import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.Credentials;
+import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 

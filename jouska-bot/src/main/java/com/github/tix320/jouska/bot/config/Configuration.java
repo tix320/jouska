@@ -1,4 +1,4 @@
-package com.github.tix320.jouska.bot;
+package com.github.tix320.jouska.bot.config;
 
 import java.io.FileInputStream;
 import java.io.IOException;

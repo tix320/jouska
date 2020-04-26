@@ -2,10 +2,10 @@ package com.github.tix320.jouska.server.infrastructure.endpoint;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import com.github.tix320.jouska.core.application.game.creation.RestorableTournamentSettings;
 import com.github.tix320.jouska.core.application.tournament.PlayOff;
 import com.github.tix320.jouska.core.application.tournament.Tournament;
 import com.github.tix320.jouska.core.application.tournament.TournamentState;
@@ -79,18 +79,19 @@ public class ServerTournamentEndpoint {
 	@Endpoint("create")
 	@Role(RoleName.ADMIN)
 	public String create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
-		return TournamentManager.createTournament(
-				(RestorableTournamentSettings) createTournamentCommand.getTournamentSettings().toModel(), player);
+		return TournamentManager.createTournament(createTournamentCommand.getTournamentSettings().toModel(), player);
 	}
 
 	@Endpoint("join")
 	public Confirmation join(String tournamentId, @CallerUser Player player) {
+		Objects.requireNonNull(tournamentId, "Tournament id not specified");
 		return TournamentManager.joinTournament(tournamentId, player);
 	}
 
 	@Endpoint
 	@Role(RoleName.ADMIN)
 	public void startTournament(String tournamentId, @CallerUser Player player) {
+		Objects.requireNonNull(tournamentId, "Tournament id not specified");
 		TournamentManager.startTournament(tournamentId);
 	}
 }

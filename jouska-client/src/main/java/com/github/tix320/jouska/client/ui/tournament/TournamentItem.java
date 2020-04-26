@@ -9,6 +9,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
+import javafx.scene.input.Clipboard;
+import javafx.scene.input.ClipboardContent;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.AnchorPane;
 
@@ -54,6 +56,14 @@ public class TournamentItem extends AnchorPane {
 
 	public void setOnStartClick(EventHandler<? super MouseEvent> handler) {
 		startButton.setOnMouseClicked(handler);
+	}
+
+	@FXML
+	private void copyTournamentId() {
+		String id = tournamentView.getId();
+		ClipboardContent content = new ClipboardContent();
+		content.putString(String.valueOf(id));
+		Clipboard.getSystemClipboard().setContent(content);
 	}
 
 	private void initView(TournamentView tournamentView) {

@@ -1,70 +1,92 @@
 .root * {
-	-fx-font-family: "Comic Sans MS";
-	-fx-font-size: 18px;
+    -fx-font-family: "Comic Sans MS";
+    -fx-font-size: 18px;
 }
 
 .tournament-item {
-	-fx-background-color: #169abe;
-	-fx-background-radius: 25px;
-	-fx-pref-height: 200;
-	-fx-pref-width: 200;
-	-fx-start-margin: 10px;
+    -fx-background-color: #169abe;
+    -fx-background-radius: 25px;
+    -fx-pref-height: 200;
+    -fx-pref-width: 200;
+    -fx-start-margin: 10px;
 }
 
 .tournament-item .game-name {
-	-fx-pref-width: 300px;
-	-fx-pref-height: 30px;
-	-fx-text-fill: RED;
+    -fx-pref-width: 300px;
+    -fx-pref-height: 30px;
+    -fx-text-fill: RED;
 }
 
 .tournament-item .vbox {
-	-fx-spacing: 10px;
+    -fx-spacing: 10px;
 }
 
 .tournament-item .hbox {
-	-fx-pref-width: 200px;
-	-fx-pref-height: 35px;
-	-fx-spacing: 5px;
-	-fx-alignment: CENTER;
+    -fx-pref-width: 200px;
+    -fx-pref-height: 35px;
+    -fx-spacing: 5px;
+    -fx-alignment: CENTER;
 }
 
-.button{
-	-fx-background-radius: 10px;
+.button {
+    -fx-background-radius: 10px;
 }
 
 #joinButton {
-	-fx-background-color: #18e91d;
+    -fx-background-color: #18e91d;
 }
 
 #joinButton:hover {
-	-fx-background-color: #ace9c0;
+    -fx-background-color: #ace9c0;
 }
 
 #joinButton:pressed {
-	-fx-background-color: #18e91d;
+    -fx-background-color: #18e91d;
 }
 
 #viewButton {
-	-fx-background-color: #feff0c;
+    -fx-background-color: #feff0c;
 }
 
 #viewButton:hover {
-	-fx-background-color: #f7ffd6;
+    -fx-background-color: #f7ffd6;
 }
 
 #viewButton:pressed {
-	-fx-background-color: #feff0c;
+    -fx-background-color: #feff0c;
 }
 
 #startButton {
-	-fx-background-color: #ff6120;
-	-fx-pref-width: 100px;
+    -fx-background-color: #ff6120;
+    -fx-pref-width: 100px;
 }
 
 #startButton:hover {
-	-fx-background-color: #ff803c;
+    -fx-background-color: #ff803c;
 }
 
 #startButton:pressed {
-	-fx-background-color: #ff6120;
+    -fx-background-color: #ff6120;
+}
+
+#copyButton {
+    -fx-background-color: transparent;
+    -fx-background-radius: 20px;
+    -fx-padding: 2px;
+}
+
+#copyButton:hover {
+    -fx-background-color: #82be3c;
+}
+
+#copyButton:pressed {
+    -fx-background-color: #ffc023;
+}
+
+.tooltip {
+    -fx-font: normal bold 16 Langdon;
+    -fx-base: #AE3522;
+    -fx-text-fill: orange;
+    -fx-show-delay: 100ms;
+    -fx-hide-delay: 100ms;
 }

@@ -44,9 +44,7 @@ public class TournamentManager {
 	public static Confirmation joinTournament(String tournamentId, Player player) {
 		DBTournament tournament = DBTournament.all().get(tournamentId);
 
-		if (tournament == null) {
-			throw new IllegalStateException(String.format("Tournament %s not found", tournamentId));
-		}
+		failIfTournamentNull(tournamentId, tournament);
 
 		if (tournament.getPlayers().contains(player)) {
 			return Confirmation.ACCEPT;
