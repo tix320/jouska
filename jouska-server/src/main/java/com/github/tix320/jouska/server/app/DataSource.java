@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.server.app;
 
+import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.mongodb.MongoClient;
 import com.mongodb.MongoClientOptions;
 import com.mongodb.MongoCredential;
@@ -36,14 +37,17 @@ public class DataSource {
 
 		// tell Morphia where to find your classes
 		// can be called multiple times with different packages or classes
-		morphia.mapPackage("com.github.tix320.jouska.server.entity");
+		morphia.mapPackage("com.github.tix320.jouska.server.infrastructure.entity");
+
+		morphia.map(PlayerEntity.class);
+
+		configureMapper(morphia.getMapper());
 
 		ServerAddress serverAddress = new ServerAddress(dbHost, dbPort);
 		MongoCredential credential = MongoCredential.createScramSha1Credential(dbUsername, "admin",
 				dbPassword.toCharArray());
-		Mapper mapper = configureMapper();
 		final Datastore datastore = morphia.createDatastore(
-				new MongoClient(serverAddress, credential, MongoClientOptions.builder().build()), mapper, dbName);
+				new MongoClient(serverAddress, credential, MongoClientOptions.builder().build()), dbName);
 		datastore.ensureIndexes();
 
 		return datastore;
@@ -58,9 +62,8 @@ public class DataSource {
 		return value;
 	}
 
-	private static Mapper configureMapper() {
-		MapperOptions mapperOptions = new MapperOptions();
+	private static void configureMapper(Mapper mapper) {
+		MapperOptions mapperOptions = mapper.getOptions();
 		mapperOptions.setStoreEmpties(true);
-		return new Mapper(mapperOptions);
 	}
 }

@@ -18,7 +18,7 @@ AppPublisher={#MyAppPublisher}
 DefaultDirName={autopf}\{#MyAppName}
 DisableProgramGroupPage=yes
 OutputBaseFilename=jouska-setup
-SetupIconFile=C:\Users\tigra\IdeaProjects\jouska\jouska-ci\resources\installer.ico
+SetupIconFile=C:\Users\tigra\IdeaProjects\jouska\jouska-ci\build\windows\resources\installer.ico
 Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
@@ -32,12 +32,12 @@ Name: "russian"; MessagesFile: "compiler:Languages\Russian.isl"
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\resources\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\jouska-app.jar"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\Jouska.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\config.properties"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\jre\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
-Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\windows\installer\include\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\build\windows\resources\icon.ico"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\output\jouska-app.jar"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\output\Jouska.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\\output\config.properties"; DestDir: "{app}"; Flags: ignoreversion
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-client\target\output\jre\*"; DestDir: "{app}\jre"; Flags: ignoreversion recursesubdirs
+Source: "C:\Users\tigra\IdeaProjects\jouska\jouska-ci\build\windows\static\*"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Dirs]
