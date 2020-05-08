@@ -40,7 +40,7 @@ public final class GameBoards {
 			case 3:
 				penultRowIndex = height - 2;
 				return createBoard(height, width,
-						List.of(new CellDomination(new Point(2, 3), new BoardCell(players[0], 3)),
+						List.of(new CellDomination(new Point(1, 3), new BoardCell(players[0], 3)),
 								new CellDomination(new Point(4, 1), new BoardCell(players[1], 3)),
 								new CellDomination(new Point(4, 5), new BoardCell(players[2], 3))));
 			case 4:

@@ -44,10 +44,10 @@ public class ClassicTournament implements RestorableTournament {
 	}
 
 	@Override
-	public synchronized void addPlayer(Player player) {
+	public synchronized boolean addPlayer(Player player) {
 		failIfStarted();
 
-		players.add(player);
+		return players.add(player);
 	}
 
 	@Override
@@ -80,8 +80,9 @@ public class ClassicTournament implements RestorableTournament {
 			ClassicPlayOff classicPlayOff = createPlayOffFromGroups(groupss, playOffSettings);
 
 			Property.inAtomicContext(() -> {
+				classicPlayOff.start();
+				this.playOff.setValue(classicPlayOff);
 				state.setValue(TournamentState.PLAY_OFF_STAGE);
-				playOff.setValue(classicPlayOff);
 			});
 
 			classicPlayOff.completed().subscribe(none -> state.setValue(TournamentState.COMPLETED));
@@ -90,7 +91,7 @@ public class ClassicTournament implements RestorableTournament {
 
 	@Override
 	public synchronized Set<Player> getPlayers() {
-		return Collections.unmodifiableSet(players);
+		return Set.copyOf(players);
 	}
 
 	@Override
@@ -138,7 +139,9 @@ public class ClassicTournament implements RestorableTournament {
 			throw new RestoreException(String.format("Tournament players count must be >=4, but was %s", playersCount));
 		}
 
-		this.groups.addAll((List) groups);
+		@SuppressWarnings("all")
+		List<RestorableGroup> castedGroups = (List) groups;
+		this.groups.addAll(castedGroups);
 		this.state.setValue(TournamentState.GROUP_STAGE);
 
 		if (playOff == null) {

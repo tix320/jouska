@@ -91,6 +91,7 @@ public class ServerGameManagementEndpoint {
 
 	@Endpoint
 	public GameConnectionAnswer join(String gameId, @CallerUser Player player) {
+		Objects.requireNonNull(gameId, "Game id not specified");
 		return GameManager.joinGame(gameId, player);
 	}
 

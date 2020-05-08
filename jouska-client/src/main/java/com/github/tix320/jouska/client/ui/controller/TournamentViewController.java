@@ -19,6 +19,7 @@ import com.github.tix320.jouska.core.dto.TournamentStructure.GroupView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.PlayOffView;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.MathUtils;
+import com.github.tix320.kiwi.api.util.Threads;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -43,7 +44,7 @@ public class TournamentViewController implements Controller<TournamentStructure>
 	public void init(TournamentStructure tournamentStructure) {
 		initView(tournamentStructure);
 
-		Executors.newSingleThreadScheduledExecutor().scheduleWithFixedDelay(() -> {
+		Executors.newSingleThreadScheduledExecutor(Threads::daemon).scheduleWithFixedDelay(() -> {
 			TOURNAMENT_SERVICE.getTournamentStructure(tournamentStructure.getId()).subscribe(newStructure -> {
 				if (newStructure != null) {
 					Platform.runLater(() -> {

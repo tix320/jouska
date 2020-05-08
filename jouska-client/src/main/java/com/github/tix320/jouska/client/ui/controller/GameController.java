@@ -22,14 +22,14 @@ import com.github.tix320.jouska.core.application.game.creation.SimpleGameSetting
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.util.LoopThread;
-import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.api.util.LoopThread;
 import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.kiwi.api.util.Threads;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -386,7 +386,7 @@ public class GameController implements Controller<GameWatchDto> {
 		Publisher<None> onFinishPublisher = Publisher.mono();
 		fullTransition.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
 		fullTransition.play();
-		onFinishPublisher.asObservable().blockUntilComplete();
+		Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
 	}
 
 	private Transition appearLoseWinLabel(String text, Color color) {
@@ -491,7 +491,7 @@ public class GameController implements Controller<GameWatchDto> {
 
 		if (root.getChildren().isEmpty()) {
 			fullAnimation.play();
-			onFinishPublisher.asObservable().blockUntilComplete();
+			Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
 			return;
 		}
 
@@ -534,7 +534,7 @@ public class GameController implements Controller<GameWatchDto> {
 		}
 
 		fullAnimation.play();
-		onFinishPublisher.asObservable().blockUntilComplete();
+		Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
 	}
 
 	private Transition makeTileTransition(Point point, BoardCell boardCell, Duration duration) {

@@ -37,16 +37,7 @@ public class ApplicationUpdateEndpoint {
 			return "";
 		}
 
-		switch (os) {
-			case WINDOWS:
-				return Files.exists(Path.of(clientAppPath + WINDOWS_CLIENT_FILE_NAME)) ? applicationVersion : "";
-			case LINUX:
-				return Files.exists(Path.of(clientAppPath + LINUX_CLIENT_FILE_NAME)) ? applicationVersion : "";
-			case MAC:
-				return Files.exists(Path.of(clientAppPath + MAC_CLIENT_FILE_NAME)) ? applicationVersion : "";
-			default:
-				throw new IllegalArgumentException();
-		}
+		return applicationVersion;
 	}
 
 	@Endpoint

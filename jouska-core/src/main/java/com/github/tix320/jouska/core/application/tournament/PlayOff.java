@@ -8,7 +8,6 @@ import com.github.tix320.jouska.core.infrastructure.concurrent.ThreadSafe;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
 import com.github.tix320.kiwi.api.util.None;
 
 public interface PlayOff extends ThreadSafe {
@@ -24,9 +23,11 @@ public interface PlayOff extends ThreadSafe {
 
 	List<Player> getPlayers();
 
-	Observable<List<List<PlayOffGame>>> getTours();
+	List<List<PlayOffGame>> getTours();
 
 	MonoObservable<None> completed();
 
 	Optional<Player> getWinner();
+
+	Observable<None> changes();
 }

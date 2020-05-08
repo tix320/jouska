@@ -91,6 +91,12 @@ public final class TimedGame implements RestorableGame {
 		synchronized (getLock()) {
 			game.start();
 
+			game.getPlayersWithColors()
+					.stream()
+					.map(GamePlayer::getRealPlayer)
+					.forEach(player -> playerTimers.put(player, new PlayerTimer(player,
+							TimeUnit.SECONDS.toMillis(settings.getPlayerTurnTotalDurationSeconds()))));
+
 			ChangeVisitor changeVisitor = new ChangeVisitor();
 			for (GameChange gameChange : changes) {
 				gameChange.accept(changeVisitor);

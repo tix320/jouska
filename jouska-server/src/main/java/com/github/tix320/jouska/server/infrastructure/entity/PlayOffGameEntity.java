@@ -16,13 +16,17 @@ public class PlayOffGameEntity {
 	@Reference
 	private GameEntity game;
 
+	private int realPLayersToBe;
+
 	private PlayOffGameEntity() {
 	}
 
-	public PlayOffGameEntity(PlayerEntity firstPlayer, PlayerEntity secondPlayer, GameEntity game) {
+	public PlayOffGameEntity(PlayerEntity firstPlayer, PlayerEntity secondPlayer, GameEntity game,
+							 int realPLayersToBe) {
 		this.firstPlayer = firstPlayer;
 		this.secondPlayer = secondPlayer;
 		this.game = game;
+		this.realPLayersToBe = realPLayersToBe;
 	}
 
 	public PlayerEntity getFirstPlayer() {
@@ -35,5 +39,9 @@ public class PlayOffGameEntity {
 
 	public GameEntity getGame() {
 		return game;
+	}
+
+	public int getRealPLayersToBe() {
+		return realPLayersToBe;
 	}
 }

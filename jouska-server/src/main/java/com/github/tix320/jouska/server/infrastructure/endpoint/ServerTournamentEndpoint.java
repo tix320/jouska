@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
-import java.time.Duration;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.atomic.AtomicInteger;
@@ -61,7 +60,6 @@ public class ServerTournamentEndpoint {
 		}
 		else {
 			List<List<PlayOffGameView>> playOffGamesViews = playOff.getTours()
-					.get(Duration.ZERO)
 					.stream()
 					.map(tour -> tour.stream()
 							.map(playOffGame -> new PlayOffGameView(playOffGame.getFirstPlayer(),

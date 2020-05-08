@@ -10,11 +10,20 @@ public final class PlayOffGame {
 	private final Player firstPlayer;
 	private final Player secondPlayer;
 	private final Game game;
+	private final int realPLayersToBe;
 
-	public PlayOffGame(Player firstPlayer, Player secondPlayer, Game game) {
+	public PlayOffGame(Player firstPlayer, Player secondPlayer, Game game, int realPLayersToBe) {
 		this.firstPlayer = firstPlayer;
 		this.secondPlayer = secondPlayer;
 		this.game = game;
+		this.realPLayersToBe = realPLayersToBe;
+		if (realPLayersToBe < 0 || realPLayersToBe > 2) {
+			throw new IllegalArgumentException();
+		}
+	}
+
+	public int getRealPLayersToBe() {
+		return realPLayersToBe;
 	}
 
 	public Player getFirstPlayer() {

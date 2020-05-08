@@ -5,9 +5,13 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintStream;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 
-import com.github.tix320.jouska.core.util.LoopThread;
+import com.github.tix320.kiwi.api.util.LoopThread;
+
+import static java.util.stream.Collectors.toMap;
 
 /**
  * @author Tigran Sargsyan on 26-Apr-20.
@@ -22,8 +26,9 @@ public class CLI {
 
 	private final PrintStream errWriter;
 
-	public CLI(Map<String, CommandListener> commandListeners) {
-		Map<String, CommandListener> commandListenersCopy = new HashMap<>(commandListeners);
+	public CLI(List<CLICommand> commandListeners) {
+		Map<String, CLICommand> commandListenersCopy = commandListeners.stream()
+				.collect(toMap(CLICommand::name, Function.identity()));
 		reader = new BufferedReader(new InputStreamReader(System.in));
 		outputWriter = System.out;
 		errWriter = System.err;
@@ -38,24 +43,24 @@ public class CLI {
 				return false;
 			}
 
-			Command command;
+			ParsedCommand parsedCommand;
 			try {
-				command = parseCommand(commandTxt);
+				parsedCommand = parseCommand(commandTxt);
 			}
 			catch (CommandParseException e) {
 				errWriter.println(e.getMessage());
 				return true;
 			}
 
-			String commandName = command.getName();
-			CommandListener commandListener = commandListenersCopy.get(commandName);
-			if (commandListener == null) {
+			String commandName = parsedCommand.getName();
+			CLICommand CLICommand = commandListenersCopy.get(commandName);
+			if (CLICommand == null) {
 				errWriter.println("Unknown command: " + commandName);
 				return true;
 			}
 
 			try {
-				String result = commandListener.doThis(command.getParams());
+				String result = CLICommand.accept(parsedCommand.getParams());
 				outputWriter.println(result);
 			}
 			catch (CommandException e) {
@@ -65,11 +70,17 @@ public class CLI {
 			return true;
 		}, false);
 
-		commandListenersCopy.put("exit", params ->
+		commandListenersCopy.put("exit", new CLICommand() {
+			@Override
+			public String name() {
+				return "exit";
+			}
 
-		{
-			thread.stop();
-			return "Bye";
+			@Override
+			public String accept(Map<String, String> params) throws CommandException {
+				thread.stop();
+				return "Bye";
+			}
 		});
 	}
 
@@ -78,7 +89,7 @@ public class CLI {
 		thread.start();
 	}
 
-	private static Command parseCommand(String command) {
+	private static ParsedCommand parseCommand(String command) {
 		String[] parts = command.split(" ");
 		if (parts.length == 0) {
 			throw new CommandParseException("Empty command");
@@ -115,19 +126,21 @@ public class CLI {
 			}
 		}
 
-		return new Command(commandName, params);
+		return new ParsedCommand(commandName, params);
 	}
 
-	public interface CommandListener {
+	public interface CLICommand {
 
-		String doThis(Map<String, String> params);
+		String name();
+
+		String accept(Map<String, String> params) throws CommandException;
 	}
 
-	private static final class Command {
+	private static final class ParsedCommand {
 		private final String name;
 		private final Map<String, String> params;
 
-		private Command(String name, Map<String, String> params) {
+		private ParsedCommand(String name, Map<String, String> params) {
 			this.name = name;
 			this.params = params;
 		}
@@ -148,7 +161,7 @@ public class CLI {
 		}
 	}
 
-	public static final class CommandException extends RuntimeException {
+	public static final class CommandException extends Exception {
 
 		public CommandException(String message) {
 			super(message);

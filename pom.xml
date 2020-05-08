@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>0.21.0</sonder.version>
+		<sonder.version>0.21.1-SNAPSHOT</sonder.version>
 	</properties>
 
 	<modules>
@@ -41,7 +41,7 @@
 		<dependency>
 			<groupId>com.github.tix320</groupId>
 			<artifactId>kiwi</artifactId>
-			<version>0.22.0</version>
+			<version>0.22.1-SNAPSHOT</version>
 		</dependency>
 	</dependencies>
 

@@ -24,14 +24,12 @@ public class Services {
 		String servicesPackage = "com.github.tix320.jouska.client.service";
 		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
-				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
 				.build();
 		initServices();
 	}
 
-	public static void stop()
-			throws IOException {
+	public static void stop() throws IOException {
 		if (SONDER_CLIENT != null) {
 			SONDER_CLIENT.close();
 			SONDER_CLIENT = null;

@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.server.infrastructure.endpoint;
 
+import java.util.List;
 import java.util.Set;
 
 import com.github.tix320.jouska.core.dto.Credentials;
@@ -9,21 +10,24 @@ import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.DataSource;
+import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;
-import com.mongodb.DuplicateKeyException;
 
 @Endpoint("auth")
 public class AuthenticationEndpoint {
 
 	private final PlayerService playerService;
 
+	private final PlayerDao playerDao;
+
 	public AuthenticationEndpoint() {
-		playerService = new PlayerService();
+		this.playerDao = new PlayerDao();
+		this.playerService = new PlayerService();
 	}
 
 	@Endpoint("login")
@@ -43,15 +47,14 @@ public class AuthenticationEndpoint {
 
 	@Endpoint("register")
 	public RegistrationAnswer register(RegistrationCommand registrationCommand, @ClientID long clientId) {
-		PlayerEntity playerEntity = new PlayerEntity(registrationCommand.getNickname(),
-				registrationCommand.getPassword(), RoleName.PLAYER);
-		try {
-			DataSource.getInstance().save(playerEntity);
-			return RegistrationAnswer.SUCCESS;
-		}
-		catch (DuplicateKeyException e) {
+		if (playerDao.findPlayersByNickname(List.of(registrationCommand.getNickname())).get(0) != null) {
 			return RegistrationAnswer.NICKNAME_ALREADY_EXISTS;
 		}
+
+		PlayerEntity playerEntity = new PlayerEntity(registrationCommand.getNickname(),
+				registrationCommand.getPassword(), RoleName.PLAYER);
+		DataSource.getInstance().save(playerEntity);
+		return RegistrationAnswer.SUCCESS;
 	}
 
 	@Endpoint("connected-players")

@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.server.infrastructure.application;
 
 import java.time.Duration;
+import java.time.LocalTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -255,7 +256,8 @@ public class GameManager {
 				}
 
 				game.start();
-				System.out.println(String.format("Game %s (%s) started", gameSettings.getName(), gameId));
+				System.out.println(
+						String.format("Game %s (%s) started on %s", gameSettings.getName(), gameId, LocalTime.now()));
 				changesPublisher.publish(None.SELF);
 
 				rejectedPlayers.forEach(game::kick);
@@ -279,7 +281,8 @@ public class GameManager {
 		String gameId = game.getId();
 		GameSettings gameSettings = game.getSettings();
 		GamePlayer winner = game.getWinner().orElseThrow();
-		System.out.println(String.format("Game %s(%s) ended: Players %s Winner is %s", gameSettings.getName(), gameId,
-				game.getPlayersWithColors(), winner));
+		System.out.println(
+				String.format("Game %s(%s) ended on %s: Players %s Winner is %s", gameSettings.getName(), gameId,
+						LocalTime.now(), game.getPlayersWithColors(), winner));
 	}
 }

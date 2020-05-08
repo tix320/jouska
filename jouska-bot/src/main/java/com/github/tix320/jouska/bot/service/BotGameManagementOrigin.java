@@ -13,7 +13,7 @@ import com.github.tix320.sonder.api.common.rpc.Subscription;
 public interface BotGameManagementOrigin {
 
 	@Origin
-	MonoObservable<GameConnectionAnswer> join(long gameId);
+	MonoObservable<GameConnectionAnswer> join(String gameId);
 
 	@Origin("info")
 	@Subscription

@@ -46,10 +46,6 @@ public class TournamentManager {
 
 		failIfTournamentNull(tournamentId, tournament);
 
-		if (tournament.getPlayers().contains(player)) {
-			return Confirmation.ACCEPT;
-		}
-
 		Player creator = tournament.getCreator();
 
 		boolean canJoin = false;
@@ -65,13 +61,13 @@ public class TournamentManager {
 				player);
 		try {
 			Confirmation requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request, creatorClientId)
-					.get(Duration.ofSeconds(15));
+					.get(Duration.ofSeconds(30));
 
 			if (requestAnswer == Confirmation.ACCEPT) {
 				canJoin = true;
 			}
 		}
-		catch (TimeoutException e) {
+		catch (TimeoutException | InterruptedException e) {
 			canJoin = false;
 		}
 
@@ -80,7 +76,10 @@ public class TournamentManager {
 		}
 
 		try {
-			tournament.addPlayer(player);
+			boolean added = tournament.addPlayer(player);
+			if (!added) {
+				throw new IllegalStateException("Already added");
+			}
 			changesPublisher.publish(None.SELF);
 			return Confirmation.ACCEPT;
 		}

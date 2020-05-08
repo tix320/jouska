@@ -12,12 +12,12 @@ import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEve
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.jouska.core.util.LoopThread;
-import com.github.tix320.jouska.core.util.Threads;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.api.util.LoopThread;
 import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.kiwi.api.util.Threads;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -167,7 +167,7 @@ public final class MenuController implements Controller<Object> {
 			});
 
 			try {
-				notificationEvent.onResolve().blockUntilComplete(java.time.Duration.ofSeconds(30));
+				notificationEvent.onResolve().await(java.time.Duration.ofSeconds(30));
 			}
 			catch (TimeoutException ignored) {
 				System.out.println("Notification skipped in Menu");
@@ -192,7 +192,7 @@ public final class MenuController implements Controller<Object> {
 					translateTransition.play();
 				});
 
-				onDestroy.asObservable().blockUntilComplete(java.time.Duration.ofSeconds(5));
+				onDestroy.asObservable().await(java.time.Duration.ofSeconds(5));
 			}
 
 			return true;

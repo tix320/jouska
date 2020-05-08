@@ -16,7 +16,9 @@ public class Configuration {
 		try (InputStream inputStream = new FileInputStream("config.properties")) {
 			Properties properties = new Properties();
 			properties.load(inputStream);
-			Configuration.properties.putAll((Map) properties);
+			@SuppressWarnings("all")
+			Map<String, String> castedMap = (Map) properties;
+			Configuration.properties.putAll(castedMap);
 		}
 		catch (IOException e) {
 			e.printStackTrace();

@@ -3,11 +3,11 @@ package com.github.tix320.jouska.server.infrastructure.entity;
 import java.util.Objects;
 
 import com.github.tix320.jouska.core.model.RoleName;
-import dev.morphia.annotations.*;
+import dev.morphia.annotations.Entity;
+import dev.morphia.annotations.Id;
 import org.bson.types.ObjectId;
 
 @Entity("players")
-@Indexes(@Index(fields = {@Field("nickname")}, options = @IndexOptions(unique = true)))
 public class PlayerEntity implements Identifiable {
 
 	@Id

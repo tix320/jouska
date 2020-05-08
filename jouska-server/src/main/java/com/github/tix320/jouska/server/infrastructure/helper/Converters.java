@@ -25,6 +25,9 @@ public class Converters {
 	}
 
 	public static Player playerEntityToPLayer(PlayerEntity playerEntity) {
+		if (playerEntity == null) {
+			return null;
+		}
 		return new Player(playerEntity.getId(), playerEntity.getNickname(), playerEntity.getRole());
 	}
 

@@ -18,8 +18,7 @@ public class ClientTournamentEndpoint {
 
 	@Endpoint
 	public Confirmation requestTournamentJoin(TournamentJoinRequest request) {
-		NotificationEvent<TournamentJoinRequest, Confirmation> event = new TournamentJoinNotificationEvent(
-				request);
+		NotificationEvent<TournamentJoinRequest, Confirmation> event = new TournamentJoinNotificationEvent(request);
 		EventDispatcher.fire(event, NotificationEvent.class);
 
 		try {
@@ -28,6 +27,9 @@ public class ClientTournamentEndpoint {
 		catch (TimeoutException e) {
 			System.out.println("Tournament Join notification skipped");
 			return Confirmation.REJECT;
+		}
+		catch (InterruptedException e) {
+			throw new IllegalStateException(e);
 		}
 	}
 }

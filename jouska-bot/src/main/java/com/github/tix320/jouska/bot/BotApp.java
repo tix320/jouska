@@ -7,22 +7,22 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.time.Duration;
-import java.util.Map;
+import java.util.List;
 
 import com.github.tix320.jouska.bot.config.Configuration;
 import com.github.tix320.jouska.bot.config.Version;
 import com.github.tix320.jouska.bot.console.CLI;
-import com.github.tix320.jouska.bot.console.CLI.CommandException;
 import com.github.tix320.jouska.bot.console.ConsoleProgressBar;
-import com.github.tix320.jouska.bot.process.JouskaBotProcess;
+import com.github.tix320.jouska.bot.console.JoinCLICommand;
 import com.github.tix320.jouska.bot.service.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.bot.service.AuthenticationService;
+import com.github.tix320.jouska.bot.service.BotGameManagementOrigin;
 import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.check.Try;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 
@@ -30,45 +30,56 @@ public class BotApp {
 
 	public static SonderClient SONDER_CLIENT;
 
-	public static void main(String[] args) {
+	public static void main(String[] args) throws InterruptedException {
 		String processCommand = args[0];
 		String nickname = args[1];
 		String password = args[2];
 		String host = Configuration.getServerHost();
 		int port = Configuration.getServerPort();
 
-		// for (int i = 1; i <=15; i++) {
-		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
-		// 			.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
-		// 			.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
-		// 			.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
-		// 			.build();
-		//
-		// 	String botNickname = "Bot" + i;
-		// 	String botPassword = "foo";
-		// 	sonderClient.getRPCService(AuthenticationService.class).forceLogin(new Credentials(botNickname, botPassword)).subscribe(loginAnswer -> {
-		// 		if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
-		// 			sonderClient.getRPCService(BotTournamentOrigin.class).getTournaments().toMono().subscribe(tournamentViews -> {
-		// 				TournamentView tournamentView = tournamentViews.get(0);
-		// 				String id = tournamentView.getId();
-		// 				sonderClient.getRPCService(BotTournamentOrigin.class).join(id);
-		// 			});
-		// 		}
-		// 		else {
-		// 			throw new IllegalStateException(loginAnswer.toString());
-		// 		}
-		// 	});
-		// }
+		for (int i = 1; i <= 15; i++) {
+			SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
+					.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
+					.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
+					.build();
+
+			String botNickname = "Bot" + i;
+			String botPassword = "foo";
+			sonderClient.getRPCService(AuthenticationService.class)
+					.forceLogin(new Credentials(botNickname, botPassword))
+					.subscribe(loginAnswer -> {
+						if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
+							sonderClient.getRPCService(BotTournamentOrigin.class)
+									.getTournaments()
+									.toMono()
+									.subscribe(tournamentViews -> {
+										TournamentView tournamentView = tournamentViews.stream()
+												.filter(tournamentView1 -> !tournamentView1.isStarted())
+												.findFirst()
+												.orElseThrow(() -> new IllegalStateException(
+														"No any free tournament found"));
+										String id = tournamentView.getId();
+										sonderClient.getRPCService(BotTournamentOrigin.class).join(id);
+									});
+						}
+						else {
+							throw new IllegalStateException(loginAnswer.toString());
+						}
+					});
+		}
+
+		if (true) {
+			return;
+		}
 
 		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot.service"))
-				.headersTimeoutDuration(Duration.ofSeconds(Integer.MAX_VALUE))
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(Integer.MAX_VALUE))
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
 				.build();
 
 		checkApplicationUpdate();
 
-		String botNickname = "sdBot" + 2;
+		String botNickname = "Bot" + 2;
 		String botPassword = "foo";
 		LoginAnswer answer = SONDER_CLIENT.getRPCService(AuthenticationService.class)
 				.forceLogin(new Credentials(botNickname, botPassword))
@@ -79,30 +90,10 @@ public class BotApp {
 			throw new IllegalStateException("Invalid credentials");
 		}
 
-		JouskaBotProcess botProcess = new JouskaBotProcess(processCommand);
+		// JouskaBotProcess botProcess = new JouskaBotProcess(processCommand);
 
-		CLI cli = new CLI(Map.of("join", params -> {
-			String tournamentId = params.get("tournament");
-			try {
-				String result = SONDER_CLIENT.getRPCService(BotTournamentOrigin.class)
-						.join(tournamentId)
-						.map(Enum::name)
-						.mapErrorToItem(Throwable::getMessage)
-						.get(Duration.ofSeconds(30));
-				if (result.equals("ACCEPT")) {
-					return "Joined to tournament: " + tournamentId;
-				}
-				else if (result.equals("REJECT")) {
-					throw new CommandException("Join rejected");
-				}
-				else {
-					throw new CommandException("Error from server: " + result);
-				}
-			}
-			catch (TimeoutException e) {
-				throw new CommandException("Timeout");
-			}
-		}));
+		CLI cli = new CLI(List.of(new JoinCLICommand(SONDER_CLIENT.getRPCService(BotTournamentOrigin.class),
+				SONDER_CLIENT.getRPCService(BotGameManagementOrigin.class))));
 
 		cli.run();
 	}

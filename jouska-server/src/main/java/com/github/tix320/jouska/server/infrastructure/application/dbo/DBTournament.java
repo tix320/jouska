@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.server.infrastructure.application.dbo;
 
-import java.time.Duration;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
@@ -98,10 +97,13 @@ public class DBTournament implements Tournament {
 	}
 
 	@Override
-	public void addPlayer(Player player) {
+	public boolean addPlayer(Player player) {
 		synchronized (tournament) {
-			tournament.addPlayer(player);
-			updateTournamentPlayers();
+			boolean added = tournament.addPlayer(player);
+			if (added) {
+				updateTournamentPlayers();
+			}
+			return added;
 		}
 	}
 
@@ -164,9 +166,10 @@ public class DBTournament implements Tournament {
 				.flatMap(group -> group.getGames().stream())
 				.forEach(game -> game.completed().subscribe(o -> updateTournamentGroups()));
 
-		tournament.playOff()
-				.asObservable()
-				.subscribe(playOff -> playOff.getTours().subscribe(lists -> updateTournamentPlayOff(playOff)));
+		tournament.playOff().asObservable().subscribe(playOff -> {
+			updateTournamentPlayOff(playOff);
+			playOff.changes().subscribe(none -> updateTournamentPlayOff(playOff));
+		});
 
 		tournament.completed().subscribe(ignored -> updateCompletedTournament());
 	}
@@ -295,7 +298,8 @@ public class DBTournament implements Tournament {
 								Converters.playerEntityToPLayer(playOffGameEntity.getFirstPlayer()),
 								Converters.playerEntityToPLayer(playOffGameEntity.getSecondPlayer()),
 								playOffGameEntity.getGame() == null ? null :
-										DBGame.fromEntity(playOffGameEntity.getGame())))
+										DBGame.fromEntity(playOffGameEntity.getGame()),
+								playOffGameEntity.getRealPLayersToBe()))
 						.collect(Collectors.toList()))
 				.collect(Collectors.toList());
 
@@ -337,7 +341,6 @@ public class DBTournament implements Tournament {
 		List<PlayerEntity> playerEntities = convertPlayerToEntity(playOff.getPlayers());
 
 		List<List<PlayOffGameEntity>> playOffGames = playOff.getTours()
-				.get(Duration.ZERO)
 				.stream()
 				.map(tourGames -> tourGames.stream().map(DBTournament::convertPlayOffGameToEntity).collect(toList()))
 				.collect(toList());
@@ -354,9 +357,11 @@ public class DBTournament implements Tournament {
 		PlayerEntity firstPlayerEntity = convertPlayerToEntity(playOffGame.getFirstPlayer());
 		PlayerEntity secondPlayerEntity = convertPlayerToEntity(playOffGame.getSecondPlayer());
 
-		GameEntity gameEntity = new GameEntity(((DBGame) playOffGame.getGame()).getId());
+		GameEntity gameEntity =
+				playOffGame.getGame() == null ? null : new GameEntity(((DBGame) playOffGame.getGame()).getId());
 
-		return new PlayOffGameEntity(firstPlayerEntity, secondPlayerEntity, gameEntity);
+		return new PlayOffGameEntity(firstPlayerEntity, secondPlayerEntity, gameEntity,
+				playOffGame.getRealPLayersToBe());
 	}
 
 	private static PlayerEntity convertPlayerToEntity(Player player) {

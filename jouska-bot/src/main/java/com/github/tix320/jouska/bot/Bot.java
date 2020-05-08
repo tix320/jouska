@@ -9,7 +9,6 @@ import com.github.tix320.jouska.core.dto.GameChangeDto;
 import com.github.tix320.jouska.core.dto.GameCompleteDto;
 import com.github.tix320.jouska.core.dto.PlayerLeaveDto;
 import com.github.tix320.jouska.core.dto.PlayerTurnDto;
-import com.github.tix320.kiwi.api.check.Try;
 
 /**
  * @author Tigran Sargsyan on 07-Apr-20.
@@ -66,7 +65,6 @@ public final class Bot {
 
 	private void tryTurn() {
 		if (!game.isCompleted() && game.getCurrentPlayer().getColor() == myPlayer) {
-			Try.runOrRethrow(() -> Thread.sleep(1000));
 			// Point turn = BotApp.BOT.turn(game.getBoard(), myPlayer);
 			// gameService.turn(gameId, turn);
 		}

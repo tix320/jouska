@@ -27,7 +27,7 @@ public interface Tournament extends LockOwner {
 	 * @throws TournamentIllegalStateException if already started
 	 * @throws TournamentAlreadyFullException  if no space already available.
 	 */
-	void addPlayer(Player player);
+	boolean addPlayer(Player player);
 
 	/**
 	 * Remove player from tournament.
