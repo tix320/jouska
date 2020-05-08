@@ -25,7 +25,7 @@ public class ClientJRE {
 		char modulePathSeparator;
 		switch (runnerOS.toLowerCase()) {
 			case "unix":
-				modulePathSeparator = ':';
+				modulePathSeparator = ';';
 				break;
 			case "windows":
 				modulePathSeparator = ';';

@@ -2,6 +2,7 @@ package com.github.tix320.jouska.server.app;
 
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.Map;
@@ -33,6 +34,16 @@ public class Configuration {
 	}
 
 	public static Path getClientAppPath() {
-		return Path.of(properties.getOrDefault("clientAppPath", "client-app"));
+		Path path = Path.of(properties.getOrDefault("clientAppPath", "client-app"));
+		if (!Files.exists(path)) {
+			try {
+				Files.createDirectories(path);
+			}
+			catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return path;
 	}
 }

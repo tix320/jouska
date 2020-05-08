@@ -8,12 +8,12 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 @Origin("application")
 public interface UploaderService {
 
-	@Origin("upload-windows")
-	MonoObservable<None> uploadWindows(Transfer transfer);
+	@Origin
+	MonoObservable<None> uploadWindowsClient(Transfer transfer);
 
-	@Origin("upload-linux")
-	MonoObservable<None> uploadLinux(Transfer transfer);
+	@Origin
+	MonoObservable<None> uploadLinuxClient(Transfer transfer);
 
-	@Origin("upload-mac")
-	MonoObservable<None> uploadMac(Transfer transfer);
+	@Origin
+	MonoObservable<None> uploadMacClient(Transfer transfer);
 }

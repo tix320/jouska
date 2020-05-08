@@ -6,8 +6,11 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
+import java.time.Duration;
 
+import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
 import com.github.tix320.sonder.api.common.communication.Headers;
@@ -15,13 +18,23 @@ import com.github.tix320.sonder.api.common.communication.LimitedReadableByteChan
 
 public class Uploader {
 
-	public static void main(String[] args)
-			throws IOException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		String filePath = args[0];
 		String os = args[1];
-		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("3.230.34.96", 8888))
+		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("52.57.98.213", 8888))
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.ci.upload"))
 				.build();
+
+		try {
+			sonderClient.getRPCService(AuthenticationService.class)
+					.forceLogin(new Credentials("uploader", "uploader"))
+					.get(Duration.ofSeconds(30));
+		}
+		catch (TimeoutException e) {
+			sonderClient.close();
+			return;
+		}
+
 		UploaderService uploaderService = sonderClient.getRPCService(UploaderService.class);
 		Path file = Path.of(filePath);
 		long length = Files.size(file);
@@ -29,17 +42,17 @@ public class Uploader {
 				new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
 		switch (os) {
 			case "WINDOWS":
-				uploaderService.uploadWindows(transfer).subscribe(none -> {
+				uploaderService.uploadWindowsClient(transfer).subscribe(none -> {
 					Try.runOrRethrow(sonderClient::close);
 				});
 				break;
 			case "LINUX":
-				uploaderService.uploadLinux(transfer).subscribe(none -> {
+				uploaderService.uploadLinuxClient(transfer).subscribe(none -> {
 					Try.runOrRethrow(sonderClient::close);
 				});
 				break;
 			case "MAC":
-				uploaderService.uploadMac(transfer).subscribe(none -> {
+				uploaderService.uploadMacClient(transfer).subscribe(none -> {
 					Try.runOrRethrow(sonderClient::close);
 				});
 				break;
