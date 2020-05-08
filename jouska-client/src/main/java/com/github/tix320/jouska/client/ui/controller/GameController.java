@@ -435,7 +435,7 @@ public class GameController implements Controller<GameWatchDto> {
 				tiles[i][j] = tile;
 				int x = i;
 				int y = j;
-				tile.setOnMouseClicked(event -> onTileClick(x, y));
+				tile.setOnMouseClicked(event -> onTileClick(x, y, tile));
 				gameBoardPane.add(tile, j, i);
 			}
 		}
@@ -487,7 +487,7 @@ public class GameController implements Controller<GameWatchDto> {
 		}
 	}
 
-	private void onTileClick(int x, int y) {
+	private void onTileClick(int x, int y, Tile tile) {
 		if (game.isCompleted() || !turnProperty.get().equals(myPlayer) || !turned.compareAndSet(false, true)) {
 			return;
 		}
@@ -497,9 +497,11 @@ public class GameController implements Controller<GameWatchDto> {
 			if (myPlayer.equals(player)) {
 				IN_GAME_SERVICE.turn(gameId, point);
 				turned.set(true);
+				tile.animateBackground(Color.web(myPlayer.getColor().getColorCode())).play();
 			}
 			else {
 				turned.set(false);
+				tile.animateBackground(Color.GRAY).play();
 			}
 		}, () -> turned.set(false));
 	}

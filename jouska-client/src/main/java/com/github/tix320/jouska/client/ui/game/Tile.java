@@ -42,24 +42,6 @@ public class Tile extends VBox {
 				new BorderWidths(2))));
 	}
 
-	private Timeline animateBackground(Duration duration, Color color) {
-		int chunks = (int) duration.toMillis() / 10;
-		double chunkPercentage = (double) 1 / chunks;
-		int[] mills = {-10};
-		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + chunkPercentage)
-				.limit(chunks)
-				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, Color.TRANSPARENT),
-						new Stop(i, color), new Stop(1, Color.TRANSPARENT)))
-				.map(this::createBackground)
-				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10),
-						new KeyValue(backgroundProperty(), border)))
-				.toArray(KeyFrame[]::new);
-
-		Timeline timeline = new Timeline(keyFrames);
-		timeline.setOnFinished(event -> setBackground(null));
-		return timeline;
-	}
-
 	public Transition makeAppearTransition(PlayerColor player, int points, Duration duration) {
 		Transition transition = makeAppearTransition(duration);
 
@@ -101,5 +83,52 @@ public class Tile extends VBox {
 
 	private Background createBackground(Paint paint) {
 		return new Background(new BackgroundFill(paint, CornerRadii.EMPTY, Insets.EMPTY));
+	}
+
+	public Timeline animateBackground(Color color) {
+		int durationMillis = 400;
+
+		int chunks = durationMillis / 10;
+		double chunkPercentage = (double) 1 / chunks;
+		int[] mills = {-10};
+		KeyFrame[] highFrames = Stream.iterate(0.0, i -> i + chunkPercentage)
+				.limit(chunks / 2)
+				.map(i -> new Color(color.getRed(), color.getGreen(), color.getBlue(), i))
+				.map(this::createBackground)
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10),
+						new KeyValue(backgroundProperty(), border)))
+				.toArray(KeyFrame[]::new);
+
+		KeyFrame[] lowFrames = Stream.iterate(chunkPercentage * chunks / 2, i -> i - chunkPercentage)
+				.limit(chunks / 2)
+				.map(i -> new Color(color.getRed(), color.getGreen(), color.getBlue(), i))
+				.map(this::createBackground)
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10),
+						new KeyValue(backgroundProperty(), border)))
+				.toArray(KeyFrame[]::new);
+
+		Timeline timeline = new Timeline();
+		timeline.getKeyFrames().addAll(highFrames);
+		timeline.getKeyFrames().addAll(lowFrames);
+		timeline.setOnFinished(event -> setBackground(null));
+		return timeline;
+	}
+
+	private Timeline animateBackground(Duration duration, Color color) {
+		int chunks = (int) duration.toMillis() / 10;
+		double chunkPercentage = (double) 1 / chunks;
+		int[] mills = {-10};
+		KeyFrame[] keyFrames = Stream.iterate(0.0, i -> i + chunkPercentage)
+				.limit(chunks)
+				.map(i -> new LinearGradient(0, 0, 1, 1, true, CycleMethod.NO_CYCLE, new Stop(0, Color.TRANSPARENT),
+						new Stop(i, color), new Stop(1, Color.TRANSPARENT)))
+				.map(this::createBackground)
+				.map(border -> new KeyFrame(Duration.millis(mills[0] += 10),
+						new KeyValue(backgroundProperty(), border)))
+				.toArray(KeyFrame[]::new);
+
+		Timeline timeline = new Timeline(keyFrames);
+		timeline.setOnFinished(event -> setBackground(null));
+		return timeline;
 	}
 }
