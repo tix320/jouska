@@ -15,7 +15,7 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.*;
 import javafx.util.Duration;
 
-public class Tile extends AnchorPane {
+public class Tile extends VBox {
 
 	private static final String[][] SHAPE_ICONS = new String[][]{
 			{
@@ -29,8 +29,6 @@ public class Tile extends AnchorPane {
 					"images/game-shapes/yellow-jouska-3.png", "images/game-shapes/yellow-jouska-4.png"},};
 
 	private static final Color DEFAULT_BORDER_COLOR = Color.GRAY;
-
-	public static final double PREF_SIZE = 110;
 
 	@FXML
 	private ImageView imageHolder;

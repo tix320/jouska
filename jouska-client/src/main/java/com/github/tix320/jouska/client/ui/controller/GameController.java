@@ -8,6 +8,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
@@ -36,6 +37,7 @@ import javafx.beans.property.SimpleDoubleProperty;
 import javafx.beans.property.SimpleObjectProperty;
 import javafx.fxml.FXML;
 import javafx.geometry.Pos;
+import javafx.scene.Parent;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
@@ -55,7 +57,7 @@ public class GameController implements Controller<GameWatchDto> {
 	private AnchorPane mainPane;
 
 	@FXML
-	private FlowPane gameBoardPane;
+	private GridPane gameBoardPane;
 
 	@FXML
 	private Circle turnIndicator;
@@ -86,7 +88,7 @@ public class GameController implements Controller<GameWatchDto> {
 	private Map<PlayerColor, Long> playerTurnRemainingMillis;
 
 	private Tile[][] tiles;
-	private Map<PlayerColor, HBox> statisticsNodes;
+	private Map<PlayerColor, Parent> statisticsNodes;
 
 	private String gameId;
 	private Game game;
@@ -230,18 +232,16 @@ public class GameController implements Controller<GameWatchDto> {
 	private void createStatisticsBoardComponent(List<GamePlayer> players) {
 		statisticsNodes = new EnumMap<>(PlayerColor.class);
 		for (GamePlayer player : players) {
-			HBox hBox = new HBox();
-			hBox.setSpacing(20);
+			GridPane pane = new GridPane();
 
 			Circle playerIcon = new Circle(16);
-			playerIcon.setTranslateY(10);
 			playerIcon.setFill(Color.valueOf(player.getColor().getColorCode()));
 			playerIcon.setStroke(Color.BLACK);
 
 			Label nicknameLabel = new Label();
 			nicknameLabel.setTextFill(Color.web(player.getColor().getColorCode()));
-			nicknameLabel.setAlignment(Pos.TOP_CENTER);
-			nicknameLabel.setFont(Font.font("MV Boli", 30));
+			nicknameLabel.setAlignment(Pos.CENTER);
+			nicknameLabel.setFont(Font.font(25));
 			nicknameLabel.setText(player.getRealPlayer().getNickname());
 			if (player.equals(myPlayer)) {
 				nicknameLabel.setBorder(new Border(
@@ -251,13 +251,24 @@ public class GameController implements Controller<GameWatchDto> {
 
 			Label pointsLabel = new Label();
 			pointsLabel.setTextFill(Color.web(player.getColor().getColorCode()));
-			pointsLabel.setAlignment(Pos.TOP_CENTER);
-			pointsLabel.setFont(Font.font("MV Boli", 30));
+			pointsLabel.setAlignment(Pos.CENTER);
+			pointsLabel.setFont(Font.font(25));
 
-			hBox.getChildren().addAll(playerIcon, pointsLabel, nicknameLabel);
+			pane.add(playerIcon, 0, 0);
+			pane.add(pointsLabel, 1, 0);
+			pane.add(nicknameLabel, 2, 0);
+			ColumnConstraints constraints = new ColumnConstraints();
+			constraints.setPercentWidth(20);
+			pane.getColumnConstraints().add(constraints);
+			constraints = new ColumnConstraints();
+			constraints.setPercentWidth(25);
+			pane.getColumnConstraints().add(constraints);
+			constraints = new ColumnConstraints();
+			constraints.setPercentWidth(65);
+			pane.getColumnConstraints().add(constraints);
 
-			statisticsNodes.put(player.getColor(), hBox);
-			statisticsBoard.getChildren().add(hBox);
+			statisticsNodes.put(player.getColor(), pane);
+			statisticsBoard.getChildren().add(pane);
 		}
 	}
 
@@ -404,8 +415,8 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private void updateStatistics(Map<GamePlayer, Integer> playerSummaryPoints) {
 		playerSummaryPoints.forEach((player, points) -> {
-			Label label = (Label) statisticsNodes.get(player.getColor()).getChildren().get(1);
-			Platform.runLater(() -> label.setText(points + " -"));
+			Label label = (Label) statisticsNodes.get(player.getColor()).getChildrenUnmodifiable().get(1);
+			Platform.runLater(() -> label.setText(points + ""));
 		});
 	}
 
@@ -414,27 +425,41 @@ public class GameController implements Controller<GameWatchDto> {
 				new BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(5))));
 		turnProperty.addListener((observable, oldValue, newValue) -> {
 			Border border = new Border(new BorderStroke(Color.valueOf(turnProperty.get().getColor().getColorCode()),
-					BorderStrokeStyle.SOLID, CornerRadii.EMPTY, new BorderWidths(5)));
+					BorderStrokeStyle.SOLID, new CornerRadii(5), new BorderWidths(5)));
 			gameBoardPane.setBorder(border);
 		});
-		double boardWidth = columns * Tile.PREF_SIZE + 10;
-		double boardHeight = rows * Tile.PREF_SIZE + 10;
-		gameBoardPane.setPrefWidth(boardWidth);
-		gameBoardPane.setPrefHeight(boardHeight);
-		mainPane.setPrefWidth(boardWidth + 400);
 		tiles = new Tile[rows][columns];
 		for (int i = 0; i < rows; i++) {
 			for (int j = 0; j < columns; j++) {
 				Tile tile = new Tile();
-				tile.setLayoutX(i * 100);
-				tile.setLayoutY(j * 100);
 				tiles[i][j] = tile;
 				int x = i;
 				int y = j;
 				tile.setOnMouseClicked(event -> onTileClick(x, y));
-				gameBoardPane.getChildren().add(tile);
+				gameBoardPane.add(tile, j, i);
 			}
 		}
+
+		double rowPercentPerTile = 100.0 / rows;
+		double columnPercentPerTile = 100.0 / columns;
+
+		List<RowConstraints> rowConstraints = IntStream.range(0, rows).mapToObj(operand -> {
+			RowConstraints constraints = new RowConstraints();
+			constraints.setPercentHeight(rowPercentPerTile);
+			return constraints;
+		}).collect(Collectors.toList());
+
+		List<ColumnConstraints> columnConstraints = IntStream.range(0, rows).mapToObj(operand -> {
+			ColumnConstraints constraints = new ColumnConstraints();
+			constraints.setPercentWidth(columnPercentPerTile);
+			return constraints;
+		}).collect(Collectors.toList());
+
+		gameBoardPane.getRowConstraints().addAll(rowConstraints);
+		gameBoardPane.getColumnConstraints().addAll(columnConstraints);
+
+		mainPane.setPrefWidth(gameBoardPane.getWidth() + 400);
+		mainPane.setPrefHeight(gameBoardPane.getHeight() + 200);
 	}
 
 	private void initTurnIndicator() {

@@ -1,86 +1,87 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.net.URL?>
-<?import javafx.geometry.Insets?>
-<?import javafx.scene.control.Button?>
-<?import javafx.scene.control.Label?>
-<?import javafx.scene.control.Tooltip?>
-<?import javafx.scene.image.Image?>
-<?import javafx.scene.image.ImageView?>
-<?import javafx.scene.layout.AnchorPane?>
-<?import javafx.scene.layout.HBox?>
-<?import javafx.scene.layout.VBox?>
-
-<fx:root fx:id="gameItem" styleClass="gameItem" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1">
-	<Label fx:id="gameNameLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="86.0" layoutY="14.0" prefHeight="30.0" text="dsasdasdasdasd" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="50.0" AnchorPane.topAnchor="10.0">
-      <padding>
-         <Insets left="20.0" />
-      </padding></Label>
-	<Button id="copyButton" mnemonicParsing="false" onAction="#copyGameId" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="10.0">
+<?import javafx.geometry.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.image.*?>
+<?import javafx.scene.layout.*?>
+<fx:root fx:id="gameItem" styleClass="gameItem" type="javafx.scene.layout.AnchorPane"
+		 xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1">
+	<Label fx:id="gameNameLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="86.0" layoutY="14.0"
+		   prefHeight="30.0" text="dsasdasdasdasd" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="50.0"
+		   AnchorPane.topAnchor="10.0">
+		<padding>
+			<Insets left="20.0"/>
+		</padding>
+	</Label>
+	<Button id="copyButton" mnemonicParsing="false" onAction="#copyGameId" AnchorPane.rightAnchor="10.0"
+			AnchorPane.topAnchor="10.0">
 		<graphic>
 			<ImageView fitHeight="32.0" fitWidth="32.0" pickOnBounds="true" preserveRatio="true">
 				<image>
-					<Image url="@../../images/copy-icon.png" />
+					<Image url="@../../images/copy-icon.png"/>
 				</image>
 			</ImageView>
 		</graphic>
-      <tooltip>
-         <Tooltip text="Copy ID" />
-      </tooltip>
+		<tooltip>
+			<Tooltip text="Copy ID"/>
+		</tooltip>
 	</Button>
-	<VBox layoutX="13.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0" styleClass="vbox" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="50.0">
+	<VBox layoutX="13.0" layoutY="14.0" prefHeight="200.0" prefWidth="100.0" styleClass="vbox"
+		  AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"
+		  AnchorPane.topAnchor="50.0">
 		<HBox styleClass="hbox">
 			<padding>
-				<Insets left="10.0" />
+				<Insets left="10.0"/>
 			</padding>
 			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
-				<Image url="@../../images/player-icon.png" />
+				<Image url="@../../images/player-icon.png"/>
 			</ImageView>
 			<Label fx:id="playersCountLabel" text="2/4">
 				<HBox.margin>
-					<Insets top="5.0" />
+					<Insets top="5.0"/>
 				</HBox.margin>
 			</Label>
 		</HBox>
 		<HBox styleClass="hbox">
 			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
-				<Image url="@../../images/turn-duration-icon.png" />
+				<Image url="@../../images/turn-duration-icon.png"/>
 			</ImageView>
 			<Label fx:id="turnDurationLabel" text="20">
 				<HBox.margin>
-					<Insets top="5.0" />
+					<Insets top="5.0"/>
 				</HBox.margin>
 			</Label>
 		</HBox>
 		<HBox layoutX="10.0" layoutY="55.0" styleClass="hbox">
 			<ImageView fitHeight="30.0" fitWidth="40.0" pickOnBounds="true" preserveRatio="true">
-				<Image url="@../../images/game-duration-icon.png" />
+				<Image url="@../../images/game-duration-icon.png"/>
 			</ImageView>
 			<Label fx:id="turnTotalDurationLabel" text="20">
 				<HBox.margin>
-					<Insets top="5.0" />
+					<Insets top="5.0"/>
 				</HBox.margin>
 			</Label>
 		</HBox>
 		<HBox fx:id="joinAndWatchHolder" layoutX="10.0" layoutY="10.0" styleClass="hbox">
 			<padding>
-				<Insets left="10.0" />
+				<Insets left="10.0"/>
 			</padding>
 			<children>
-				<Button id="joinButton" fx:id="joinButton" mnemonicParsing="false" text="Join" />
-				<Button id="watchButton" fx:id="watchButton" mnemonicParsing="false" text="Watch" />
+				<Button id="joinButton" fx:id="joinButton" mnemonicParsing="false" text="Join"/>
+				<Button id="watchButton" fx:id="watchButton" mnemonicParsing="false" text="Watch"/>
 			</children>
 		</HBox>
 		<HBox fx:id="startHolder" layoutX="10.0" layoutY="55.0" styleClass="hbox">
 			<padding>
-				<Insets left="10.0" />
+				<Insets left="10.0"/>
 			</padding>
 			<children>
-				<Button id="startButton" fx:id="startButton" mnemonicParsing="false" text="Start" />
+				<Button id="startButton" fx:id="startButton" mnemonicParsing="false" text="Start"/>
 			</children>
 		</HBox>
 	</VBox>
 	<stylesheets>
-		<URL value="@game-item.css" />
+		<URL value="@game-item.css"/>
 	</stylesheets>
 </fx:root>
