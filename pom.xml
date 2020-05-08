@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>0.22.0</sonder.version>
+		<sonder.version>0.22.1</sonder.version>
 	</properties>
 
 	<modules>
