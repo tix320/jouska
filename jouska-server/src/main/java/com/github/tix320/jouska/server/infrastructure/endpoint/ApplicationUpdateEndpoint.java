@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
@@ -95,11 +96,15 @@ public class ApplicationUpdateEndpoint {
 		try {
 			Path file = Path.of(filePath);
 			long length = Files.size(file);
-			return new ChannelTransfer(Headers.EMPTY,
+			return new ChannelTransfer(Headers.builder().header("ready", true).build(),
 					new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
 		}
+		catch (NoSuchFileException e) {
+			return new StaticTransfer(Headers.builder().header("ready", false).build(), new byte[0]);
+		}
 		catch (IOException e) {
-			throw new RuntimeException(e);
+			e.printStackTrace();
+			return new StaticTransfer(Headers.builder().header("ready", false).build(), new byte[0]);
 		}
 	}
 

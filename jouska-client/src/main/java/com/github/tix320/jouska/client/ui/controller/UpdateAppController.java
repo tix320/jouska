@@ -36,7 +36,8 @@ public class UpdateAppController implements Controller<String> {
 
 	@Override
 	public void init(String version) {
-		messageLabel.setText("The newer version " + version + " is available.\nPlease update.");
+		messageLabel.setWrapText(true);
+		messageLabel.setText("The newer version " + version + " is available.\n You need to update.");
 		loadingIndicator.visibleProperty().bind(loading);
 		messageLabel.disableProperty().bind(loading);
 		updateButton.disableProperty().bind(loading);
@@ -73,6 +74,13 @@ public class UpdateAppController implements Controller<String> {
 		}
 
 		observable.subscribe(transfer -> {
+			boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
+			if (!ready) {
+				messageLabel.setText("Update not available now.\nPlease try later.");
+				loading.setValue(false);
+				return;
+			}
+
 			CertainReadableByteChannel channel = transfer.channel();
 			long zipLength = channel.getContentLength();
 			int consumedBytes = 0;
