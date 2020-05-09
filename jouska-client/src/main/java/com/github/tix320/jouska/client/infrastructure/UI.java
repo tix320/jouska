@@ -19,6 +19,7 @@ import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
@@ -63,6 +64,7 @@ public final class UI {
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
+			scene.setCursor(new ImageCursor(new Image(UI.class.getResourceAsStream("/images/cursor.png"))));
 			normalize();
 			stage.centerOnScreen();
 			switchCompletePublisher.publish(None.SELF);
