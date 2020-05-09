@@ -26,6 +26,20 @@ public class Services {
 				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
 				.build();
+	}
+
+	public static void connect() {
+		if (SONDER_CLIENT == null) {
+			throw new IllegalStateException();
+		}
+
+		try {
+			SONDER_CLIENT.connect();
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Cannot connect to server", e);
+		}
+
 		initServices();
 	}
 

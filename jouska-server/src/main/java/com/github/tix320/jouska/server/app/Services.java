@@ -45,6 +45,13 @@ public class Services {
 				EventDispatcher.fire(new PlayerDisconnectedEvent(player));
 			}
 		});
+
+		try {
+			SONDER_SERVER.start();
+		}
+		catch (IOException e) {
+			throw new RuntimeException("Cannot start server", e);
+		}
 	}
 
 	public static void stop() throws IOException {

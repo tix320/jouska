@@ -37,7 +37,7 @@ public class UpdateAppController implements Controller<String> {
 	@Override
 	public void init(String version) {
 		messageLabel.setWrapText(true);
-		messageLabel.setText("The newer version " + version + " is available.\n You need to update.");
+		messageLabel.setText("The newer version " + version + " is available.\n You need to update to continue.");
 		loadingIndicator.visibleProperty().bind(loading);
 		messageLabel.disableProperty().bind(loading);
 		updateButton.disableProperty().bind(loading);
