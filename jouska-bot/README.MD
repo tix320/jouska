@@ -1,16 +1,18 @@
 #How to run bot client
 ####Run it via "jouska-bot.bat" / "jouska-bot.sh" by passing following arguments
-1. Real bot process command: "My c++ application run command"
-2. Username: MyBot 
-3. Password: MyPassword
-####Example: sh jouska-bot.sh "java -jar my-real-bot.jar" Bot1 foo
+    1. Real bot process command: "My c++ application run command"
+    2. Username: MyBot 
+    3. Password: MyPassword
+####Example: 
+    sh jouska-bot.sh "java -jar my-real-bot.jar" Bot1 foo
 
 # Guide to CLI
 ## Available Commands
-#### join [params]
+    join [params]
 ##### used params : --game, --tournament
-##### example: join --game 456323
-##### example: join --tournament 456323
+##### example:
+    join --game 456323
+    join --tournament 456323
 
 # Guide to real bot process communication via I/O 
 
