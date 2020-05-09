@@ -16,8 +16,7 @@ public class BotJRE {
 	private static final String[] REQUIRED_MODULE_NAMES = {
 			"sonder", "kiwi", "jouska.core"};
 
-	public static void main(String[] args)
-			throws IOException, InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		String runnerOS = args[0];
 		Path libPath = Path.of(args[1]);
 		Path jdkPath = Path.of(args[2]);

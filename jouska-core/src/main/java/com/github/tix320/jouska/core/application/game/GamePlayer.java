@@ -2,8 +2,6 @@ package com.github.tix320.jouska.core.application.game;
 
 import java.util.Objects;
 
-import com.fasterxml.jackson.annotation.JsonCreator;
-import com.fasterxml.jackson.annotation.JsonProperty;
 import com.github.tix320.jouska.core.model.Player;
 
 public final class GamePlayer {

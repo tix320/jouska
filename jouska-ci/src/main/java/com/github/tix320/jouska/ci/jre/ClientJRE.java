@@ -14,8 +14,7 @@ public class ClientJRE {
 			"javafx.base", "javafx.graphics", "javafx.controls", "javafx.fxml", "sonder", "kiwi", "jouska.core",
 			"net.bytebuddy",};
 
-	public static void main(String[] args)
-			throws IOException, InterruptedException {
+	public static void main(String[] args) throws IOException, InterruptedException {
 		String runnerOS = args[0];
 		Path libPath = Path.of(args[1]);
 		Path jdkPath = Path.of(args[2]);
@@ -25,7 +24,7 @@ public class ClientJRE {
 		char modulePathSeparator;
 		switch (runnerOS.toLowerCase()) {
 			case "unix":
-				modulePathSeparator = ';';
+				modulePathSeparator = ':';
 				break;
 			case "windows":
 				modulePathSeparator = ';';

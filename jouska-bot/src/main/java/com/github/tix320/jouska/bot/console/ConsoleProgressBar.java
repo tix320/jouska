@@ -8,7 +8,7 @@ public final class ConsoleProgressBar {
 
 	private final char[] loadingSpace;
 
-	private long loadedPart;
+	private double loadedPart;
 
 	public ConsoleProgressBar() {
 		loadingSpace = new char[100];
@@ -16,18 +16,20 @@ public final class ConsoleProgressBar {
 		loadedPart = 0;
 	}
 
-	public synchronized void tick(long loadedPart) {
-		if (loadedPart < this.loadedPart) {
-			return;
+	public synchronized void tick(double loadedPart) {
+		if (loadedPart < 0 || loadedPart > 1 || loadedPart < this.loadedPart) {
+			throw new IllegalArgumentException();
 		}
+
 		this.loadedPart = loadedPart;
-		for (int i = 0; i < loadedPart; i++) {
+		int loadedPartInPercent = (int) (loadedPart * 100);
+		for (int i = 0; i < loadedPartInPercent; i++) {
 			loadingSpace[i] = ICON;
 		}
 		System.out.print("\r");
 		System.out.print(ICON);
 		System.out.print(loadingSpace);
 		System.out.print(ICON);
-		System.out.print(" " + loadedPart + "% Completed");
+		System.out.print(String.format(" %d%% Completed", loadedPartInPercent));
 	}
 }

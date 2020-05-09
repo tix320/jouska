@@ -16,6 +16,7 @@ import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOri
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.sonder.api.server.SonderServer;
 import com.github.tix320.sonder.api.server.event.ClientConnectionClosedEvent;
+import com.github.tix320.sonder.api.server.event.NewClientConnectionEvent;
 
 public class Services {
 	public static SonderServer SONDER_SERVER;
@@ -36,6 +37,10 @@ public class Services {
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
 				.build();
 		initServices();
+
+		SONDER_SERVER.onEvent(NewClientConnectionEvent.class).subscribe(newClientConnectionEvent -> {
+			System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
+		});
 
 		SONDER_SERVER.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
 			long clientId = event.getClientId();

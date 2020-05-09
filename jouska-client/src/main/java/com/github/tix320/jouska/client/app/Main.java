@@ -9,9 +9,6 @@ import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.kiwi.api.util.Threads;
-import com.github.tix320.sonder.api.client.event.ConnectionClosedEvent;
-import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -42,26 +39,26 @@ public class Main extends Application {
 				try {
 					initialize(Configuration.getServerHost(), Configuration.getServerPort());
 
-					SONDER_CLIENT.onEvent(ConnectionEstablishedEvent.class).subscribe(connectionEstablishedEvent -> {
-						System.out.println("Connected");
-
-						SONDER_CLIENT.onEvent(ConnectionClosedEvent.class).toMono().subscribe(connectionClosedEvent -> {
-							System.out.println("Disconnected");
-							Threads.runLoop(() -> {
-								Thread.sleep(5000);
-								System.out.println("trying to reconnect");
-								try {
-									SONDER_CLIENT.connect();
-									authenticate();
-									return false;
-								}
-								catch (IOException e) {
-									e.printStackTrace();
-									return true;
-								}
-							});
-						});
-					});
+					// SONDER_CLIENT.onEvent(ConnectionEstablishedEvent.class).subscribe(connectionEstablishedEvent -> {
+					// 	System.out.println("Connected");
+					//
+					// 	SONDER_CLIENT.onEvent(ConnectionClosedEvent.class).toMono().subscribe(connectionClosedEvent -> {
+					// 		System.out.println("Disconnected");
+					// 		Threads.runLoop(() -> {
+					// 			Thread.sleep(5000);
+					// 			System.out.println("trying to reconnect");
+					// 			try {
+					// 				SONDER_CLIENT.connect();
+					// 				authenticate();
+					// 				return false;
+					// 			}
+					// 			catch (IOException e) {
+					// 				e.printStackTrace();
+					// 				return true;
+					// 			}
+					// 		});
+					// 	});
+					// });
 
 					Services.connect();
 
