@@ -3,11 +3,12 @@ package com.github.tix320.jouska.bot.process;
 import com.github.tix320.jouska.core.application.game.BoardCell;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
 import com.github.tix320.jouska.core.application.game.Point;
+import com.github.tix320.jouska.core.application.game.ReadOnlyGameBoard;
 
 /**
  * @author Tigran Sargsyan on 03-Apr-20.
  */
-public class JouskaBotProcess {
+public class BotProcess {
 
 	private static final String GAME_START_COMMAND = "START_GAME";
 	private static final String GAME_END_COMMAND = "END_GAME";
@@ -15,28 +16,30 @@ public class JouskaBotProcess {
 
 	private final ProcessCommunicator processCommunicator;
 
-	public JouskaBotProcess(String processRunCommand) {
+	public BotProcess(String processRunCommand) {
 		this.processCommunicator = new ProcessCommunicator(processRunCommand);
 	}
 
-	public void startGame() {
-		System.out.println("Start game");
-		processCommunicator.write(GAME_START_COMMAND);
+	public void startGame(int height, int width) {
+		System.out.println("Bot Process: Start game");
+		processCommunicator.writeLn(GAME_START_COMMAND);
+		processCommunicator.writeLn(height + " " + width);
 	}
 
 	public void endGame() {
-		System.out.println("End game");
-		processCommunicator.write(GAME_END_COMMAND);
+		System.out.println("Bot Process: End game");
+		processCommunicator.writeLn(GAME_END_COMMAND);
 	}
 
-	public Point turn(BoardCell[][] board, PlayerColor myPlayer) {
-		System.out.println("Send turn");
-		processCommunicator.write(TURN_COMMAND);
+	public Point turn(ReadOnlyGameBoard board, PlayerColor myPlayer) {
+		System.out.println("Bot Process: Send board");
+		processCommunicator.writeLn(TURN_COMMAND);
 
 		StringBuilder boardString = new StringBuilder();
-		for (BoardCell[] boardCells : board) {
+		for (int i = 0; i < board.getHeight(); i++) {
 			StringBuilder row = new StringBuilder();
-			for (BoardCell boardCell : boardCells) {
+			for (int j = 0; j < board.getWidth(); j++) {
+				BoardCell boardCell = board.get(i, j);
 				PlayerColor player = boardCell.getColor();
 				int points = boardCell.getPoints();
 				if (player == null) {
@@ -51,9 +54,12 @@ public class JouskaBotProcess {
 					}
 					row.append(',').append(points);
 				}
+				row.append(" ");
 			}
+			row.deleteCharAt(row.length() - 1); // delete last space
 			boardString.append(row).append('\n');
 		}
+
 		processCommunicator.write(boardString.toString());
 
 		String turn = processCommunicator.readLine();

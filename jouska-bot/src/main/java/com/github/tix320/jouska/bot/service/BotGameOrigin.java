@@ -11,8 +11,8 @@ public interface BotGameOrigin {
 
 	@Origin
 	@Subscription
-	Observable<GameChangeDto> changes(long gameId);
+	Observable<GameChangeDto> changes(String gameId);
 
 	@Origin
-	void turn(long gameId, Point point);
+	void turn(String gameId, Point point);
 }

@@ -10,10 +10,7 @@ import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.*;
-import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.server.event.PlayerDisconnectedEvent;
-import com.github.tix320.jouska.server.event.PlayerLogoutEvent;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.application.dbo.DBGame;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
@@ -200,14 +197,15 @@ public class GameManager {
 				}
 			}
 
-			if (!offlinePlayers.isEmpty()) {
-				Long callerClientId = ClientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
+			Long callerClientId = ClientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
 
-				if (callerClientId == null) {
-					System.err.println(String.format("Cannot start game %s(%s) and caller also %s(%s) become offline",
-							gameSettings.getName(), gameId, caller.getNickname(), caller.getId()));
-					return;
-				}
+			if (callerClientId == null) {
+				System.err.println(String.format("Cannot start game %s(%s) and caller also %s(%s) become offline",
+						gameSettings.getName(), gameId, caller.getNickname(), caller.getId()));
+				return;
+			}
+
+			if (!offlinePlayers.isEmpty()) {
 
 				GAME_ORIGIN.notifyGamePlayersOffline(
 						new GamePlayersOfflineWarning(gameSettings.getName(), offlinePlayers), callerClientId);
@@ -217,24 +215,13 @@ public class GameManager {
 				return;
 			}
 
-			List<MonoObservable<Confirmation>> playersReady = clientIds.stream()
-					.map(clientId -> GAME_ORIGIN.notifyGameStartingSoon(gameSettings.getName(), clientId)
-							.getOnTimout(Duration.ofSeconds(30), () -> Confirmation.REJECT))
-					.collect(Collectors.toList());
-
-			EventDispatcher.on(PlayerLogoutEvent.class).takeUntil(game.completed()).subscribe(event -> {
-				Player logoutPlayer = event.getPlayer();
-				if (game.getPlayers().contains(logoutPlayer)) {
-					game.kick(logoutPlayer);
+			List<MonoObservable<Confirmation>> playersReady = clientIds.stream().map(clientId -> {
+				if (callerClientId.equals(clientId)) {
+					return Observable.of(Confirmation.ACCEPT);
 				}
-			});
-
-			EventDispatcher.on(PlayerDisconnectedEvent.class).takeUntil(game.completed()).subscribe(event -> {
-				Player disconnectedPlayer = event.getPlayer();
-				if (game.getPlayers().contains(disconnectedPlayer)) {
-					game.kick(disconnectedPlayer);
-				}
-			});
+				return GAME_ORIGIN.notifyGameStartingSoon(gameSettings.getName(), clientId)
+						.getOnTimout(Duration.ofSeconds(30), () -> Confirmation.REJECT);
+			}).collect(Collectors.toList());
 
 			Observable.zip(playersReady).subscribe(confirmations -> {
 				game.shufflePLayers();

@@ -2,13 +2,13 @@ package com.github.tix320.jouska.bot;
 
 import java.util.List;
 
-import com.github.tix320.jouska.core.application.game.Game;
-import com.github.tix320.jouska.core.application.game.GamePlayer;
-import com.github.tix320.jouska.core.application.game.PlayerColor;
+import com.github.tix320.jouska.bot.process.BotProcess;
+import com.github.tix320.jouska.bot.service.BotGameOrigin;
+import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.dto.GameChangeDto;
 import com.github.tix320.jouska.core.dto.GameCompleteDto;
 import com.github.tix320.jouska.core.dto.PlayerLeaveDto;
-import com.github.tix320.jouska.core.dto.PlayerTurnDto;
+import com.github.tix320.jouska.core.dto.PlayerTimedTurnDto;
 
 /**
  * @author Tigran Sargsyan on 07-Apr-20.
@@ -21,21 +21,27 @@ public final class Bot {
 
 	private final PlayerColor myPlayer;
 
-	// private final BotGameOrigin gameService;
+	private final BotGameOrigin gameService;
 
-	public Bot(String gameId, Game game, PlayerColor myPlayer) {
+	private final BotProcess botProcess;
+
+	public Bot(String gameId, Game game, PlayerColor myPlayer, BotGameOrigin gameService, BotProcess botProcess) {
 		this.gameId = gameId;
 		this.game = game;
 		this.myPlayer = myPlayer;
+		this.gameService = gameService;
+		this.botProcess = botProcess;
 		game.start();
+		ReadOnlyGameBoard board = game.getBoard();
+		botProcess.startGame(board.getHeight(), board.getWidth());
+		gameService.changes(gameId).subscribe(this::onChange);
+		game.completed().subscribe(g -> botProcess.endGame());
 		tryTurn();
-		// gameService.changes(gameId).subscribe(this::onChange);
-		// this.gameService = gameService;
 	}
 
 	private void onChange(GameChangeDto gameChange) {
-		if (gameChange instanceof PlayerTurnDto) {
-			PlayerTurnDto playerTurn = (PlayerTurnDto) gameChange;
+		if (gameChange instanceof PlayerTimedTurnDto) {
+			PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
 
 			game.turn(playerTurn.getPoint());
 			List<GamePlayer> losers = game.getLosers();
@@ -65,8 +71,8 @@ public final class Bot {
 
 	private void tryTurn() {
 		if (!game.isCompleted() && game.getCurrentPlayer().getColor() == myPlayer) {
-			// Point turn = BotApp.BOT.turn(game.getBoard(), myPlayer);
-			// gameService.turn(gameId, turn);
+			Point turn = botProcess.turn(game.getBoard(), myPlayer);
+			gameService.turn(gameId, turn);
 		}
 	}
 }

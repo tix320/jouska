@@ -6,7 +6,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
-import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.SimpleGameSettings;
 import com.github.tix320.jouska.core.infrastructure.RestoreException;
@@ -124,6 +123,11 @@ public final class SimpleGame implements RestorableGame {
 		calculateInitialStatistics();
 
 		gameState.setValue(GameState.RUNNING);
+	}
+
+	@Override
+	public ReadOnlyGameBoard getBoard() {
+		return new ReadOnlyGameBoard(board);
 	}
 
 	@Override

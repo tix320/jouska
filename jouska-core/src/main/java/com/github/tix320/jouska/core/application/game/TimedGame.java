@@ -87,6 +87,11 @@ public final class TimedGame implements RestorableGame {
 	}
 
 	@Override
+	public ReadOnlyGameBoard getBoard() {
+		return game.getBoard();
+	}
+
+	@Override
 	public void restore(List<GameChange> changes) {
 		synchronized (getLock()) {
 			game.start();

@@ -15,6 +15,7 @@ import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.ui.game.PlayerMode;
 import com.github.tix320.jouska.client.ui.game.Tile;
+import com.github.tix320.jouska.client.ui.helper.component.SpeedSlider;
 import com.github.tix320.jouska.client.ui.helper.component.TimerLabel;
 import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
@@ -39,7 +40,6 @@ import javafx.fxml.FXML;
 import javafx.geometry.Pos;
 import javafx.scene.Parent;
 import javafx.scene.control.Label;
-import javafx.scene.control.Slider;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Circle;
@@ -78,10 +78,7 @@ public class GameController implements Controller<GameWatchDto> {
 	private Label loseWinLabel;
 
 	@FXML
-	private Label gameSpeedLabel;
-
-	@FXML
-	private Slider gameSpeedSlider;
+	private SpeedSlider gameSpeedSlider;
 
 	private PlayerMode playerMode;
 
@@ -109,14 +106,19 @@ public class GameController implements Controller<GameWatchDto> {
 	public void init(GameWatchDto gameWatchDto) {
 		if (gameWatchDto instanceof GamePlayDto) {
 			this.playerMode = PlayerMode.PLAY;
-			mainPane.getChildren().remove(gameSpeedLabel);
 			mainPane.getChildren().remove(gameSpeedSlider);
 		}
 		else {
 			this.playerMode = PlayerMode.WATCH;
+			Platform.runLater(() -> {
+				gameSpeedSlider.setLabel("Game speed");
+				gameSpeedSlider.setMinValue(0.1);
+				gameSpeedSlider.setMaxValue(10);
+				gameSpeedCoefficient.bind(gameSpeedSlider.speedCoefficientProperty());
+				gameSpeedSlider.setValue(1);
+			});
 		}
 
-		gameSpeedCoefficient.bind(gameSpeedSlider.valueProperty());
 
 		this.gameId = gameWatchDto.getGameId();
 		GameSettings gameSettings = gameWatchDto.getGameSettings().toModel();

@@ -25,6 +25,8 @@ public class Uploader {
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.ci.upload"))
 				.build();
 
+		sonderClient.connect();
+
 		try {
 			sonderClient.getRPCService(AuthenticationService.class)
 					.forceLogin(new Credentials("uploader", "uploader"))

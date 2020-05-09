@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Slider?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="70.0"
+		 prefWidth="200.0" type="AnchorPane" xmlns="http://javafx.com/javafx/11.0.1"
+		 xmlns:fx="http://javafx.com/fxml/1">
+	<children>
+		<Slider fx:id="slider" layoutX="169.0" layoutY="62.0" prefWidth="132.0" AnchorPane.bottomAnchor="20.0"
+				AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"/>
+		<Label fx:id="label" alignment="CENTER" layoutX="11.0" layoutY="10.0" text="My Speed (X5)"
+			   AnchorPane.leftAnchor="11.0" AnchorPane.rightAnchor="9.0" AnchorPane.topAnchor="10.0">
+			<font>
+				<Font size="16.0"/>
+			</font>
+		</Label>
+	</children>
+</fx:root>

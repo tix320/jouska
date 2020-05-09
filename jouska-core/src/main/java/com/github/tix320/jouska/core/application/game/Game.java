@@ -57,6 +57,13 @@ public interface Game extends LockOwner {
 	void start();
 
 	/**
+	 * Get current board, read only.
+	 *
+	 * @return board.
+	 */
+	ReadOnlyGameBoard getBoard();
+
+	/**
 	 * @throws GameIllegalStateException if not started or already completed
 	 * @throws IllegalTurnActorException if point do not belong to current player
 	 */

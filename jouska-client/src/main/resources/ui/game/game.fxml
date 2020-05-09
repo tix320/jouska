@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import com.github.tix320.jouska.client.ui.helper.component.SpeedSlider?>
 <?import com.github.tix320.jouska.client.ui.helper.component.TimerLabel?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.*?>
@@ -65,13 +66,7 @@
 				</ImageView>
 			</graphic>
 		</Button>
-		<Slider fx:id="gameSpeedSlider" max="5" min="0.5" value="1" AnchorPane.rightAnchor="200.0"
-				AnchorPane.topAnchor="25.0"/>
-		<Label fx:id="gameSpeedLabel" text="Game speed" AnchorPane.rightAnchor="230.0" AnchorPane.topAnchor="5.0">
-			<font>
-				<Font size="14.0"/>
-			</font>
-		</Label>
+		<SpeedSlider fx:id="gameSpeedSlider" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0"/>
 		<GridPane hgap="20.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="0.0"
 				  AnchorPane.topAnchor="80.0">
 			<columnConstraints>

@@ -3,6 +3,7 @@ package com.github.tix320.jouska.bot.service;
 import java.util.List;
 
 import com.github.tix320.jouska.bot.Bot;
+import com.github.tix320.jouska.bot.Context;
 import com.github.tix320.jouska.core.application.game.Game;
 import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
@@ -26,7 +27,8 @@ public class BotGameEndpoint {
 		players.forEach(game::addPlayer);
 		PlayerColor myColor = gamePlayDto.getMyPlayer();
 
-		new Bot(gamePlayDto.getGameId(), game, myColor);
+		new Bot(gamePlayDto.getGameId(), game, myColor, Context.getSonderClient().getRPCService(BotGameOrigin.class),
+				Context.getBotProcess());
 	}
 
 	@Endpoint

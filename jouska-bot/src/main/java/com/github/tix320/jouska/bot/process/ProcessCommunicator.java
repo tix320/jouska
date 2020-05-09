@@ -16,9 +16,13 @@ public final class ProcessCommunicator {
 	public ProcessCommunicator(String processRunCommand) {
 		ProcessBuilder processBuilder = new ProcessBuilder(processRunCommand.split(" "));
 		processBuilder.redirectError(Redirect.INHERIT);
-		Process process = null;
+		Process process;
 		try {
 			process = processBuilder.start();
+			System.out.println("Started sub-process with id: " + process.pid());
+			process.onExit().thenRunAsync(() -> {
+				System.out.println("Sub-process ended: " + process.pid());
+			});
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);
@@ -30,6 +34,18 @@ public final class ProcessCommunicator {
 	public void write(String s) {
 		try {
 			writer.write(s);
+			writer.flush();
+		}
+		catch (IOException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void writeLn(String s) {
+		try {
+			writer.write(s);
+			writer.write("\n");
+			writer.flush();
 		}
 		catch (IOException e) {
 			throw new RuntimeException(e);

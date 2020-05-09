@@ -119,6 +119,7 @@ public class DBGame implements Game {
 	@Override
 	public void shufflePLayers() {
 		game.shufflePLayers();
+		updatePlayersInDB();
 	}
 
 	@Override
@@ -128,6 +129,11 @@ public class DBGame implements Game {
 			updateRunningInDB();
 			game.completed().subscribe(gameObj -> updateCompletedGameInDB());
 		}
+	}
+
+	@Override
+	public ReadOnlyGameBoard getBoard() {
+		return game.getBoard();
 	}
 
 	@Override
