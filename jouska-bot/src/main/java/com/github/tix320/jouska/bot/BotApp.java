@@ -25,7 +25,6 @@ import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
-import com.github.tix320.sonder.api.common.communication.Transfer;
 
 public class BotApp {
 
@@ -111,46 +110,46 @@ public class BotApp {
 		if (!lastVersion.equals("")) { // update
 			System.out.println(String.format("The newer version of bot is available: %s", lastVersion));
 			System.out.println("Start downloading...");
-			Transfer transfer = applicationUpdateOrigin.downloadBot(Version.os).get(Duration.ofSeconds(30));
-
-			boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
-			if (!ready) {
-				throw new IllegalStateException("Unable to download now");
-			}
-
-			CertainReadableByteChannel channel = transfer.channel();
-			String fileName = "jouska-bot-" + lastVersion + ".zip";
-			long zipLength = channel.getContentLength();
-			int consumedBytes = 0;
-
-			try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE)) {
-				ConsoleProgressBar progressBar = new ConsoleProgressBar();
-
-				ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
-				int read;
-				while ((read = channel.read(buffer)) != -1) {
-					buffer.flip();
-					fileChannel.write(buffer);
-					buffer.clear();
-					consumedBytes += read;
-					final double progress = (double) consumedBytes / zipLength;
-					progressBar.tick(progress);
+			applicationUpdateOrigin.downloadBot(Version.os).waitAndApply(Duration.ofSeconds(30), transfer -> {
+				boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
+				if (!ready) {
+					throw new IllegalStateException("Unable to download now");
 				}
-				System.out.println();
 
-				System.out.println(String.format("New bot zip successfully download, use it: %s", fileName));
-				System.exit(0);
-			}
-			catch (IOException e) {
-				try {
-					Context.getSonderClient().close();
+				CertainReadableByteChannel channel = transfer.channel();
+				String fileName = "jouska-bot-" + lastVersion + ".zip";
+				long zipLength = channel.getContentLength();
+				int consumedBytes = 0;
+
+				try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
+						StandardOpenOption.WRITE)) {
+					ConsoleProgressBar progressBar = new ConsoleProgressBar();
+
+					ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
+					int read;
+					while ((read = channel.read(buffer)) != -1) {
+						buffer.flip();
+						fileChannel.write(buffer);
+						buffer.clear();
+						consumedBytes += read;
+						final double progress = (double) consumedBytes / zipLength;
+						progressBar.tick(progress);
+					}
+					System.out.println();
+
+					System.out.println(String.format("New bot zip successfully download, use it: %s", fileName));
+					System.exit(0);
 				}
-				catch (IOException ex) {
-					ex.printStackTrace();
+				catch (IOException e) {
+					try {
+						Context.getSonderClient().close();
+					}
+					catch (IOException ex) {
+						ex.printStackTrace();
+					}
+					throw new RuntimeException(e);
 				}
-				throw new RuntimeException(e);
-			}
+			});
 		}
 	}
 }
