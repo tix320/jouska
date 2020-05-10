@@ -23,7 +23,8 @@
     0,0 0,0 1,1 ----> board, each cell like 1,2 
     2,1 2,1 1,2 ----> first number in cell is indicated domination, 0 - nobody, 1-me, 2-opponent
     1,3 1,2 1,1 ----> second number in cell indicated points of that cell
-    0:2         <----
+    0:2         <---- x:y turn coordiantes
+    ............----> Simiral turns
     END_GAME    ---->
     START_GAME  ----> Run again
     4 3         ---->
