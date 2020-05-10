@@ -76,8 +76,10 @@ public class UpdateAppController implements Controller<String> {
 		observable.subscribe(transfer -> {
 			boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
 			if (!ready) {
-				messageLabel.setText("Update not available now.\nPlease try later.");
-				loading.setValue(false);
+				Platform.runLater(() -> {
+					messageLabel.setText("Update not available now.\nPlease try later.");
+					loading.setValue(false);
+				});
 				return;
 			}
 
