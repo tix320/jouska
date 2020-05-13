@@ -14,6 +14,7 @@ import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.app.Configuration;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.Role;
+import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.common.communication.*;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
@@ -96,8 +97,10 @@ public class ApplicationUpdateEndpoint {
 		try {
 			Path file = Path.of(filePath);
 			long length = Files.size(file);
-			return new ChannelTransfer(Headers.builder().header("ready", true).build(),
-					new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
+			FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ);
+			LimitedReadableByteChannel channel = new LimitedReadableByteChannel(fileChannel, length);
+			channel.onFinish().subscribe(none -> Try.runOrRethrow(fileChannel::close));
+			return new ChannelTransfer(Headers.builder().header("ready", true).build(), channel);
 		}
 		catch (NoSuchFileException e) {
 			return new StaticTransfer(Headers.builder().header("ready", false).build(), new byte[0]);
