@@ -1,13 +1,11 @@
-# используем язык java. Travis CI поддерживает другие языки тоже.
 language: java
-#
+
 jdk:
   - openjdk11
 cache:
   directories:
     - $HOME/.m2
 
-## Отправлять уведомление на почту youremail@smtp.ru (Изменить на свою) если сборка упала
 notifications:
   email:
     recipients:
