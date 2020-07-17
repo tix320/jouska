@@ -180,15 +180,17 @@ public class GameController implements Controller<GameWatchDto> {
 		game.completed().takeUntil(destroy).subscribe(none -> onGameComplete());
 
 		destroy.subscribe(Subscriber.builder().onComplete(completionType -> {
-			turnTimeIndicator.stop();
-			turnTotalTimeIndicator.stop();
+			Platform.runLater(() -> {
+				turnTimeIndicator.stop();
+				turnTotalTimeIndicator.stop();
+			});
 		}));
 
 		IN_GAME_SERVICE.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
 	}
 
 	private void runBoardChangesConsumer() {
-		LoopThread loopThread = Threads.runLoop(() -> {
+		LoopThread loopThread = Threads.createLoopDaemonThread(() -> {
 			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
 			GameChangeDto gameChange = changesQueue.take();
 			if (gameChange instanceof PlayerTimedTurnDto) {
@@ -208,14 +210,16 @@ public class GameController implements Controller<GameWatchDto> {
 				if (!game.isCompleted()) {
 					game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
 				}
-				return false;
+				throw new InterruptedException();
 			}
 			else {
 				throw new IllegalArgumentException();
 			}
 			turned.set(false);
-			return true;
 		});
+
+		loopThread.start();
+
 		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
 	}
 

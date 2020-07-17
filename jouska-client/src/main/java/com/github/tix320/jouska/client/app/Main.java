@@ -33,7 +33,7 @@ public class Main extends Application {
 	public void start(Stage stage) {
 		UI.initialize(stage);
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
-			stage.show();
+			Platform.runLater(stage::show);
 
 			new Thread(() -> {
 				try {

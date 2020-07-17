@@ -59,16 +59,24 @@ public class TournamentManager {
 				new TournamentView(tournament.getId(), tournament.getSettings().getName(),
 						tournament.getPlayers().size(), tournament.getSettings().getMaxPlayersCount(), creator, false),
 				player);
-		try {
-			Confirmation requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request, creatorClientId)
-					.get(Duration.ofSeconds(30));
 
-			if (requestAnswer == Confirmation.ACCEPT) {
-				canJoin = true;
-			}
+		if (tournament.getPlayers().contains(player)) {
+			canJoin = true;
 		}
-		catch (TimeoutException | InterruptedException e) {
-			canJoin = false;
+		else {
+			try {
+				Confirmation requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request, creatorClientId)
+						.get(Duration.ofSeconds(30));
+
+				System.out.println(requestAnswer);
+
+				if (requestAnswer == Confirmation.ACCEPT) {
+					canJoin = true;
+				}
+			}
+			catch (TimeoutException | InterruptedException e) {
+				canJoin = false;
+			}
 		}
 
 		if (!canJoin) {

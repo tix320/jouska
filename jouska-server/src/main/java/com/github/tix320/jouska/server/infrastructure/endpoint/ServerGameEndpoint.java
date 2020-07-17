@@ -27,7 +27,7 @@ public class ServerGameEndpoint {
 			return game.get().changes().asObservable().map(GameChangeDto::fromModel);
 		}
 		else {
-			GameEntity gameEntity = gameDao.findById(gameId, null)
+			GameEntity gameEntity = gameDao.findById(gameId)
 					.orElseThrow(() -> new IllegalArgumentException(String.format("Game %s not found", gameId)));
 			return Observable.of(gameEntity.getChanges()).map(GameChangeDto::fromModel);
 		}

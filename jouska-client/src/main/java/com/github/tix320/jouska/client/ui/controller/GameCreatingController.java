@@ -14,7 +14,6 @@ import com.github.tix320.jouska.core.dto.CreateGameCommand;
 import com.github.tix320.jouska.core.dto.SimpleGameSettingsDto;
 import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -108,13 +107,15 @@ public class GameCreatingController implements Controller<Object> {
 				GAME_SERVICE.create(new CreateGameCommand(new TimedGameSettingsDto(
 						new SimpleGameSettingsDto(gameNameInput.getText(), BoardType.STANDARD,
 								playersCountChoice.getValue()), turnDuration.get(), playerTurnTotalDurationSeconds),
-						new HashSet<>(players)))
-						.subscribe(Subscriber.<String>builder().onPublish(
-								gameId -> EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY)))
-								.onError(throwable -> {
-									throwable.printStackTrace();
-									loading.set(false);
-								}));
+						new HashSet<>(players))).subscribe(response -> {
+					if (response.isSuccess()) {
+						EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY));
+					}
+					else {
+						loading.set(false);
+						response.getError().printStackTrace();
+					}
+				});
 			}
 		});
 	}

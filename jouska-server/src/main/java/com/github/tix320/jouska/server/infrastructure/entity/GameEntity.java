@@ -33,7 +33,6 @@ public class GameEntity implements Identifiable {
 
 	private List<GameChange> changes;
 
-	@Embedded
 	GameStatisticsEntity statistics;
 
 	private GameEntity() {

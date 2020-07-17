@@ -60,7 +60,7 @@ public final class UI {
 		currentComponent = component;
 		Scene scene = new Scene(component.getRoot());
 
-		Publisher<None> switchCompletePublisher = Publisher.single();
+		Publisher<None> switchCompletePublisher = Publisher.mono();
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
@@ -68,7 +68,6 @@ public final class UI {
 			normalize();
 			stage.centerOnScreen();
 			switchCompletePublisher.publish(None.SELF);
-			switchCompletePublisher.complete();
 
 		});
 

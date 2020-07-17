@@ -136,10 +136,8 @@ public class ClassicPlayOff implements RestorablePlayOff {
 
 			Game lastGame = tours.get(tours.size() - 1).get(0).getGame();
 			if (lastGame != null && lastGame.isCompleted()) {
-				Property.inAtomicContext(() -> {
-					winner.set(lastGame.getWinner().orElseThrow().getRealPlayer());
-					state.setValue(PlayOffState.COMPLETED);
-				});
+				winner.set(lastGame.getWinner().orElseThrow().getRealPlayer());
+				state.setValue(PlayOffState.COMPLETED);
 			}
 		}
 		catch (RuntimeException e) {
@@ -181,10 +179,8 @@ public class ClassicPlayOff implements RestorablePlayOff {
 		List<List<PlayOffGame>> tours = this.tours;
 		int toursCount = tours.size();
 		if (tourIndex == toursCount - 1) { // last tour, last game
-			Property.inAtomicContext(() -> {
-				state.setValue(PlayOffState.COMPLETED);
-				winner.set(winnerOfPreviousGame);
-			});
+			winner.set(winnerOfPreviousGame);
+			state.setValue(PlayOffState.COMPLETED);
 		}
 		else {
 			int nextTourIndex = tourIndex + 1;

@@ -3,13 +3,9 @@ package com.github.tix320.jouska.client.ui.controller;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.ui.tournament.GroupPane;
 import com.github.tix320.jouska.client.ui.tournament.PlayOffMember;
 import com.github.tix320.jouska.core.dto.PlayOffGameView;
@@ -19,6 +15,7 @@ import com.github.tix320.jouska.core.dto.TournamentStructure.GroupView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.PlayOffView;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.MathUtils;
+import com.github.tix320.kiwi.api.util.LoopThread;
 import com.github.tix320.kiwi.api.util.Threads;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
@@ -40,29 +37,29 @@ public class TournamentViewController implements Controller<TournamentStructure>
 	@FXML
 	private HBox playOffPane;
 
+	private LoopThread stateUpdaterThread;
+
 	@Override
 	public void init(TournamentStructure tournamentStructure) {
 		initView(tournamentStructure);
 
-		Executors.newSingleThreadScheduledExecutor(Threads::daemon).scheduleWithFixedDelay(() -> {
-			TOURNAMENT_SERVICE.getTournamentStructure(tournamentStructure.getId()).subscribe(newStructure -> {
-				if (newStructure != null) {
-					Platform.runLater(() -> {
+		stateUpdaterThread = Threads.createLoopDaemonThread(() -> {
+			TOURNAMENT_SERVICE.getTournamentStructure(tournamentStructure.getId())
+					.subscribe(newStructure -> Platform.runLater(() -> {
 						groupsBox.getChildren().clear();
 						playOffPane.getChildren().clear();
 						initView(newStructure);
-					});
-				}
-				else {
-					UI.switchComponent(ComponentType.ERROR, "Tournament not found");
-				}
-			});
-		}, 5, 5, TimeUnit.SECONDS);
+					}));
+
+			Thread.sleep(5000);
+		});
+
+		stateUpdaterThread.start();
 	}
 
 	@Override
 	public void destroy() {
-
+		stateUpdaterThread.stop();
 	}
 
 	private void initView(TournamentStructure tournamentStructure) {

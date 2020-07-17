@@ -98,7 +98,7 @@ public class DBTournament implements Tournament {
 
 	@Override
 	public boolean addPlayer(Player player) {
-		synchronized (tournament) {
+		synchronized (getLock()) {
 			boolean added = tournament.addPlayer(player);
 			if (added) {
 				updateTournamentPlayers();
@@ -109,7 +109,7 @@ public class DBTournament implements Tournament {
 
 	@Override
 	public boolean removePlayer(Player player) {
-		synchronized (tournament) {
+		synchronized (getLock()) {
 			boolean removed = tournament.removePlayer(player);
 			if (removed) {
 				updateTournamentPlayers();
@@ -120,7 +120,7 @@ public class DBTournament implements Tournament {
 
 	@Override
 	public void start() {
-		synchronized (tournament) {
+		synchronized (getLock()) {
 			tournament.start();
 			updateTournamentStart();
 			addListeners();

@@ -38,10 +38,14 @@ public class JoinCLICommand implements CLICommand {
 		}
 		if (tournamentId != null) {
 			try {
-				String result = botTournamentOrigin.join(tournamentId)
-						.map(Enum::name)
-						.mapErrorToItem(Throwable::getMessage)
-						.get(Duration.ofSeconds(30));
+				String result = botTournamentOrigin.join(tournamentId).map(response -> {
+					if (response.isSuccess()) {
+						return response.getResult().name();
+					}
+					else {
+						return response.getError().getMessage();
+					}
+				}).get(Duration.ofSeconds(30));
 				if (result.equals("ACCEPT")) {
 					return "Joined to tournament: " + tournamentId;
 				}
@@ -58,10 +62,14 @@ public class JoinCLICommand implements CLICommand {
 		}
 		else if (gameId != null) {
 			try {
-				String result = botGameManagementOrigin.join(gameId)
-						.map(Enum::name)
-						.mapErrorToItem(Throwable::getMessage)
-						.get(Duration.ofSeconds(30));
+				String result = botGameManagementOrigin.join(gameId).map(response -> {
+					if (response.isSuccess()) {
+						return response.getResult().name();
+					}
+					else {
+						return response.getError().getMessage();
+					}
+				}).get(Duration.ofSeconds(30));
 				if (result.equals("CONNECTED")) {
 					return "Joined to game: " + gameId;
 				}

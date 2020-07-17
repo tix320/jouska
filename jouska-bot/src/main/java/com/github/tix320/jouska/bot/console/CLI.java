@@ -10,6 +10,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 import com.github.tix320.kiwi.api.util.LoopThread;
+import com.github.tix320.kiwi.api.util.Threads;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -33,14 +34,14 @@ public class CLI {
 		outputWriter = System.out;
 		errWriter = System.err;
 
-		this.thread = new LoopThread(() -> {
+		this.thread = Threads.createLoopThread(() -> {
 			String commandTxt;
 			try {
 				commandTxt = reader.readLine();
 			}
 			catch (IOException e) {
 				errWriter.println(e.getMessage());
-				return false;
+				throw new InterruptedException();
 			}
 
 			ParsedCommand parsedCommand;
@@ -49,14 +50,14 @@ public class CLI {
 			}
 			catch (CommandParseException e) {
 				errWriter.println(e.getMessage());
-				return true;
+				return;
 			}
 
 			String commandName = parsedCommand.getName();
 			CLICommand CLICommand = commandListenersCopy.get(commandName);
 			if (CLICommand == null) {
 				errWriter.println("Unknown command: " + commandName);
-				return true;
+				return;
 			}
 
 			try {
@@ -66,9 +67,7 @@ public class CLI {
 			catch (CommandException e) {
 				errWriter.println(e.getMessage());
 			}
-
-			return true;
-		}, false);
+		});
 
 		commandListenersCopy.put("exit", new CLICommand() {
 			@Override
@@ -82,6 +81,8 @@ public class CLI {
 				return "Bye";
 			}
 		});
+
+		thread.start();
 	}
 
 	public void run() {

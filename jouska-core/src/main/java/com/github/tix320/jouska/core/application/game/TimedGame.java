@@ -108,16 +108,11 @@ public final class TimedGame implements RestorableGame {
 			}
 
 			applyChangesTransformer();
-
-			if (game.isCompleted()) {
-				this.changes.close();
-			}
-			else {
+			if (!game.isCompleted()) {
 				Player firstPlayer = game.getCurrentPlayer().getRealPlayer();
 				runTurnTimer(firstPlayer, turnDurationSeconds);
-
-				completed().subscribe(ignored -> onComplete());
 			}
+			completed().subscribe(ignored -> onComplete());
 		}
 	}
 
@@ -135,9 +130,9 @@ public final class TimedGame implements RestorableGame {
 			currentTurnInfo.set(new TurnInfo(remainingTurnMillis, remainingPlayerTurnMillis));
 
 			CellChange cellChange = game.turn(point);
-			// double seconds = calculateApproximateAnimationTime(cellChange);
+			double seconds = calculateApproximateAnimationTime(cellChange);
 			Player currentPLayer = getCurrentPlayer().getRealPlayer();
-			int nextTurnSeconds = turnDurationSeconds; // ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable.
+			int nextTurnSeconds = ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable.
 			runTurnTimer(currentPLayer, nextTurnSeconds);
 			return cellChange;
 		}
@@ -215,7 +210,7 @@ public final class TimedGame implements RestorableGame {
 
 	@Override
 	public MonoObservable<TimedGame> completed() {
-		return game.completed().map(t -> this).toMono();
+		return changes.asObservable().filter(change -> change instanceof GameComplete).map(state -> this).toMono();
 	}
 
 	@Override

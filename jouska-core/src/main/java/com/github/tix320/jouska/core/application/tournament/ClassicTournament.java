@@ -11,8 +11,11 @@ import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.api.reactive.property.ObjectProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.api.reactive.property.Property.Committer;
 import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.api.reactive.property.StateProperty;
 
 public class ClassicTournament implements RestorableTournament {
 
@@ -22,9 +25,9 @@ public class ClassicTournament implements RestorableTournament {
 
 	private final List<RestorableGroup> groups;
 
-	private final Property<RestorablePlayOff> playOff;
+	private final ObjectProperty<RestorablePlayOff> playOff;
 
-	private final Property<TournamentState> state;
+	private final StateProperty<TournamentState> state;
 
 	public static ClassicTournament create(ClassicTournamentSettings settings) {
 		return new ClassicTournament(settings);
@@ -35,7 +38,7 @@ public class ClassicTournament implements RestorableTournament {
 		this.players = new HashSet<>();
 		this.groups = new ArrayList<>();
 		this.playOff = Property.forObject();
-		this.state = Property.forObject(TournamentState.INITIAL);
+		this.state = Property.forState(TournamentState.INITIAL);
 	}
 
 	@Override
@@ -79,11 +82,12 @@ public class ClassicTournament implements RestorableTournament {
 			ClassicPlayOffSettings playOffSettings = settings.getPlayOffSettings();
 			ClassicPlayOff classicPlayOff = createPlayOffFromGroups(groupss, playOffSettings);
 
-			Property.inAtomicContext(() -> {
-				classicPlayOff.start();
-				this.playOff.setValue(classicPlayOff);
-				state.setValue(TournamentState.PLAY_OFF_STAGE);
-			});
+			classicPlayOff.start();
+
+			Committer committer = Property.updateAtomic(state, playOff);
+			this.playOff.setValue(classicPlayOff);
+			state.setValue(TournamentState.PLAY_OFF_STAGE);
+			committer.commit();
 
 			classicPlayOff.completed().subscribe(none -> state.setValue(TournamentState.COMPLETED));
 		});
@@ -148,12 +152,13 @@ public class ClassicTournament implements RestorableTournament {
 			allGroupsCompleteness().subscribe(groupss -> {
 				ClassicPlayOffSettings playOffGameSettings = settings.getPlayOffSettings();
 				ClassicPlayOff classicPlayOff = createPlayOffFromGroups(groupss, playOffGameSettings);
+				classicPlayOff.start();
 
-				Property.inAtomicContext(() -> {
-					classicPlayOff.start();
-					this.playOff.setValue(classicPlayOff);
-					state.setValue(TournamentState.PLAY_OFF_STAGE);
-				});
+
+				Committer committer = Property.updateAtomic(state, this.playOff);
+				this.playOff.setValue(classicPlayOff);
+				state.setValue(TournamentState.PLAY_OFF_STAGE);
+				committer.commit();
 
 				classicPlayOff.completed().subscribe(none -> state.setValue(TournamentState.COMPLETED));
 			});

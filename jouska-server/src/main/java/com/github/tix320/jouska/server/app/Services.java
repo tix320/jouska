@@ -39,7 +39,7 @@ public class Services {
 		initServices();
 
 		SONDER_SERVER.onEvent(NewClientConnectionEvent.class).subscribe(newClientConnectionEvent -> {
-			System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
+			// System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
 		});
 
 		SONDER_SERVER.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {

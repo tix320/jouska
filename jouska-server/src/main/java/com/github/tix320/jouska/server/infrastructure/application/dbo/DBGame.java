@@ -294,15 +294,11 @@ public class DBGame implements Game {
 	}
 
 	private static RestorableGame buildGameFromEntity(GameEntity gameEntity) {
-		GameSettings settings = gameEntity.getSettings();
-		if (!(settings instanceof RestorableGameSettings)) {
-			throw new IllegalStateException("Game is not restorable");
-		}
-		RestorableGameSettings restorableSettings = (RestorableGameSettings) settings;
+		RestorableGameSettings settings = gameEntity.getSettings();
 
 		GameState state = gameEntity.getState();
 
-		RestorableGame game = restorableSettings.createGame();
+		RestorableGame game = settings.createGame();
 		gameEntity.getPlayers().stream().map(Converters::gamePlayerEntityToInGamePlayer).forEach(game::addPlayer);
 
 		switch (state) {

@@ -7,12 +7,11 @@ import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEve
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberField;
 import com.github.tix320.jouska.core.application.game.BoardType;
+import com.github.tix320.jouska.core.dto.ClassicTournamentSettingsDto;
 import com.github.tix320.jouska.core.dto.CreateTournamentCommand;
 import com.github.tix320.jouska.core.dto.SimpleGameSettingsDto;
 import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
-import com.github.tix320.jouska.core.dto.ClassicTournamentSettingsDto;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
@@ -96,13 +95,14 @@ public class TournamentCreateController implements Controller<Object> {
 				playOffTurnTotalDurationInput.getNumber() * 60);
 		TOURNAMENT_SERVICE.create(new CreateTournamentCommand(
 				new ClassicTournamentSettingsDto(gameNameInput.getText(), playersCountChoice.getValue(), groupSettings,
-						playOffSettings)))
-				.subscribe(Subscriber.builder()
-						.onPublish(tournamentId -> EventDispatcher.fire(
-								new MenuContentChangeEvent(MenuContentType.TOURNAMENT_LOBBY)))
-						.onError(throwable -> {
-							throwable.printStackTrace();
-							loading.set(false);
-						}));
+						playOffSettings))).subscribe(response -> {
+			if (response.isSuccess()) {
+				EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_LOBBY));
+			}
+			else {
+				response.getError().printStackTrace();
+				loading.set(false);
+			}
+		});
 	}
 }

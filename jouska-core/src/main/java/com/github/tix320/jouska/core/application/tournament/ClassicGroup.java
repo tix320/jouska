@@ -16,6 +16,7 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.api.reactive.property.StateProperty;
 
 public class ClassicGroup implements RestorableGroup {
 
@@ -27,7 +28,7 @@ public class ClassicGroup implements RestorableGroup {
 
 	private final List<Game> games;
 
-	private final Property<GroupState> state;
+	private final StateProperty<GroupState> state;
 
 	private final AtomicReference<List<Player>> winners;
 
@@ -52,7 +53,7 @@ public class ClassicGroup implements RestorableGroup {
 		this.players = players.stream().map(GroupPlayer::new).collect(Collectors.toList());
 		this.settings = settings;
 		this.games = new ArrayList<>();
-		this.state = Property.forObject(GroupState.INITIAL);
+		this.state = Property.forState(GroupState.INITIAL);
 		this.winners = new AtomicReference<>();
 	}
 
@@ -151,13 +152,9 @@ public class ClassicGroup implements RestorableGroup {
 	}
 
 	private void onAllGamesComplete() {
-		Property.inAtomicContext(() -> {
-			List<Player> players = determineGroupWinners();
-			Property.inAtomicContext(() -> {
-				winners.set(players);
-				state.setValue(GroupState.COMPLETED);
-			});
-		});
+		List<Player> players = determineGroupWinners();
+		winners.set(players);
+		state.setValue(GroupState.COMPLETED);
 	}
 
 	private List<Player> determineGroupWinners() {

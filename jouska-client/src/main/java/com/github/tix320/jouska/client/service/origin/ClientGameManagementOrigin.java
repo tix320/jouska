@@ -6,6 +6,7 @@ import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
+import com.github.tix320.sonder.api.common.rpc.Response;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 
 @Origin("game")
@@ -16,7 +17,7 @@ public interface ClientGameManagementOrigin {
 	Observable<List<GameView>> games(GameListFilter gameListFilter);
 
 	@Origin("create")
-	MonoObservable<String> create(CreateGameCommand createGameCommand);
+	MonoObservable<Response<String>> create(CreateGameCommand createGameCommand);
 
 	@Origin("start")
 	void startGame(String gameId);

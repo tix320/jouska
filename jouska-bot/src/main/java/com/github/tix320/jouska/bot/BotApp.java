@@ -22,6 +22,7 @@ import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
@@ -35,7 +36,7 @@ public class BotApp {
 		String host = Configuration.getServerHost();
 		int port = Configuration.getServerPort();
 
-		// for (int i = 1; i <= 15; i++) {
+		// for (int i = 1; i <= 5; i++) {
 		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 		// 			.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
 		// 			.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
@@ -43,6 +44,11 @@ public class BotApp {
 		//
 		// 	String botNickname = "Bot" + i;
 		// 	String botPassword = "foo";
+		//
+		// 	sonderClient.connect();
+		//
+		// 	Context.setSonderClient(sonderClient);
+		//
 		// 	sonderClient.getRPCService(AuthenticationService.class)
 		// 			.forceLogin(new Credentials(botNickname, botPassword))
 		// 			.subscribe(loginAnswer -> {
@@ -65,7 +71,7 @@ public class BotApp {
 		// 				}
 		// 			});
 		//
-		// 	sonderClient.connect();
+		//
 		// }
 		//
 		// if (true) {

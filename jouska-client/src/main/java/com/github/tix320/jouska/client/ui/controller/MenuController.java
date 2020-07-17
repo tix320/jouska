@@ -133,7 +133,7 @@ public final class MenuController implements Controller<Object> {
 	}
 
 	private void runNotificationConsumer() {
-		LoopThread loopThread = Threads.runLoop(() -> {
+		LoopThread loopThread = Threads.createLoopDaemonThread(() -> {
 			NotificationEvent<?, ?> notificationEvent = notificationsQueue.take();
 			NotificationType notificationType = notificationEvent.getNotificationType();
 			Component component = UI.loadNotificationComponent(notificationType, notificationEvent);
@@ -194,9 +194,8 @@ public final class MenuController implements Controller<Object> {
 
 				onDestroy.asObservable().await(java.time.Duration.ofSeconds(5));
 			}
-
-			return true;
 		});
+		loopThread.start();
 		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
 	}
 

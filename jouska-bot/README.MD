@@ -11,8 +11,8 @@
     join [params]
 ##### used params : --game, --tournament
 ##### example:
-    join --game 456323
-    join --tournament 456323
+    join --game 15
+    join --tournament 32187
 
 # Guide to real bot process communication via I/O 
 

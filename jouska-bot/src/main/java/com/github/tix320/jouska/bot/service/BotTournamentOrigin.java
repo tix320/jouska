@@ -7,6 +7,7 @@ import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
+import com.github.tix320.sonder.api.common.rpc.Response;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 
 @Origin("tournament")
@@ -17,5 +18,5 @@ public interface BotTournamentOrigin {
 	Observable<List<TournamentView>> getTournaments();
 
 	@Origin
-	MonoObservable<Confirmation> join(String tournamentId);
+	MonoObservable<Response<Confirmation>> join(String tournamentId);
 }
