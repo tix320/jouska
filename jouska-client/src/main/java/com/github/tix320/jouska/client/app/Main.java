@@ -35,57 +35,53 @@ public class Main extends Application {
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			Platform.runLater(stage::show);
 
-			new Thread(() -> {
-				try {
-					initialize(Configuration.getServerHost(), Configuration.getServerPort());
+			try {
+				initialize(Configuration.getServerHost(), Configuration.getServerPort());
 
-					// SONDER_CLIENT.onEvent(ConnectionEstablishedEvent.class).subscribe(connectionEstablishedEvent -> {
-					// 	System.out.println("Connected");
-					//
-					// 	SONDER_CLIENT.onEvent(ConnectionClosedEvent.class).toMono().subscribe(connectionClosedEvent -> {
-					// 		System.out.println("Disconnected");
-					// 		Threads.runLoop(() -> {
-					// 			Thread.sleep(5000);
-					// 			System.out.println("trying to reconnect");
-					// 			try {
-					// 				SONDER_CLIENT.connect();
-					// 				authenticate();
-					// 				return false;
-					// 			}
-					// 			catch (IOException e) {
-					// 				e.printStackTrace();
-					// 				return true;
-					// 			}
-					// 		});
-					// 	});
-					// });
+				// SONDER_CLIENT.onEvent(ConnectionEstablishedEvent.class).subscribe(connectionEstablishedEvent -> {
+				// 	System.out.println("Connected");
+				//
+				// 	SONDER_CLIENT.onEvent(ConnectionClosedEvent.class).toMono().subscribe(connectionClosedEvent -> {
+				// 		System.out.println("Disconnected");
+				// 		Threads.runLoop(() -> {
+				// 			Thread.sleep(5000);
+				// 			System.out.println("trying to reconnect");
+				// 			try {
+				// 				SONDER_CLIENT.connect();
+				// 				authenticate();
+				// 				return false;
+				// 			}
+				// 			catch (IOException e) {
+				// 				e.printStackTrace();
+				// 				return true;
+				// 			}
+				// 		});
+				// 	});
+				// });
 
-					Services.connect();
+				Services.connect();
 
-					APPLICATION_UPDATE_SERVICE.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
-						if (!lastVersion.equals("")) { // update
-							UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
-						}
-						else {
-							authenticate();
-						}
-					});
-				}
-				catch (Exception e) {
-					e.printStackTrace();
-					StringWriter out = new StringWriter();
-					PrintWriter stringWriter = new PrintWriter(out);
-					e.printStackTrace(stringWriter);
-					UI.switchComponent(ComponentType.ERROR, out.toString());
-				}
-			}).start();
+				APPLICATION_UPDATE_SERVICE.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
+					if (!lastVersion.equals("")) { // update
+						UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
+					}
+					else {
+						authenticate();
+					}
+				});
+			}
+			catch (Exception e) {
+				e.printStackTrace();
+				StringWriter out = new StringWriter();
+				PrintWriter stringWriter = new PrintWriter(out);
+				e.printStackTrace(stringWriter);
+				UI.switchComponent(ComponentType.ERROR, out.toString());
+			}
 		});
 	}
 
 	@Override
-	public void stop() throws InterruptedException, IOException {
-		UI.close();
-		Thread.sleep(1000);
+	public void stop() throws IOException {
 		Services.stop();
 	}
 

@@ -103,6 +103,7 @@ public class ClassicGroup implements RestorableGroup {
 
 	@Override
 	public void restore(List<Game> games) throws RestoreException {
+		state.checkState(GroupState.INITIAL);
 		int gamesCount = groupGamesCountByPlayersCount(players.size());
 		if (gamesCount != games.size()) {
 			throw new IllegalStateException();

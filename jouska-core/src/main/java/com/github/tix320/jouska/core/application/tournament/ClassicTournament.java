@@ -134,9 +134,7 @@ public class ClassicTournament implements RestorableTournament {
 			throw new RestoreException("Invalid type");
 		}
 
-		if (state.getValue() != TournamentState.INITIAL) {
-			throw new RestoreException("Tournament already started");
-		}
+		state.checkState(TournamentState.INITIAL);
 
 		int playersCount = players.size();
 		if (playersCount < 4) {

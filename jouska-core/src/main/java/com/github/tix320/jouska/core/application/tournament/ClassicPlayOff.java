@@ -16,6 +16,7 @@ import com.github.tix320.jouska.core.util.MathUtils;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.api.reactive.property.StateProperty;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 
@@ -27,7 +28,7 @@ public class ClassicPlayOff implements RestorablePlayOff {
 
 	private final List<List<PlayOffGame>> tours;
 
-	private final Property<PlayOffState> state;
+	private final StateProperty<PlayOffState> state;
 
 	private final AtomicReference<Player> winner;
 
@@ -52,7 +53,7 @@ public class ClassicPlayOff implements RestorablePlayOff {
 
 	private ClassicPlayOff(List<Player> players, ClassicPlayOffSettings settings) {
 		this.settings = settings;
-		this.state = Property.forObject(PlayOffState.INITIAL);
+		this.state = Property.forState(PlayOffState.INITIAL);
 		this.players = List.copyOf(players);
 		this.tours = initGamesSpace(players.size());
 		this.winner = new AtomicReference<>();
@@ -102,9 +103,7 @@ public class ClassicPlayOff implements RestorablePlayOff {
 
 	@Override
 	public synchronized void restore(List<List<PlayOffGame>> structure) throws RestoreException {
-		if (state.getValue() != PlayOffState.INITIAL) {
-			throw new RestoreException("Play-off already started");
-		}
+		state.checkState(PlayOffState.INITIAL);
 
 		try {
 			List<List<PlayOffGame>> tours = this.tours;

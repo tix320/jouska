@@ -14,26 +14,26 @@ public class BotProcess {
 	private static final String GAME_END_COMMAND = "END_GAME";
 	private static final String TURN_COMMAND = "TURN";
 
-	private final ProcessCommunicator processCommunicator;
+	private final SubProcess subProcess;
 
 	public BotProcess(String processRunCommand) {
-		this.processCommunicator = new ProcessCommunicator(processRunCommand);
+		this.subProcess = new SubProcess(processRunCommand);
 	}
 
 	public void startGame(int height, int width) {
-		System.out.println("Bot Process: Start game");
-		processCommunicator.writeLn(GAME_START_COMMAND);
-		processCommunicator.writeLn(height + " " + width);
+		System.out.println("To Bot Process: Start game");
+		subProcess.writeLn(GAME_START_COMMAND);
+		subProcess.writeLn(height + " " + width);
 	}
 
 	public void endGame() {
-		System.out.println("Bot Process: End game");
-		processCommunicator.writeLn(GAME_END_COMMAND);
+		System.out.println("To Bot Process: End game");
+		subProcess.writeLn(GAME_END_COMMAND);
 	}
 
 	public Point turn(ReadOnlyGameBoard board, PlayerColor myPlayer) {
-		System.out.println("Bot Process: Send board");
-		processCommunicator.writeLn(TURN_COMMAND);
+		System.out.println("To Bot Process: Send board");
+		subProcess.writeLn(TURN_COMMAND);
 
 		StringBuilder boardString = new StringBuilder();
 		for (int i = 0; i < board.getHeight(); i++) {
@@ -60,9 +60,9 @@ public class BotProcess {
 			boardString.append(row).append('\n');
 		}
 
-		processCommunicator.write(boardString.toString());
+		subProcess.write(boardString.toString());
 
-		String turn = processCommunicator.readLine();
+		String turn = subProcess.readLine();
 		String[] point = turn.split(":");
 		int i = Integer.parseInt(point[0]);
 		int j = Integer.parseInt(point[1]);

@@ -27,8 +27,6 @@ import javafx.stage.Stage;
 
 public final class UI {
 
-	private static final Publisher<None> onExit = Publisher.buffered(1);
-
 	public static Stage stage;
 
 	public static Component currentComponent;
@@ -119,14 +117,6 @@ public final class UI {
 		}
 
 		return loader;
-	}
-
-	public static void close() {
-		onExit.publish(None.SELF);
-	}
-
-	public static MonoObservable<None> onExit() {
-		return onExit.asObservable().toMono();
 	}
 
 	public enum ComponentType {

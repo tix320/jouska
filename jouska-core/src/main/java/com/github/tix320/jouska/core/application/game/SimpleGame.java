@@ -8,12 +8,12 @@ import java.util.stream.Collectors;
 import com.github.tix320.jouska.core.application.game.creation.GameBoards;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.SimpleGameSettings;
-import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.infrastructure.UnsupportedChangeException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
+import com.github.tix320.kiwi.api.reactive.property.StateProperty;
 import com.github.tix320.kiwi.api.reactive.property.Stock;
 
 import static java.util.stream.Collectors.toMap;
@@ -30,7 +30,7 @@ public final class SimpleGame implements RestorableGame {
 	private final List<GamePlayer> activePlayers;
 	private final AtomicReference<GamePlayer> currentPlayer;
 	private final Stock<GameChange> changes;
-	private final Property<GameState> gameState;
+	private final StateProperty<GameState> gameState;
 	private final AtomicReference<GamePlayer> winner;
 	private final List<GamePlayer> lostPlayers;
 	private final List<PlayerWithPoints> kickPlayers;
@@ -43,7 +43,7 @@ public final class SimpleGame implements RestorableGame {
 	private SimpleGame(SimpleGameSettings settings) {
 		this.settings = settings;
 		this.changes = Stock.forObject();
-		this.gameState = Property.forObject(GameState.INITIAL);
+		this.gameState = Property.forState(GameState.INITIAL);
 		this.summaryStatistics = new HashMap<>();
 		this.lostPlayers = new ArrayList<>();
 		this.winner = new AtomicReference<>();
@@ -132,9 +132,7 @@ public final class SimpleGame implements RestorableGame {
 
 	@Override
 	public synchronized void restore(List<GameChange> changes) throws UnsupportedChangeException {
-		if (gameState.getValue() != GameState.INITIAL) {
-			throw new RestoreException("Game already started");
-		}
+		gameState.checkState(GameState.INITIAL);
 
 		ChangeVisitor changeVisitor = new ChangeVisitor();
 		for (GameChange change : changes) {
