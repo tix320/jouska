@@ -157,8 +157,8 @@ public class DBGame implements Game {
 	}
 
 	@Override
-	public List<GamePlayer> getPlayersWithColors() {
-		return game.getPlayersWithColors();
+	public List<GamePlayer> getGamePlayers() {
+		return game.getGamePlayers();
 	}
 
 	@Override
@@ -239,7 +239,7 @@ public class DBGame implements Game {
 	}
 
 	private static String saveGameInDB(RestorableGame game, Player creator, Set<Player> accessedPlayers) {
-		List<GamePlayerEntity> playerEntities = game.getPlayersWithColors()
+		List<GamePlayerEntity> playerEntities = game.getGamePlayers()
 				.stream()
 				.map(player -> new GamePlayerEntity(new PlayerEntity(player.getRealPlayer().getId()),
 						player.getColor()))
@@ -256,7 +256,7 @@ public class DBGame implements Game {
 	}
 
 	private void updatePlayersInDB() {
-		List<GamePlayerEntity> playerEntities = game.getPlayersWithColors()
+		List<GamePlayerEntity> playerEntities = game.getGamePlayers()
 				.stream()
 				.map(player -> new GamePlayerEntity(new PlayerEntity(player.getRealPlayer().getId()),
 						player.getColor()))

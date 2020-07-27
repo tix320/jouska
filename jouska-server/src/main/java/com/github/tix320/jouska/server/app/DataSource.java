@@ -12,12 +12,9 @@ import dev.morphia.mapping.MapperOptions;
 
 public class DataSource {
 
-	private static Datastore INSTANCE;
+	private static final Datastore INSTANCE = createDatasource();
 
 	public static Datastore getInstance() {
-		if (INSTANCE == null) {
-			INSTANCE = createDatasource();
-		}
 		return INSTANCE;
 	}
 

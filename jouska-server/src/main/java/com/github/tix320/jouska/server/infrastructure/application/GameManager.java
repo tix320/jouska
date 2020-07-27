@@ -91,8 +91,7 @@ public class GameManager {
 		}
 
 		boolean removed = false;
-		//noinspection SynchronizationOnLocalVariableOrMethodParameter: This is not simple local variable, it is taken from property `games`
-		synchronized (game) {
+		synchronized (game.getLock()) {
 			if (game.isStarted()) {
 				game.kick(player);
 			}
@@ -119,7 +118,7 @@ public class GameManager {
 			throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
 		}
 
-		return new GameWatchDto(gameId, GameSettingsDto.fromModel(game.getSettings()), game.getPlayersWithColors());
+		return new GameWatchDto(gameId, GameSettingsDto.fromModel(game.getSettings()), game.getGamePlayers());
 	}
 
 	public static void turnInGame(String gameId, Player player, Point point) {
@@ -128,8 +127,7 @@ public class GameManager {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
 		}
 
-		//noinspection SynchronizationOnLocalVariableOrMethodParameter: This is not simple local variable, it is taken from property `games`
-		synchronized (game) {
+		synchronized (game.getLock()) {
 			if (!game.isStarted()) {
 				throw new IllegalStateException(String.format("Game `%s` does not started", gameId));
 			}
@@ -169,7 +167,7 @@ public class GameManager {
 			throw new IllegalAccessException();
 		}
 
-		synchronized (game) {
+		synchronized (game.getLock()) {
 			if (game.isStarted()) {
 				throw new IllegalStateException(String.format("Game %s already started", gameId));
 			}
@@ -180,7 +178,7 @@ public class GameManager {
 
 			TimedGameSettings gameSettings = (TimedGameSettings) game.getSettings();
 
-			List<GamePlayer> gamePlayers = game.getPlayersWithColors();
+			List<GamePlayer> gamePlayers = game.getGamePlayers();
 
 			List<Long> clientIds = new ArrayList<>();
 			for (GamePlayer player : gamePlayers) {
@@ -270,6 +268,6 @@ public class GameManager {
 		GamePlayer winner = game.getWinner().orElseThrow();
 		System.out.println(
 				String.format("Game %s(%s) ended on %s: Players %s Winner is %s", gameSettings.getName(), gameId,
-						LocalTime.now(), game.getPlayersWithColors(), winner));
+						LocalTime.now(), game.getGamePlayers(), winner));
 	}
 }

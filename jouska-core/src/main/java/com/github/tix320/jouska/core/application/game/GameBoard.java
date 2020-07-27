@@ -31,4 +31,15 @@ public final class GameBoard {
 	public int getWidth() {
 		return matrix[0].length;
 	}
+
+	public GameBoard copy() {
+		BoardCell[][] newBoard = new BoardCell[matrix.length][matrix[0].length];
+
+		for (int i = 0; i < matrix.length; i++) {
+			BoardCell[] row = this.matrix[i];
+			System.arraycopy(row, 0, newBoard[i], 0, row.length);
+		}
+
+		return new GameBoard(newBoard);
+	}
 }

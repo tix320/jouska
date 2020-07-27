@@ -26,7 +26,7 @@ public final class SimpleGame implements RestorableGame {
 	private final List<GamePlayer> players;
 
 	// ------------ Game State
-	private GameBoard board; // init after start
+	private volatile GameBoard board; // init after start
 	private final List<GamePlayer> activePlayers;
 	private final AtomicReference<GamePlayer> currentPlayer;
 	private final Stock<GameChange> changes;
@@ -126,8 +126,8 @@ public final class SimpleGame implements RestorableGame {
 	}
 
 	@Override
-	public ReadOnlyGameBoard getBoard() {
-		return new ReadOnlyGameBoard(board);
+	public synchronized ReadOnlyGameBoard getBoard() {
+		return new ReadOnlyGameBoard(board.copy());
 	}
 
 	@Override
@@ -162,9 +162,9 @@ public final class SimpleGame implements RestorableGame {
 
 		resolveNextPlayer();
 		checkStatistics();
-		boolean needComplete = activePlayers.size() == 1;
-
 		changes.add(new PlayerTurn(point));
+
+		boolean needComplete = activePlayers.size() == 1;
 
 		if (needComplete) {
 			completeGame(activePlayers.get(0));
@@ -201,7 +201,7 @@ public final class SimpleGame implements RestorableGame {
 	}
 
 	@Override
-	public synchronized List<GamePlayer> getPlayersWithColors() {
+	public synchronized List<GamePlayer> getGamePlayers() {
 		return Collections.unmodifiableList(players);
 	}
 
@@ -515,7 +515,7 @@ public final class SimpleGame implements RestorableGame {
 	}
 
 	private GamePlayer findGamePlayerByPlayer(Player player) {
-		return getPlayersWithColors().stream()
+		return getGamePlayers().stream()
 				.filter(inGamePlayer -> inGamePlayer.getRealPlayer().equals(player))
 				.findFirst()
 				.orElseThrow(() -> new IllegalArgumentException(

@@ -39,7 +39,7 @@ public class BotApp {
 		// for (int i = 1; i <= 5; i++) {
 		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 		// 			.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
-		// 			.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
+		// 			.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 		// 			.build();
 		//
 		// 	String botNickname = "Bot" + i;
@@ -80,7 +80,7 @@ public class BotApp {
 
 		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot.service"))
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
 		sonderClient.connect();

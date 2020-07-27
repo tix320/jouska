@@ -34,7 +34,7 @@ public class Services {
 		SONDER_SERVER = SonderServer.forAddress(new InetSocketAddress(port))
 				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage)
 						.registerEndpointExtraArgExtractor(new UserExtraArgExtractor()))
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 		initServices();
 

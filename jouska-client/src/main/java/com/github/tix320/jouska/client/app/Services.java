@@ -24,7 +24,7 @@ public class Services {
 		String servicesPackage = "com.github.tix320.jouska.client.service";
 		SONDER_CLIENT = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.withRPCProtocol(builder -> builder.scanPackages(servicesPackage))
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(100))
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 	}
 

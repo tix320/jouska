@@ -71,7 +71,7 @@ public final class TimedGame implements RestorableGame {
 		synchronized (getLock()) {
 			game.start();
 
-			game.getPlayersWithColors()
+			game.getGamePlayers()
 					.stream()
 					.map(GamePlayer::getRealPlayer)
 					.forEach(player -> playerTimers.put(player, new PlayerTimer(player,
@@ -96,7 +96,7 @@ public final class TimedGame implements RestorableGame {
 		synchronized (getLock()) {
 			game.start();
 
-			game.getPlayersWithColors()
+			game.getGamePlayers()
 					.stream()
 					.map(GamePlayer::getRealPlayer)
 					.forEach(player -> playerTimers.put(player, new PlayerTimer(player,
@@ -154,8 +154,8 @@ public final class TimedGame implements RestorableGame {
 	}
 
 	@Override
-	public List<GamePlayer> getPlayersWithColors() {
-		return game.getPlayersWithColors();
+	public List<GamePlayer> getGamePlayers() {
+		return game.getGamePlayers();
 	}
 
 	@Override

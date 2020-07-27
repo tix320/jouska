@@ -57,7 +57,7 @@ public interface Game extends LockOwner {
 	void start();
 
 	/**
-	 * Get current board, read only.
+	 * Get current board copy, read only.
 	 *
 	 * @return board.
 	 */
@@ -83,7 +83,7 @@ public interface Game extends LockOwner {
 	/**
 	 * Get players with their colors.
 	 */
-	List<GamePlayer> getPlayersWithColors();
+	List<GamePlayer> getGamePlayers();
 
 	/**
 	 * Get active players, i.e. who currently playing.
