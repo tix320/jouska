@@ -65,9 +65,14 @@
 			<version>${sonder.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.github.tix320</groupId>
+			<artifactId>ravel</artifactId>
+			<version>${ravel.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>dev.morphia.morphia</groupId>
 			<artifactId>core</artifactId>
-			<version>1.5.8</version>
+			<version>1.6.0</version>
 		</dependency>
 		<dependency>
 			<groupId>org.slf4j</groupId>

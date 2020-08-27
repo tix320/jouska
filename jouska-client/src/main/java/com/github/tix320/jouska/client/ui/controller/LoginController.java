@@ -6,6 +6,7 @@ import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -13,8 +14,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.scene.control.Alert.AlertType;
 import javafx.util.Duration;
-
-import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 
 public class LoginController implements Controller<Credentials> {
 
@@ -29,6 +28,12 @@ public class LoginController implements Controller<Credentials> {
 
 	@FXML
 	private Label errorLabel;
+
+	private final AuthenticationOrigin authenticationOrigin;
+
+	public LoginController(AuthenticationOrigin authenticationOrigin) {
+		this.authenticationOrigin = authenticationOrigin;
+	}
 
 	@Override
 	public void init(Credentials credentials) {
@@ -47,7 +52,7 @@ public class LoginController implements Controller<Credentials> {
 
 	public void login() {
 		Credentials credentials = new Credentials(nicknameInput.getText(), passwordInput.getText());
-		AUTHENTICATION_SERVICE.login(credentials).subscribe(loginAnswer -> {
+		authenticationOrigin.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {
 				case SUCCESS:
 					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
@@ -65,7 +70,7 @@ public class LoginController implements Controller<Credentials> {
 
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.isPresent() && result.get() == ButtonType.OK) {
-							AUTHENTICATION_SERVICE.forceLogin(credentials).subscribe(answer -> {
+							authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
 								switch (answer.getLoginResult()) {
 									case SUCCESS:
 										CurrentUserContext.setPlayer(answer.getPlayer());

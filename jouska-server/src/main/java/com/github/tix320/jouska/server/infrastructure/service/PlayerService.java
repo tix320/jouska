@@ -15,16 +15,18 @@ import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolve
 import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.NotAuthenticatedException;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
+import com.github.tix320.jouska.server.infrastructure.origin.AuthenticationOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-
-import static com.github.tix320.jouska.server.app.Services.AUTHENTICATION_ORIGIN;
 
 public class PlayerService {
 
 	private final PlayerDao playerDao;
 
-	public PlayerService() {
-		playerDao = new PlayerDao();
+	private final AuthenticationOrigin authenticationOrigin;
+
+	public PlayerService(PlayerDao playerDao, AuthenticationOrigin authenticationOrigin) {
+		this.playerDao = playerDao;
+		this.authenticationOrigin = authenticationOrigin;
 	}
 
 	public LoginAnswer login(long clientId, Credentials credentials) {
@@ -61,7 +63,7 @@ public class PlayerService {
 
 		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
 		if (existingClientId != null) {
-			AUTHENTICATION_ORIGIN.logout(existingClientId);
+			authenticationOrigin.logout(existingClientId);
 			EventDispatcher.fire(new PlayerLogoutEvent(convertEntityToModel(playerEntity)));
 		}
 

@@ -8,6 +8,9 @@ import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
+import com.github.tix320.jouska.client.service.origin.ClientGameManagementOrigin;
+import com.github.tix320.jouska.client.service.origin.ClientTournamentOrigin;
 import com.github.tix320.jouska.client.ui.lobby.ConnectedPlayerItem;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.application.game.GameState;
@@ -35,8 +38,6 @@ import javafx.scene.layout.FlowPane;
 import javafx.scene.layout.VBox;
 import javafx.util.Duration;
 import javafx.util.StringConverter;
-
-import static com.github.tix320.jouska.client.app.Services.*;
 
 public class LobbyController implements Controller<Object> {
 
@@ -69,6 +70,19 @@ public class LobbyController implements Controller<Object> {
 	private final AtomicReference<Subscription> gamesListSubscription = new AtomicReference<>();
 
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
+
+	private final ClientGameManagementOrigin gameManagementOrigin;
+
+	private final ClientTournamentOrigin tournamentOrigin;
+
+	private final AuthenticationOrigin authenticationOrigin;
+
+	public LobbyController(ClientGameManagementOrigin gameManagementOrigin, ClientTournamentOrigin tournamentOrigin,
+						   AuthenticationOrigin authenticationOrigin) {
+		this.gameManagementOrigin = gameManagementOrigin;
+		this.tournamentOrigin = tournamentOrigin;
+		this.authenticationOrigin = authenticationOrigin;
+	}
 
 	@Override
 	public void init(Object data) {
@@ -164,7 +178,7 @@ public class LobbyController implements Controller<Object> {
 			subscription.unsubscribe();
 		}
 
-		GAME_SERVICE.games(gameListFilter)
+		gameManagementOrigin.games(gameListFilter)
 				.takeUntil(destroyPublisher.asObservable())
 				.subscribe(Subscriber.<List<GameView>>builder().onSubscribe(gamesListSubscription::set)
 						.onPublish(gameViews -> {
@@ -176,7 +190,7 @@ public class LobbyController implements Controller<Object> {
 								gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
 								gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
 								gameItem.setOnStartClick(
-										event -> GAME_SERVICE.startGame(gameItem.getGameView().getId()));
+										event -> gameManagementOrigin.startGame(gameItem.getGameView().getId()));
 							});
 							Platform.runLater(() -> {
 								ObservableList<Node> gameList = gameItemsPane.getChildren();
@@ -187,7 +201,7 @@ public class LobbyController implements Controller<Object> {
 	}
 
 	private void subscribeToTournamentList() {
-		TOURNAMENT_SERVICE.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
+		tournamentOrigin.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
 			Platform.runLater(() -> {
 				ObservableList<TournamentView> items = FXCollections.observableArrayList(tournamentViews);
 				items.add(ALL);
@@ -197,7 +211,7 @@ public class LobbyController implements Controller<Object> {
 	}
 
 	private void subscribeToConnectedPlayersList() {
-		AUTHENTICATION_SERVICE.connectPlayers().takeUntil(destroyPublisher.asObservable()).subscribe(players -> {
+		authenticationOrigin.connectPlayers().takeUntil(destroyPublisher.asObservable()).subscribe(players -> {
 			List<ConnectedPlayerItem> connectedPlayerItems = players.stream()
 					.map(ConnectedPlayerItem::new)
 					.collect(Collectors.toList());
@@ -212,7 +226,7 @@ public class LobbyController implements Controller<Object> {
 	private void joinGame(String gameId) {
 		disable.set(true);
 
-		GAME_SERVICE.join(gameId).subscribe(answer -> {
+		gameManagementOrigin.join(gameId).subscribe(answer -> {
 			switch (answer) {
 				case ALREADY_FULL:
 					Platform.runLater(() -> {
@@ -244,13 +258,14 @@ public class LobbyController implements Controller<Object> {
 	}
 
 	private void watchGame(String gameId) {
-		GAME_SERVICE.watch(gameId).subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
+		gameManagementOrigin.watch(gameId)
+				.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
 	}
 
 	public void cancelWait() {
 		String id = waitingToConnectGameId.get();
 		if (id != null) {
-			GAME_SERVICE.leave(id);
+			gameManagementOrigin.leave(id);
 			waitingToConnectGameId.set(null);
 		}
 	}

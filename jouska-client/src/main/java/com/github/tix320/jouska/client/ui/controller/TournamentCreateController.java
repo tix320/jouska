@@ -4,6 +4,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.jouska.client.service.origin.ClientTournamentOrigin;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberField;
 import com.github.tix320.jouska.core.application.game.BoardType;
@@ -18,8 +19,6 @@ import javafx.fxml.FXML;
 import javafx.scene.control.Button;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.TextField;
-
-import static com.github.tix320.jouska.client.app.Services.TOURNAMENT_SERVICE;
 
 public class TournamentCreateController implements Controller<Object> {
 
@@ -46,6 +45,12 @@ public class TournamentCreateController implements Controller<Object> {
 
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 	private final SimpleBooleanProperty isValid = new SimpleBooleanProperty(false);
+
+	private final ClientTournamentOrigin tournamentOrigin;
+
+	public TournamentCreateController(ClientTournamentOrigin tournamentOrigin) {
+		this.tournamentOrigin = tournamentOrigin;
+	}
 
 	@Override
 	public void init(Object data) {
@@ -93,7 +98,7 @@ public class TournamentCreateController implements Controller<Object> {
 		TimedGameSettingsDto playOffSettings = new TimedGameSettingsDto(
 				new SimpleGameSettingsDto("None", BoardType.STANDARD, 2), playOffTurnDurationInput.getNumber(),
 				playOffTurnTotalDurationInput.getNumber() * 60);
-		TOURNAMENT_SERVICE.create(new CreateTournamentCommand(
+		tournamentOrigin.create(new CreateTournamentCommand(
 				new ClassicTournamentSettingsDto(gameNameInput.getText(), playersCountChoice.getValue(), groupSettings,
 						playOffSettings))).subscribe(response -> {
 			if (response.isSuccess()) {

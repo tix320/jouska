@@ -16,32 +16,37 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.application.dbo.DBTournament;
 import com.github.tix320.jouska.server.infrastructure.application.dbo.DBTournamentSettings;
+import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.kiwi.api.util.collection.Tuple;
 
-import static com.github.tix320.jouska.server.app.Services.TOURNAMENT_ORIGIN;
-
 public class TournamentManager {
 
-	private static final SinglePublisher<None> changesPublisher = new SinglePublisher<>(None.SELF);
+	private final SinglePublisher<None> changesPublisher = new SinglePublisher<>(None.SELF);
 
-	public static Observable<Collection<DBTournament>> tournaments() {
+	private final ServerTournamentOrigin tournamentOrigin;
+
+	public TournamentManager(ServerTournamentOrigin tournamentOrigin) {
+		this.tournamentOrigin = tournamentOrigin;
+	}
+
+	public Observable<Collection<DBTournament>> tournaments() {
 		return Observable.combineLatest(changesPublisher.asObservable(), DBTournament.all().asObservable())
 				.map(Tuple::second)
 				.map(Map::values);
 	}
 
-	public static String createTournament(RestorableTournamentSettings settings, Player creator) {
+	public String createTournament(RestorableTournamentSettings settings, Player creator) {
 		DBTournamentSettings tournamentSettings = DBTournamentSettings.wrap(settings, creator);
 
 		DBTournament dbTournament = DBTournament.createNew(tournamentSettings);
 		return dbTournament.getId();
 	}
 
-	public static Confirmation joinTournament(String tournamentId, Player player) {
+	public Confirmation joinTournament(String tournamentId, Player player) {
 		DBTournament tournament = DBTournament.all().get(tournamentId);
 
 		failIfTournamentNull(tournamentId, tournament);
@@ -65,7 +70,7 @@ public class TournamentManager {
 		}
 		else {
 			try {
-				Confirmation requestAnswer = TOURNAMENT_ORIGIN.requestTournamentJoin(request, creatorClientId)
+				Confirmation requestAnswer = tournamentOrigin.requestTournamentJoin(request, creatorClientId)
 						.get(Duration.ofSeconds(30));
 
 				System.out.println(requestAnswer);
@@ -97,14 +102,14 @@ public class TournamentManager {
 
 	}
 
-	public static Tournament getTournament(String tournamentId) {
+	public Tournament getTournament(String tournamentId) {
 		Tournament tournament = DBTournament.all().get(tournamentId);
 		failIfTournamentNull(tournamentId, tournament);
 
 		return tournament;
 	}
 
-	public static void startTournament(String tournamentId) {
+	public void startTournament(String tournamentId) {
 		DBTournament tournament = DBTournament.all().get(tournamentId);
 		failIfTournamentNull(tournamentId, tournament);
 
@@ -121,7 +126,7 @@ public class TournamentManager {
 		Player winner = tournament.playOff().getValue().getWinner().orElseThrow();
 
 		System.out.println("-".repeat(20));
-		System.out.println(String.format("Tournament %s(%s) ended", tournamentSettings.getName(), tournamentId));
+		System.out.printf("Tournament %s(%s) ended%n", tournamentSettings.getName(), tournamentId);
 		System.out.println("Players: " + tournament.getPlayers());
 		System.out.println("Winner: " + winner);
 		System.out.println("-".repeat(20));

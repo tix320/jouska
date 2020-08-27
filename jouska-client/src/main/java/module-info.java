@@ -4,8 +4,8 @@ open module jouska.client {
 	requires javafx.controls;
 	requires javafx.fxml;
 
-	requires sonder;
-	requires kiwi;
-
 	requires jouska.core;
+
+	requires sonder;
+	requires com.github.tix.ravel;
 }

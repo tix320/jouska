@@ -22,12 +22,14 @@ import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
-import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
+import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 
 public class BotApp {
+
+	private static SonderClient sonderClient;
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 		String processCommand = args[0];
@@ -78,18 +80,22 @@ public class BotApp {
 		// 	return;
 		// }
 
-		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
-				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot.service"))
+		RPCProtocol rpcProtocol = RPCProtocol.forClient()
+				.scanOriginPackages("com.github.tix320.jouska.bot.service")
+				.scanEndpointPackages("com.github.tix320.jouska.bot.service")
+				.build();
+		sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
+				.registerProtocol(rpcProtocol)
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
 		sonderClient.connect();
 
-		Context.setSonderClient(sonderClient);
+		Context.setRpcProtocol(rpcProtocol);
 
 		checkApplicationUpdate();
 
-		LoginAnswer answer = sonderClient.getRPCService(AuthenticationService.class)
+		LoginAnswer answer = rpcProtocol.getOrigin(AuthenticationService.class)
 				.forceLogin(new Credentials(nickname, password))
 				.get(Duration.ofSeconds(15));
 
@@ -102,19 +108,19 @@ public class BotApp {
 
 		Context.setBotProcess(botProcess);
 
-		CLI cli = new CLI(List.of(new JoinCLICommand(sonderClient.getRPCService(BotTournamentOrigin.class),
-				sonderClient.getRPCService(BotGameManagementOrigin.class))));
+		CLI cli = new CLI(List.of(new JoinCLICommand(rpcProtocol.getOrigin(BotTournamentOrigin.class),
+				rpcProtocol.getOrigin(BotGameManagementOrigin.class))));
 
 		cli.run();
 	}
 
 	private static void checkApplicationUpdate() throws InterruptedException {
-		ApplicationUpdateOrigin applicationUpdateOrigin = Context.getSonderClient()
-				.getRPCService(ApplicationUpdateOrigin.class);
+		ApplicationUpdateOrigin applicationUpdateOrigin = Context.getRPCProtocol()
+				.getOrigin(ApplicationUpdateOrigin.class);
 		String lastVersion = applicationUpdateOrigin.checkUpdate(Version.VERSION, Version.os)
 				.get(Duration.ofSeconds(30));
 		if (!lastVersion.equals("")) { // update
-			System.out.println(String.format("The newer version of bot is available: %s", lastVersion));
+			System.out.printf("The newer version of bot is available: %s%n", lastVersion);
 			System.out.println("Start downloading...");
 			applicationUpdateOrigin.downloadBot(Version.os).waitAndApply(Duration.ofSeconds(30), transfer -> {
 				boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
@@ -143,12 +149,12 @@ public class BotApp {
 					}
 					System.out.println();
 
-					System.out.println(String.format("New bot zip successfully download, use it: %s", fileName));
+					System.out.printf("New bot zip successfully download, use it: %s%n", fileName);
 					System.exit(0);
 				}
 				catch (IOException e) {
 					try {
-						Context.getSonderClient().close();
+						sonderClient.close();
 					}
 					catch (IOException ex) {
 						ex.printStackTrace();

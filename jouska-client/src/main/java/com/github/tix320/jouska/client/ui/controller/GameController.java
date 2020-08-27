@@ -13,6 +13,8 @@ import java.util.stream.IntStream;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.service.origin.ClientGameManagementOrigin;
+import com.github.tix320.jouska.client.service.origin.ClientGameOrigin;
 import com.github.tix320.jouska.client.ui.game.PlayerMode;
 import com.github.tix320.jouska.client.ui.game.Tile;
 import com.github.tix320.jouska.client.ui.helper.component.SpeedSlider;
@@ -47,8 +49,6 @@ import javafx.scene.text.Font;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
-import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
-import static com.github.tix320.jouska.client.app.Services.IN_GAME_SERVICE;
 import static java.util.stream.Collectors.toMap;
 
 public class GameController implements Controller<GameWatchDto> {
@@ -101,6 +101,15 @@ public class GameController implements Controller<GameWatchDto> {
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	private final SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
+
+	private final ClientGameOrigin gameOrigin;
+
+	private final ClientGameManagementOrigin gameManagementOrigin;
+
+	public GameController(ClientGameOrigin gameOrigin, ClientGameManagementOrigin gameManagementOrigin) {
+		this.gameOrigin = gameOrigin;
+		this.gameManagementOrigin = gameManagementOrigin;
+	}
 
 	@Override
 	public void init(GameWatchDto gameWatchDto) {
@@ -186,7 +195,7 @@ public class GameController implements Controller<GameWatchDto> {
 			});
 		}));
 
-		IN_GAME_SERVICE.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
+		gameOrigin.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
 	}
 
 	private void runBoardChangesConsumer() {
@@ -501,7 +510,7 @@ public class GameController implements Controller<GameWatchDto> {
 		Point point = new Point(x, y);
 		game.ownerOfPoint(point).ifPresentOrElse(player -> {
 			if (myPlayer.equals(player)) {
-				IN_GAME_SERVICE.turn(gameId, point);
+				gameOrigin.turn(gameId, point);
 				turned.set(true);
 				tile.animateBackground(Color.web(myPlayer.getColor().getColorCode())).play();
 			}
@@ -598,7 +607,7 @@ public class GameController implements Controller<GameWatchDto> {
 	public void onLeaveClick() {
 		destroyPublisher.complete();
 		if (!game.isCompleted() && playerMode == PlayerMode.PLAY) {
-			GAME_SERVICE.leave(gameId);
+			gameManagementOrigin.leave(gameId);
 		}
 		UI.switchComponent(ComponentType.MENU);
 	}

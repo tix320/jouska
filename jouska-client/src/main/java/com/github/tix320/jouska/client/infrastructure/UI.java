@@ -3,6 +3,7 @@ package com.github.tix320.jouska.client.infrastructure;
 import java.io.IOException;
 import java.net.URL;
 
+import com.github.tix320.jouska.client.app.AppConfig;
 import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
@@ -106,7 +107,10 @@ public final class UI {
 			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
 		}
 		FXMLLoader loader = new FXMLLoader(resource);
-		if (controller != null) {
+		if (controller == null) {
+			loader.setControllerFactory(controllerClass -> AppConfig.INJECTOR.inject(controllerClass));
+		}
+		else {
 			loader.setController(controller);
 		}
 		try {

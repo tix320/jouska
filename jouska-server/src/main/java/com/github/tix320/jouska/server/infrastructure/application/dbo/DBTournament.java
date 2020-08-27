@@ -9,6 +9,7 @@ import com.github.tix320.jouska.core.application.game.creation.*;
 import com.github.tix320.jouska.core.application.tournament.ClassicGroup.GroupPlayer;
 import com.github.tix320.jouska.core.application.tournament.*;
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.server.app.AppConfig;
 import com.github.tix320.jouska.server.infrastructure.dao.TournamentDao;
 import com.github.tix320.jouska.server.infrastructure.entity.*;
 import com.github.tix320.jouska.server.infrastructure.helper.Converters;
@@ -26,9 +27,9 @@ import static java.util.stream.Collectors.toSet;
  */
 public class DBTournament implements Tournament {
 
-	private static final TournamentDao tournamentDao = new TournamentDao();
-
 	private static final MapProperty<String, DBTournament> tournaments = Property.forMap(new ConcurrentHashMap<>());
+
+	private static final TournamentDao tournamentDao = AppConfig.INJECTOR.inject(TournamentDao.class);
 
 	static {
 		List<TournamentEntity> tournamentEntities = tournamentDao.findAll();

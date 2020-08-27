@@ -15,20 +15,27 @@ import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
 import com.github.tix320.sonder.api.common.communication.Headers;
 import com.github.tix320.sonder.api.common.communication.LimitedReadableByteChannel;
+import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 
 public class Uploader {
 
 	public static void main(String[] args) throws IOException, InterruptedException {
 		String filePath = args[0];
 		String os = args[1];
+
+
+		RPCProtocol rpcProtocol = RPCProtocol.forClient()
+				.scanOriginPackages("com.github.tix320.jouska.ci.upload")
+				.build();
 		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("52.57.98.213", 8888))
-				.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.ci.upload"))
+				.registerProtocol(rpcProtocol)
+				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
 		sonderClient.connect();
 
 		try {
-			sonderClient.getRPCService(AuthenticationService.class)
+			rpcProtocol.getOrigin(AuthenticationService.class)
 					.forceLogin(new Credentials("uploader", "uploader"))
 					.get(Duration.ofSeconds(30));
 		}
@@ -37,7 +44,7 @@ public class Uploader {
 			return;
 		}
 
-		UploaderService uploaderService = sonderClient.getRPCService(UploaderService.class);
+		UploaderService uploaderService = rpcProtocol.getOrigin(UploaderService.class);
 		Path file = Path.of(filePath);
 		long length = Files.size(file);
 		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY,

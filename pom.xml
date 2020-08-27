@@ -12,7 +12,8 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>1.0.1</sonder.version>
+		<sonder.version>1.0.2-SNAPSHOT</sonder.version>
+		<ravel.version>0.1.0-SNAPSHOT</ravel.version>
 	</properties>
 
 	<modules>

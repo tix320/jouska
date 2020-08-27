@@ -6,10 +6,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
-import dev.morphia.query.Query;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -19,18 +17,14 @@ import static java.util.stream.Collectors.toMap;
 public class PlayerDao extends BaseDao<PlayerEntity> {
 
 	public Optional<PlayerEntity> findPlayerByCredentials(Credentials credentials) {
-		return
-				find(Filter.and(Filter.equal("nickname", credentials.getNickname()),
+		return find(Filter.and(Filter.equal("nickname", credentials.getNickname()),
 				Filter.equal("password", credentials.getPassword())));
 	}
 
 	public List<PlayerEntity> findPlayersByNickname(List<String> nicknames) {
-		Query<PlayerEntity> query = DataSource.getInstance().find(PlayerEntity.class);
-		query.and(query.criteria("nickname").in(nicknames));
+		List<PlayerEntity> players = findAll(Filter.in("nickname", nicknames));
 
-		Map<String, PlayerEntity> playerEntities = query.find()
-				.toList()
-				.stream()
+		Map<String, PlayerEntity> playerEntities = players.stream()
 				.collect(toMap(PlayerEntity::getNickname, entity -> entity));
 
 		return nicknames.stream().map(playerEntities::get).collect(Collectors.toList());

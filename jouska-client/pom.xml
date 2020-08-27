@@ -40,6 +40,11 @@
 			<artifactId>sonder</artifactId>
 			<version>${sonder.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.github.tix320</groupId>
+			<artifactId>ravel</artifactId>
+			<version>${ravel.version}</version>
+		</dependency>
 	</dependencies>
 
 	<build>

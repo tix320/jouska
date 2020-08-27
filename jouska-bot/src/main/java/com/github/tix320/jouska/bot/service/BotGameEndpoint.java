@@ -27,7 +27,7 @@ public class BotGameEndpoint {
 		players.forEach(game::addPlayer);
 		PlayerColor myColor = gamePlayDto.getMyPlayer();
 
-		new Bot(gamePlayDto.getGameId(), game, myColor, Context.getSonderClient().getRPCService(BotGameOrigin.class),
+		new Bot(gamePlayDto.getGameId(), game, myColor, Context.getRPCProtocol().getOrigin(BotGameOrigin.class),
 				Context.getBotProcess());
 	}
 

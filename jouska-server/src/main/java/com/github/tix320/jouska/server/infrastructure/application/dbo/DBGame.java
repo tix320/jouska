@@ -9,6 +9,7 @@ import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.model.Player;
+import com.github.tix320.jouska.server.app.AppConfig;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
 import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
@@ -31,7 +32,7 @@ public class DBGame implements Game {
 
 	private static final MapProperty<String, DBGame> games = Property.forMap(new ConcurrentHashMap<>());
 
-	private static final GameDao gameDao = new GameDao();
+	private static final GameDao gameDao = AppConfig.INJECTOR.inject(GameDao.class);
 
 	static {
 		List<GameEntity> notCompletedGames = gameDao.findAll(Filter.notEqual("state", GameState.COMPLETED));

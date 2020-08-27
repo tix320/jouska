@@ -17,12 +17,19 @@ import com.github.tix320.sonder.api.common.rpc.Subscription;
 @Endpoint("in-game")
 public class ServerGameEndpoint {
 
-	private final GameDao gameDao = new GameDao();
+	private final GameDao gameDao;
+
+	private final GameManager gameManager;
+
+	public ServerGameEndpoint(GameDao gameDao, GameManager gameManager) {
+		this.gameDao = gameDao;
+		this.gameManager = gameManager;
+	}
 
 	@Endpoint
 	@Subscription
 	public Observable<GameChangeDto> changes(String gameId, @CallerUser Player player) {
-		Optional<Game> game = GameManager.getGame(gameId, player);
+		Optional<Game> game = gameManager.getGame(gameId, player);
 		if (game.isPresent()) {
 			return game.get().changes().asObservable().map(GameChangeDto::fromModel);
 		}
@@ -35,6 +42,6 @@ public class ServerGameEndpoint {
 
 	@Endpoint
 	public void turn(String gameId, Point point, @CallerUser Player player) {
-		GameManager.turnInGame(gameId, player, point);
+		gameManager.turnInGame(gameId, player, point);
 	}
 }

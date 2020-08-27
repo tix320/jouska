@@ -8,6 +8,8 @@ import java.util.Optional;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
+import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -16,7 +18,7 @@ import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.stage.Stage;
 
-import static com.github.tix320.jouska.client.app.Services.*;
+import static com.github.tix320.jouska.client.app.AppConfig.INJECTOR;
 
 
 public class Main extends Application {
@@ -31,37 +33,15 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage stage) {
+		AppConfig.initialize(Configuration.getServerHost(), Configuration.getServerPort());
 		UI.initialize(stage);
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			Platform.runLater(stage::show);
 
 			try {
-				initialize(Configuration.getServerHost(), Configuration.getServerPort());
-
-				// SONDER_CLIENT.onEvent(ConnectionEstablishedEvent.class).subscribe(connectionEstablishedEvent -> {
-				// 	System.out.println("Connected");
-				//
-				// 	SONDER_CLIENT.onEvent(ConnectionClosedEvent.class).toMono().subscribe(connectionClosedEvent -> {
-				// 		System.out.println("Disconnected");
-				// 		Threads.runLoop(() -> {
-				// 			Thread.sleep(5000);
-				// 			System.out.println("trying to reconnect");
-				// 			try {
-				// 				SONDER_CLIENT.connect();
-				// 				authenticate();
-				// 				return false;
-				// 			}
-				// 			catch (IOException e) {
-				// 				e.printStackTrace();
-				// 				return true;
-				// 			}
-				// 		});
-				// 	});
-				// });
-
-				Services.connect();
-
-				APPLICATION_UPDATE_SERVICE.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
+				AppConfig.connect();
+				ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(ApplicationUpdateOrigin.class);
+				applicationUpdateOrigin.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
 					if (!lastVersion.equals("")) { // update
 						UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
 					}
@@ -82,12 +62,13 @@ public class Main extends Application {
 
 	@Override
 	public void stop() throws IOException {
-		Services.stop();
+		AppConfig.stop();
 	}
 
 	private static void authenticate() {
+		AuthenticationOrigin authenticationOrigin = INJECTOR.inject(AuthenticationOrigin.class);
 		Credentials credentials = new Credentials(Configuration.getNickname(), Configuration.getPassword());
-		AUTHENTICATION_SERVICE.login(credentials).subscribe(loginAnswer -> {
+		authenticationOrigin.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {
 				case SUCCESS:
 					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
@@ -104,7 +85,7 @@ public class Main extends Application {
 
 						Optional<ButtonType> result = alert.showAndWait();
 						if (result.isPresent() && result.get() == ButtonType.OK) {
-							AUTHENTICATION_SERVICE.forceLogin(credentials).subscribe(answer -> {
+							authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
 								switch (answer.getLoginResult()) {
 									case SUCCESS:
 										UI.switchComponent(ComponentType.MENU);

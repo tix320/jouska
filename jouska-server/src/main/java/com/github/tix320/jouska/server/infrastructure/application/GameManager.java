@@ -16,21 +16,27 @@ import com.github.tix320.jouska.server.infrastructure.application.dbo.DBGame;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 import com.github.tix320.jouska.server.infrastructure.helper.Converters;
+import com.github.tix320.jouska.server.infrastructure.origin.ServerGameManagementOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
 import com.github.tix320.kiwi.api.util.None;
 import com.github.tix320.kiwi.api.util.collection.Tuple;
 
-import static com.github.tix320.jouska.server.app.Services.GAME_ORIGIN;
-
 public class GameManager {
 
-	private static final SinglePublisher<None> changesPublisher = new SinglePublisher<>(None.SELF);
+	private final SinglePublisher<None> changesPublisher = new SinglePublisher<>(None.SELF);
 
-	private static final GameDao gameDao = new GameDao();
+	private final ServerGameManagementOrigin serverGameManagementOrigin;
 
-	public static Observable<Collection<DBGame>> games(Player caller) {
+	private final GameDao gameDao;
+
+	public GameManager(ServerGameManagementOrigin serverGameManagementOrigin, GameDao gameDao) {
+		this.serverGameManagementOrigin = serverGameManagementOrigin;
+		this.gameDao = gameDao;
+	}
+
+	public Observable<Collection<DBGame>> games(Player caller) {
 		return Observable.combineLatest(changesPublisher.asObservable(), DBGame.all().asObservable())
 				.map(Tuple::second)
 				.map(Map::values)
@@ -46,7 +52,7 @@ public class GameManager {
 				});
 	}
 
-	public static String createGame(GameSettings settings, Player creator, Set<Player> accessedPlayers) {
+	public String createGame(GameSettings settings, Player creator, Set<Player> accessedPlayers) {
 		if (settings instanceof RestorableGameSettings) {
 			DBGame dbGame = DBGame.createNew(creator, accessedPlayers, (RestorableGameSettings) settings);
 			return dbGame.getId();
@@ -54,7 +60,7 @@ public class GameManager {
 		throw new UnsupportedOperationException();
 	}
 
-	public static GameConnectionAnswer joinGame(String gameId, Player player) {
+	public GameConnectionAnswer joinGame(String gameId, Player player) {
 		DBGame game = DBGame.all().get(gameId);
 
 		if (game == null) {
@@ -79,7 +85,7 @@ public class GameManager {
 		}
 	}
 
-	public static void leaveGame(String gameId, Player player) {
+	public void leaveGame(String gameId, Player player) {
 		DBGame game = DBGame.all().get(gameId);
 
 		if (game == null) {
@@ -104,7 +110,7 @@ public class GameManager {
 		}
 	}
 
-	public static GameWatchDto watchGame(String gameId) {
+	public GameWatchDto watchGame(String gameId) {
 		DBGame game = DBGame.all().get(gameId);
 		if (game == null) {
 			GameEntity gameEntity = gameDao.findById(gameId, List.of("settings", "players"))
@@ -121,7 +127,7 @@ public class GameManager {
 		return new GameWatchDto(gameId, GameSettingsDto.fromModel(game.getSettings()), game.getGamePlayers());
 	}
 
-	public static void turnInGame(String gameId, Player player, Point point) {
+	public void turnInGame(String gameId, Player player, Point point) {
 		DBGame game = DBGame.all().get(gameId);
 		if (game == null) {
 			throw new IllegalStateException(String.format("Game %s not found", gameId));
@@ -147,7 +153,7 @@ public class GameManager {
 		}
 	}
 
-	public static Optional<Game> getGame(String gameId, Player caller) {
+	public Optional<Game> getGame(String gameId, Player caller) {
 		DBGame game = DBGame.all().get(gameId);
 		if (game == null) {
 			return Optional.empty();
@@ -160,7 +166,7 @@ public class GameManager {
 		return Optional.of(game);
 	}
 
-	public static void startGame(String gameId, Player caller) {
+	public void startGame(String gameId, Player caller) {
 		DBGame game = DBGame.all().get(gameId);
 
 		if (!game.getCreator().equals(caller) && !caller.isAdmin()) {
@@ -198,18 +204,18 @@ public class GameManager {
 			Long callerClientId = ClientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
 
 			if (callerClientId == null) {
-				System.err.println(String.format("Cannot start game %s(%s) and caller also %s(%s) become offline",
-						gameSettings.getName(), gameId, caller.getNickname(), caller.getId()));
+				System.err.printf("Cannot start game %s(%s) and caller also %s(%s) become offline%n",
+						gameSettings.getName(), gameId, caller.getNickname(), caller.getId());
 				return;
 			}
 
 			if (!offlinePlayers.isEmpty()) {
 
-				GAME_ORIGIN.notifyGamePlayersOffline(
+				serverGameManagementOrigin.notifyGamePlayersOffline(
 						new GamePlayersOfflineWarning(gameSettings.getName(), offlinePlayers), callerClientId);
 
-				System.err.println(String.format("Cannot start game %s(%s), because there are offline players",
-						gameSettings.getName(), gameId));
+				System.err.printf("Cannot start game %s(%s), because there are offline players%n",
+						gameSettings.getName(), gameId);
 				return;
 			}
 
@@ -217,7 +223,7 @@ public class GameManager {
 				if (callerClientId.equals(clientId)) {
 					return Observable.of(Confirmation.ACCEPT);
 				}
-				return GAME_ORIGIN.notifyGameStartingSoon(gameSettings.getName(), clientId)
+				return serverGameManagementOrigin.notifyGameStartingSoon(gameSettings.getName(), clientId)
 						.getOnTimout(Duration.ofSeconds(30), () -> Confirmation.REJECT);
 			}).collect(Collectors.toList());
 
@@ -234,15 +240,14 @@ public class GameManager {
 						rejectedPlayers.add(player);
 					}
 					else {
-						GAME_ORIGIN.notifyGameStarted(
+						serverGameManagementOrigin.notifyGameStarted(
 								new GamePlayDto(gameId, GameSettingsDto.fromModel(gameSettings), gamePlayers,
 										gamePlayer.getColor()), clientId);
 					}
 				}
 
 				game.start();
-				System.out.println(
-						String.format("Game %s (%s) started on %s", gameSettings.getName(), gameId, LocalTime.now()));
+				System.out.printf("Game %s (%s) started on %s%n", gameSettings.getName(), gameId, LocalTime.now());
 				changesPublisher.publish(None.SELF);
 
 				rejectedPlayers.forEach(game::kick);
@@ -266,8 +271,7 @@ public class GameManager {
 		String gameId = game.getId();
 		GameSettings gameSettings = game.getSettings();
 		GamePlayer winner = game.getWinner().orElseThrow();
-		System.out.println(
-				String.format("Game %s(%s) ended on %s: Players %s Winner is %s", gameSettings.getName(), gameId,
-						LocalTime.now(), game.getGamePlayers(), winner));
+		System.out.printf("Game %s(%s) ended on %s: Players %s Winner is %s%n", gameSettings.getName(), gameId,
+				LocalTime.now(), game.getGamePlayers(), winner);
 	}
 }

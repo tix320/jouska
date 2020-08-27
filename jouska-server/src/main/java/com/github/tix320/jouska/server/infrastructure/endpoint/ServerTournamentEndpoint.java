@@ -26,10 +26,16 @@ import com.github.tix320.sonder.api.common.rpc.Subscription;
 @Endpoint("tournament")
 public class ServerTournamentEndpoint {
 
+	private final TournamentManager tournamentManager;
+
+	public ServerTournamentEndpoint(TournamentManager tournamentManager) {
+		this.tournamentManager = tournamentManager;
+	}
+
 	@Endpoint("list")
 	@Subscription
 	public Observable<List<TournamentView>> tournaments(@CallerUser Player player) {
-		return TournamentManager.tournaments()
+		return tournamentManager.tournaments()
 				.map(tournaments -> tournaments.stream()
 						.map(tournament -> new TournamentView(tournament.getId(), tournament.getSettings().getName(),
 								tournament.getPlayers().size(), tournament.getSettings().getMaxPlayersCount(),
@@ -39,7 +45,7 @@ public class ServerTournamentEndpoint {
 
 	@Endpoint
 	public TournamentStructure getTournamentStructure(String tournamentId, @CallerUser Player player) {
-		Tournament tournament = TournamentManager.getTournament(tournamentId);
+		Tournament tournament = tournamentManager.getTournament(tournamentId);
 		AtomicInteger groupIndex = new AtomicInteger(1);
 		List<GroupView> groups = tournament.getGroups()
 				.stream()
@@ -77,19 +83,19 @@ public class ServerTournamentEndpoint {
 	@Endpoint("create")
 	@Role(RoleName.ADMIN)
 	public String create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
-		return TournamentManager.createTournament(createTournamentCommand.getTournamentSettings().toModel(), player);
+		return tournamentManager.createTournament(createTournamentCommand.getTournamentSettings().toModel(), player);
 	}
 
 	@Endpoint("join")
 	public Confirmation join(String tournamentId, @CallerUser Player player) {
 		Objects.requireNonNull(tournamentId, "Tournament id not specified");
-		return TournamentManager.joinTournament(tournamentId, player);
+		return tournamentManager.joinTournament(tournamentId, player);
 	}
 
 	@Endpoint
 	@Role(RoleName.ADMIN)
 	public void startTournament(String tournamentId, @CallerUser Player player) {
 		Objects.requireNonNull(tournamentId, "Tournament id not specified");
-		TournamentManager.startTournament(tournamentId);
+		tournamentManager.startTournament(tournamentId);
 	}
 }

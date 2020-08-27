@@ -23,14 +23,22 @@ import org.bson.types.ObjectId;
 @Endpoint("game")
 public class ServerGameManagementEndpoint {
 
-	private final GameDao gameDao = new GameDao();
+	private final GameDao gameDao;
 
-	private final TournamentDao tournamentDao = new TournamentDao();
+	private final TournamentDao tournamentDao;
+
+	private final GameManager gameManager;
+
+	public ServerGameManagementEndpoint(GameDao gameDao, TournamentDao tournamentDao, GameManager gameManager) {
+		this.gameDao = gameDao;
+		this.tournamentDao = tournamentDao;
+		this.gameManager = gameManager;
+	}
 
 	@Endpoint("info")
 	@Subscription
 	public Observable<List<GameView>> games(GameListFilter gameListFilter, @CallerUser Player player) {
-		return GameManager.games(player)
+		return gameManager.games(player)
 				.map(games -> games.stream()
 						.filter(game -> gameListFilter.getStates().contains(game.getState()))
 						.map(game -> new GameView(game.getId(), GameSettingsDto.fromModel(game.getSettings()),
@@ -92,27 +100,27 @@ public class ServerGameManagementEndpoint {
 	@Endpoint
 	public GameConnectionAnswer join(String gameId, @CallerUser Player player) {
 		Objects.requireNonNull(gameId, "Game id not specified");
-		return GameManager.joinGame(gameId, player);
+		return gameManager.joinGame(gameId, player);
 	}
 
 	@Endpoint
 	public void leave(String gameId, @CallerUser Player player) {
-		GameManager.leaveGame(gameId, player);
+		gameManager.leaveGame(gameId, player);
 	}
 
 	@Endpoint("create")
 	public String createGame(CreateGameCommand createGameCommand, @CallerUser Player player) {
-		return GameManager.createGame(createGameCommand.getGameSettings().toModel(), player,
+		return gameManager.createGame(createGameCommand.getGameSettings().toModel(), player,
 				createGameCommand.getAccessedPlayers());
 	}
 
 	@Endpoint("start")
 	public void startGame(String gameId, @CallerUser Player player) {
-		GameManager.startGame(gameId, player);
+		gameManager.startGame(gameId, player);
 	}
 
 	@Endpoint("watch")
 	public GameWatchDto watchGame(String gameId) {
-		return GameManager.watchGame(gameId);
+		return gameManager.watchGame(gameId);
 	}
 }

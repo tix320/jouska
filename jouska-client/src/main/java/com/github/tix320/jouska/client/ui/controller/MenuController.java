@@ -10,6 +10,7 @@ import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
+import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
@@ -29,8 +30,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ProgressIndicator;
 import javafx.scene.layout.AnchorPane;
 import javafx.util.Duration;
-
-import static com.github.tix320.jouska.client.app.Services.AUTHENTICATION_SERVICE;
 
 public final class MenuController implements Controller<Object> {
 
@@ -55,6 +54,12 @@ public final class MenuController implements Controller<Object> {
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	private BlockingQueue<NotificationEvent<?, ?>> notificationsQueue;
+
+	private final AuthenticationOrigin authenticationOrigin;
+
+	public MenuController(AuthenticationOrigin authenticationOrigin) {
+		this.authenticationOrigin = authenticationOrigin;
+	}
 
 	@Override
 	public void init(Object data) {
@@ -127,7 +132,7 @@ public final class MenuController implements Controller<Object> {
 
 	public void logout() {
 		CurrentUserContext.setPlayer(null);
-		AUTHENTICATION_SERVICE.logout();
+		authenticationOrigin.logout();
 		Configuration.updateCredentials("", "");
 		UI.switchComponent(ComponentType.LOGIN);
 	}

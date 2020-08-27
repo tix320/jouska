@@ -2,13 +2,14 @@ package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.bot.process.BotProcess;
 import com.github.tix320.sonder.api.client.SonderClient;
+import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 
 /**
  * @author Tigran Sargsyan on 09-May-20.
  */
 public class Context {
 
-	private static SonderClient sonderClient;
+	private static RPCProtocol rpcProtocol;
 
 	private static BotProcess botProcess;
 
@@ -23,14 +24,14 @@ public class Context {
 		Context.botProcess = botProcess;
 	}
 
-	public static SonderClient getSonderClient() {
-		if (sonderClient == null) {
+	public static RPCProtocol getRPCProtocol() {
+		if (rpcProtocol == null) {
 			throw new IllegalStateException();
 		}
-		return sonderClient;
+		return rpcProtocol;
 	}
 
-	public static void setSonderClient(SonderClient sonderClient) {
-		Context.sonderClient = sonderClient;
+	public static void setRpcProtocol(RPCProtocol rpcProtocol) {
+		Context.rpcProtocol = rpcProtocol;
 	}
 }

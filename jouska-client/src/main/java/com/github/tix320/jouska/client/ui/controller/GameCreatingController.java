@@ -7,6 +7,8 @@ import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.jouska.client.service.origin.ClientGameManagementOrigin;
+import com.github.tix320.jouska.client.service.origin.ClientPlayerOrigin;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.helper.component.NumberField;
 import com.github.tix320.jouska.core.application.game.BoardType;
@@ -22,9 +24,6 @@ import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.scene.control.*;
 import javafx.util.Duration;
-
-import static com.github.tix320.jouska.client.app.Services.GAME_SERVICE;
-import static com.github.tix320.jouska.client.app.Services.PLAYER_SERVICE;
 
 public class GameCreatingController implements Controller<Object> {
 
@@ -55,6 +54,15 @@ public class GameCreatingController implements Controller<Object> {
 	private final SimpleBooleanProperty loading = new SimpleBooleanProperty(false);
 	private final SimpleIntegerProperty turnDuration = new SimpleIntegerProperty(20);
 	private final SimpleIntegerProperty playerTurnTotalDuration = new SimpleIntegerProperty(10);
+
+	private final ClientPlayerOrigin playerOrigin;
+
+	private final ClientGameManagementOrigin gameManagementOrigin;
+
+	public GameCreatingController(ClientPlayerOrigin playerOrigin, ClientGameManagementOrigin gameManagementOrigin) {
+		this.playerOrigin = playerOrigin;
+		this.gameManagementOrigin = gameManagementOrigin;
+	}
 
 	@Override
 	public void init(Object data) {
@@ -88,7 +96,7 @@ public class GameCreatingController implements Controller<Object> {
 				.filter(s -> !s.isEmpty())
 				.collect(Collectors.toList());
 
-		PLAYER_SERVICE.getPlayersByNickname(playerNicknames).subscribe(players -> {
+		playerOrigin.getPlayersByNickname(playerNicknames).subscribe(players -> {
 			StringJoiner nonExistingNicknamesJoiner = new StringJoiner(",", "[", "]");
 			nonExistingNicknamesJoiner.setEmptyValue("");
 			for (int i = 0; i < playerNicknames.size(); i++) {
@@ -104,7 +112,7 @@ public class GameCreatingController implements Controller<Object> {
 				loading.set(false);
 			}
 			else {
-				GAME_SERVICE.create(new CreateGameCommand(new TimedGameSettingsDto(
+				gameManagementOrigin.create(new CreateGameCommand(new TimedGameSettingsDto(
 						new SimpleGameSettingsDto(gameNameInput.getText(), BoardType.STANDARD,
 								playersCountChoice.getValue()), turnDuration.get(), playerTurnTotalDurationSeconds),
 						new HashSet<>(players))).subscribe(response -> {

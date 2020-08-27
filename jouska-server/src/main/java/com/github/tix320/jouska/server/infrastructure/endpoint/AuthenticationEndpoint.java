@@ -25,9 +25,9 @@ public class AuthenticationEndpoint {
 
 	private final PlayerDao playerDao;
 
-	public AuthenticationEndpoint() {
-		this.playerDao = new PlayerDao();
-		this.playerService = new PlayerService();
+	public AuthenticationEndpoint(PlayerService playerService, PlayerDao playerDao) {
+		this.playerService = playerService;
+		this.playerDao = playerDao;
 	}
 
 	@Endpoint("login")

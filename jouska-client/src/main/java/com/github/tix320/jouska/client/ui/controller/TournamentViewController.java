@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import com.github.tix320.jouska.client.service.origin.ClientTournamentOrigin;
 import com.github.tix320.jouska.client.ui.tournament.GroupPane;
 import com.github.tix320.jouska.client.ui.tournament.PlayOffMember;
 import com.github.tix320.jouska.core.dto.PlayOffGameView;
@@ -24,8 +25,6 @@ import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 
-import static com.github.tix320.jouska.client.app.Services.TOURNAMENT_SERVICE;
-
 public class TournamentViewController implements Controller<TournamentStructure> {
 
 	private static final int SUPPORTED_PLAYERS_COUNT = 16;
@@ -39,12 +38,18 @@ public class TournamentViewController implements Controller<TournamentStructure>
 
 	private LoopThread stateUpdaterThread;
 
+	private final ClientTournamentOrigin tournamentOrigin;
+
+	public TournamentViewController(ClientTournamentOrigin tournamentOrigin) {
+		this.tournamentOrigin = tournamentOrigin;
+	}
+
 	@Override
 	public void init(TournamentStructure tournamentStructure) {
 		initView(tournamentStructure);
 
 		stateUpdaterThread = Threads.createLoopDaemonThread(() -> {
-			TOURNAMENT_SERVICE.getTournamentStructure(tournamentStructure.getId())
+			tournamentOrigin.getTournamentStructure(tournamentStructure.getId())
 					.subscribe(newStructure -> Platform.runLater(() -> {
 						groupsBox.getChildren().clear();
 						playOffPane.getChildren().clear();

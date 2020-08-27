@@ -8,6 +8,7 @@ import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
+import com.github.tix320.jouska.client.service.origin.ClientTournamentOrigin;
 import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentType;
 import com.github.tix320.jouska.client.ui.tournament.TournamentItem;
 import com.github.tix320.jouska.core.dto.TournamentView;
@@ -23,8 +24,6 @@ import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.layout.FlowPane;
 
-import static com.github.tix320.jouska.client.app.Services.TOURNAMENT_SERVICE;
-
 public class TournamentLobbyController implements Controller<Object> {
 
 	@FXML
@@ -33,7 +32,13 @@ public class TournamentLobbyController implements Controller<Object> {
 	@FXML
 	private Button createTournamentButton;
 
-	private MonoPublisher<None> destroyPublisher = Publisher.mono();
+	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
+
+	private final ClientTournamentOrigin tournamentOrigin;
+
+	public TournamentLobbyController(ClientTournamentOrigin tournamentOrigin) {
+		this.tournamentOrigin = tournamentOrigin;
+	}
 
 	@Override
 	public void init(Object data) {
@@ -50,7 +55,7 @@ public class TournamentLobbyController implements Controller<Object> {
 		if (role != RoleName.ADMIN) {
 			createTournamentButton.setVisible(false);
 		}
-		TOURNAMENT_SERVICE.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
+		tournamentOrigin.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
 			List<TournamentItem> tournamentItems = tournamentViews.stream()
 					.map(TournamentItem::new)
 					.collect(Collectors.toList());
@@ -71,13 +76,13 @@ public class TournamentLobbyController implements Controller<Object> {
 	private void joinTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
 		String tournamentId = tournamentView.getId();
-		TOURNAMENT_SERVICE.join(tournamentId).subscribe(System.out::println);
+		tournamentOrigin.join(tournamentId).subscribe(System.out::println);
 	}
 
 	private void viewTournament(TournamentItem tournamentItem) {
 		TournamentView tournamentView = tournamentItem.getTournamentView();
 		String tournamentId = tournamentView.getId();
-		TOURNAMENT_SERVICE.getTournamentStructure(tournamentId).subscribe(tournamentStructure -> {
+		tournamentOrigin.getTournamentStructure(tournamentId).subscribe(tournamentStructure -> {
 			if (tournamentStructure != null) {
 				EventDispatcher.fire(
 						new MenuContentChangeEvent(MenuContentType.TOURNAMENT_MANAGEMENT, tournamentStructure));
@@ -89,7 +94,7 @@ public class TournamentLobbyController implements Controller<Object> {
 	}
 
 	private void startTournament(TournamentItem tournamentItem) {
-		TOURNAMENT_SERVICE.startTournament(tournamentItem.getTournamentView().getId());
+		tournamentOrigin.startTournament(tournamentItem.getTournamentView().getId());
 	}
 
 

@@ -16,8 +16,8 @@ public class ServerPlayerEndpoint {
 
 	private final PlayerDao playerDao;
 
-	public ServerPlayerEndpoint() {
-		playerDao = new PlayerDao();
+	public ServerPlayerEndpoint(PlayerDao playerDao) {
+		this.playerDao = playerDao;
 	}
 
 	@Endpoint

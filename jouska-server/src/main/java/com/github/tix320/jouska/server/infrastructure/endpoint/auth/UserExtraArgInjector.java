@@ -7,18 +7,18 @@ import com.github.tix320.jouska.core.model.RoleName;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.sonder.api.common.communication.Headers;
-import com.github.tix320.sonder.api.common.rpc.extra.EndpointExtraArgExtractor;
+import com.github.tix320.sonder.api.common.rpc.extra.EndpointExtraArgInjector;
 import com.github.tix320.sonder.api.common.rpc.extra.ExtraParamDefinition;
 
 /**
  * @author Tigran Sargsyan on 23-Mar-20.
  */
-public class UserExtraArgExtractor implements EndpointExtraArgExtractor<CallerUser, Player> {
+public class UserExtraArgInjector implements EndpointExtraArgInjector<CallerUser, Player> {
 
 	private final PlayerService playerService;
 
-	public UserExtraArgExtractor() {
-		playerService = new PlayerService();
+	public UserExtraArgInjector(PlayerService playerService) {
+		this.playerService = playerService;
 	}
 
 	@Override
@@ -27,7 +27,7 @@ public class UserExtraArgExtractor implements EndpointExtraArgExtractor<CallerUs
 	}
 
 	@Override
-	public Player extract(CallerUser annotation, Headers headers, Method method) {
+	public Player extract(Method method, CallerUser annotation, Headers headers) {
 		long clientId = headers.getNonNullLong(Headers.SOURCE_ID);
 
 		String playerId = ClientPlayerMappingResolver.getPlayerIdByClientId(clientId)
