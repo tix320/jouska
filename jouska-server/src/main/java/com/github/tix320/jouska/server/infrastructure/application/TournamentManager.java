@@ -29,8 +29,12 @@ public class TournamentManager {
 
 	private final ServerTournamentOrigin tournamentOrigin;
 
-	public TournamentManager(ServerTournamentOrigin tournamentOrigin) {
+	private final ClientPlayerMappingResolver clientPlayerMappingResolver;
+
+	public TournamentManager(ServerTournamentOrigin tournamentOrigin,
+							 ClientPlayerMappingResolver clientPlayerMappingResolver) {
 		this.tournamentOrigin = tournamentOrigin;
+		this.clientPlayerMappingResolver = clientPlayerMappingResolver;
 	}
 
 	public Observable<Collection<DBTournament>> tournaments() {
@@ -58,7 +62,7 @@ public class TournamentManager {
 			canJoin = true;
 		}
 
-		Long creatorClientId = ClientPlayerMappingResolver.getClientIdByPlayer(creator.getId()).orElseThrow();
+		Long creatorClientId = clientPlayerMappingResolver.getClientIdByPlayer(creator.getId()).orElseThrow();
 
 		TournamentJoinRequest request = new TournamentJoinRequest(
 				new TournamentView(tournament.getId(), tournament.getSettings().getName(),

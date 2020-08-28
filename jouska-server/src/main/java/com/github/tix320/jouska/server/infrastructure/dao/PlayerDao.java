@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.core.dto.Credentials;
+import com.github.tix320.jouska.server.app.DatastoreHolder;
 import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 
@@ -15,6 +16,10 @@ import static java.util.stream.Collectors.toMap;
  * @author Tigran Sargsyan on 14-Apr-20.
  */
 public class PlayerDao extends BaseDao<PlayerEntity> {
+
+	public PlayerDao(DatastoreHolder datastoreHolder) {
+		super(datastoreHolder);
+	}
 
 	public Optional<PlayerEntity> findPlayerByCredentials(Credentials credentials) {
 		return find(Filter.and(Filter.equal("nickname", credentials.getNickname()),

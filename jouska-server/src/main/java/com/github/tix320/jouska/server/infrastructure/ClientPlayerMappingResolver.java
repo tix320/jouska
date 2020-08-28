@@ -14,30 +14,29 @@ import com.github.tix320.kiwi.api.util.collection.BiMap;
  */
 public final class ClientPlayerMappingResolver {
 
-	private final static BiMapProperty<Long, String> playerAndClientIds = Property.forBiMap(
-			new BiConcurrentHashMap<>());
+	private final BiMapProperty<Long, String> playerAndClientIds = Property.forBiMap(new BiConcurrentHashMap<>());
 
-	public static Optional<String> getPlayerIdByClientId(long clientId) {
+	public Optional<String> getPlayerIdByClientId(long clientId) {
 		return Optional.ofNullable(playerAndClientIds.straightView().get(clientId));
 	}
 
-	public static Optional<Long> getClientIdByPlayer(String playerId) {
+	public Optional<Long> getClientIdByPlayer(String playerId) {
 		return Optional.ofNullable(playerAndClientIds.inverseView().get(playerId));
 	}
 
-	public static void setMapping(long clientId, String playerId) {
+	public void setMapping(long clientId, String playerId) {
 		playerAndClientIds.put(clientId, playerId);
 	}
 
-	public static String removeByClientId(long clientId) {
+	public String removeByClientId(long clientId) {
 		return playerAndClientIds.straightRemove(clientId);
 	}
 
-	public static Long removeByPlayerId(String playerId) {
+	public Long removeByPlayerId(String playerId) {
 		return playerAndClientIds.inverseRemove(playerId);
 	}
 
-	public static Observable<Map<Long, String>> getConnectedPlayers() {
+	public Observable<Map<Long, String>> getConnectedPlayers() {
 		return playerAndClientIds.asObservable().map(BiMap::straightView);
 	}
 }

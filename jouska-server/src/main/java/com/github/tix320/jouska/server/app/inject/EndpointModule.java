@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.server.app.inject;
 
+import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.application.TournamentManager;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
@@ -46,7 +47,8 @@ public class EndpointModule {
 	}
 
 	@Singleton
-	public UserExtraArgInjector userExtraArgExtractor(PlayerService playerService) {
-		return new UserExtraArgInjector(playerService);
+	public UserExtraArgInjector userExtraArgExtractor(PlayerService playerService,
+													  ClientPlayerMappingResolver clientPlayerMappingResolver) {
+		return new UserExtraArgInjector(playerService, clientPlayerMappingResolver);
 	}
 }

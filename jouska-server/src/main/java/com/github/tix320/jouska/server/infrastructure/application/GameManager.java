@@ -31,9 +31,13 @@ public class GameManager {
 
 	private final GameDao gameDao;
 
-	public GameManager(ServerGameManagementOrigin serverGameManagementOrigin, GameDao gameDao) {
+	private final ClientPlayerMappingResolver clientPlayerMappingResolver;
+
+	public GameManager(ServerGameManagementOrigin serverGameManagementOrigin, GameDao gameDao,
+					   ClientPlayerMappingResolver clientPlayerMappingResolver) {
 		this.serverGameManagementOrigin = serverGameManagementOrigin;
 		this.gameDao = gameDao;
+		this.clientPlayerMappingResolver = clientPlayerMappingResolver;
 	}
 
 	public Observable<Collection<DBGame>> games(Player caller) {
@@ -188,7 +192,7 @@ public class GameManager {
 
 			List<Long> clientIds = new ArrayList<>();
 			for (GamePlayer player : gamePlayers) {
-				clientIds.add(ClientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
+				clientIds.add(clientPlayerMappingResolver.getClientIdByPlayer(player.getRealPlayer().getId())
 						.orElse(null)); // null indicates offline
 			}
 
@@ -201,7 +205,7 @@ public class GameManager {
 				}
 			}
 
-			Long callerClientId = ClientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
+			Long callerClientId = clientPlayerMappingResolver.getClientIdByPlayer(caller.getId()).orElse(null);
 
 			if (callerClientId == null) {
 				System.err.printf("Cannot start game %s(%s) and caller also %s(%s) become offline%n",

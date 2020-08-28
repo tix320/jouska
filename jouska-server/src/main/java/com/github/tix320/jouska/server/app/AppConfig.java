@@ -50,6 +50,7 @@ public class AppConfig {
 				.build();
 
 		PlayerService playerService = injector.inject(PlayerService.class);
+		ClientPlayerMappingResolver clientPlayerMappingResolver = injector.inject(ClientPlayerMappingResolver.class);
 
 		sonderServer = SonderServer.forAddress(new InetSocketAddress(port))
 				.registerProtocol(protocol)
@@ -62,7 +63,7 @@ public class AppConfig {
 
 		sonderServer.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
 			long clientId = event.getClientId();
-			String playerId = ClientPlayerMappingResolver.removeByClientId(clientId);
+			String playerId = clientPlayerMappingResolver.removeByClientId(clientId);
 			if (playerId != null) {
 				Player player = playerService.getPlayerById(playerId).orElseThrow();
 				EventDispatcher.fire(new PlayerDisconnectedEvent(player));

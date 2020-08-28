@@ -9,7 +9,6 @@ import com.github.tix320.jouska.core.dto.RegistrationAnswer;
 import com.github.tix320.jouska.core.dto.RegistrationCommand;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.RoleName;
-import com.github.tix320.jouska.server.app.DataSource;
 import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
@@ -53,7 +52,7 @@ public class AuthenticationEndpoint {
 
 		PlayerEntity playerEntity = new PlayerEntity(registrationCommand.getNickname(),
 				registrationCommand.getPassword(), RoleName.PLAYER);
-		DataSource.getInstance().save(playerEntity);
+		playerDao.save(playerEntity);
 		return RegistrationAnswer.SUCCESS;
 	}
 

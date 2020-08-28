@@ -24,9 +24,13 @@ public class PlayerService {
 
 	private final AuthenticationOrigin authenticationOrigin;
 
-	public PlayerService(PlayerDao playerDao, AuthenticationOrigin authenticationOrigin) {
+	private final ClientPlayerMappingResolver clientPlayerMappingResolver;
+
+	public PlayerService(PlayerDao playerDao, AuthenticationOrigin authenticationOrigin,
+						 ClientPlayerMappingResolver clientPlayerMappingResolver) {
 		this.playerDao = playerDao;
 		this.authenticationOrigin = authenticationOrigin;
+		this.clientPlayerMappingResolver = clientPlayerMappingResolver;
 	}
 
 	public LoginAnswer login(long clientId, Credentials credentials) {
@@ -37,13 +41,13 @@ public class PlayerService {
 
 		PlayerEntity playerEntity = playerByCredentials.get();
 
-		Optional<Long> clientIdByPlayer = ClientPlayerMappingResolver.getClientIdByPlayer(playerEntity.getId());
+		Optional<Long> clientIdByPlayer = clientPlayerMappingResolver.getClientIdByPlayer(playerEntity.getId());
 
 		if (clientIdByPlayer.isPresent()) {
 			return new LoginAnswer(LoginResult.ALREADY_LOGGED, convertEntityToModel(playerEntity));
 		}
 		else {
-			ClientPlayerMappingResolver.setMapping(clientId, playerEntity.getId());
+			clientPlayerMappingResolver.setMapping(clientId, playerEntity.getId());
 
 			Player player = convertEntityToModel(playerEntity);
 			EventDispatcher.fire(new PlayerLoginEvent(player));
@@ -61,13 +65,13 @@ public class PlayerService {
 
 		String playerId = playerEntity.getId();
 
-		Long existingClientId = ClientPlayerMappingResolver.removeByPlayerId(playerId);
+		Long existingClientId = clientPlayerMappingResolver.removeByPlayerId(playerId);
 		if (existingClientId != null) {
 			authenticationOrigin.logout(existingClientId);
 			EventDispatcher.fire(new PlayerLogoutEvent(convertEntityToModel(playerEntity)));
 		}
 
-		ClientPlayerMappingResolver.setMapping(clientId, playerId);
+		clientPlayerMappingResolver.setMapping(clientId, playerId);
 		Player player = convertEntityToModel(playerEntity);
 		EventDispatcher.fire(new PlayerLoginEvent(player));
 		return new LoginAnswer(LoginResult.SUCCESS, player);
@@ -75,7 +79,7 @@ public class PlayerService {
 
 
 	public void logout(long clientId) {
-		String playerId = ClientPlayerMappingResolver.removeByClientId(clientId);
+		String playerId = clientPlayerMappingResolver.removeByClientId(clientId);
 		if (playerId == null) {
 			throw new NotAuthenticatedException(String.format("Client `%s` not authenticated yet", clientId));
 		}
@@ -84,7 +88,7 @@ public class PlayerService {
 	}
 
 	public Observable<Set<Player>> getConnectedPlayers() {
-		return ClientPlayerMappingResolver.getConnectedPlayers()
+		return clientPlayerMappingResolver.getConnectedPlayers()
 				.map(data -> data.values()
 						.stream()
 						.map(this::getPlayerById)

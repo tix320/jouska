@@ -10,12 +10,15 @@ import dev.morphia.Morphia;
 import dev.morphia.mapping.Mapper;
 import dev.morphia.mapping.MapperOptions;
 
-public class DataSource {
+public class DatastoreHolder {
 
-	private static final Datastore INSTANCE = createDatasource();
+	private final Datastore datastore;
 
-	public static Datastore getInstance() {
-		return INSTANCE;
+	public DatastoreHolder() {
+		datastore = createDatasource();
+	}
+	public Datastore getInstance() {
+		return datastore;
 	}
 
 	private static Datastore createDatasource() {

@@ -5,7 +5,7 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 
-import com.github.tix320.jouska.server.app.DataSource;
+import com.github.tix320.jouska.server.app.DatastoreHolder;
 import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.Identifiable;
 import dev.morphia.Datastore;
@@ -18,14 +18,20 @@ import org.bson.types.ObjectId;
  */
 public abstract class BaseDao<T extends Identifiable> {
 
+	private final DatastoreHolder datastoreHolder;
+
+	protected BaseDao(DatastoreHolder datastoreHolder) {
+		this.datastoreHolder = datastoreHolder;
+	}
+
 	public final Optional<T> findById(String id) {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 		query.field("_id").equal(new ObjectId(id));
 		return Optional.ofNullable(query.first());
 	}
 
 	public final Optional<T> findById(String id, List<String> fieldsToFetch) {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 
 		if (fieldsToFetch.isEmpty()) {
 			query.project("_id", true);
@@ -42,13 +48,13 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final List<T> findAll() {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 
 		return query.find().toList();
 	}
 
 	public final List<T> findAll(List<String> fieldsToFetch) {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 
 		if (fieldsToFetch.isEmpty()) {
 			query.project("_id", true);
@@ -63,7 +69,7 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final List<T> findAll(Filter filter) {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 
 		filter.applyTo(query);
 
@@ -71,7 +77,7 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final List<T> findAll(List<String> fieldsToFetch, Filter filter) {
-		Query<T> query = DataSource.getInstance().find(getEntityClass());
+		Query<T> query = datastoreHolder.getInstance().find(getEntityClass());
 
 		if (fieldsToFetch.isEmpty()) {
 			query.project("_id", true);
@@ -99,17 +105,17 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final String save(T entity) {
-		DataSource.getInstance().save(entity);
+		datastoreHolder.getInstance().save(entity);
 		return entity.getId();
 	}
 
 	public final void update(T entity) {
-		Datastore instance = DataSource.getInstance();
+		Datastore instance = datastoreHolder.getInstance();
 		instance.save(entity);
 	}
 
 	public final void update(T entity, Map<String, Function<T, ?>> fieldsToUpdate) {
-		Datastore instance = DataSource.getInstance();
+		Datastore instance = datastoreHolder.getInstance();
 
 		Query<T> findQuery = instance.createQuery(getEntityClass()).field("_id").equal(new ObjectId(entity.getId()));
 		UpdateOperations<T> updateOperations = instance.createUpdateOperations(getEntityClass());
@@ -121,7 +127,7 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final void deleteById(String id) {
-		Datastore instance = DataSource.getInstance();
+		Datastore instance = datastoreHolder.getInstance();
 
 		instance.delete(instance.createQuery(getEntityClass()).field("_id").equal(new ObjectId(id)));
 	}

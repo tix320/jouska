@@ -17,8 +17,11 @@ public class UserExtraArgInjector implements EndpointExtraArgInjector<CallerUser
 
 	private final PlayerService playerService;
 
-	public UserExtraArgInjector(PlayerService playerService) {
+	private final ClientPlayerMappingResolver clientPlayerMappingResolver;
+
+	public UserExtraArgInjector(PlayerService playerService, ClientPlayerMappingResolver clientPlayerMappingResolver) {
 		this.playerService = playerService;
+		this.clientPlayerMappingResolver = clientPlayerMappingResolver;
 	}
 
 	@Override
@@ -30,7 +33,7 @@ public class UserExtraArgInjector implements EndpointExtraArgInjector<CallerUser
 	public Player extract(Method method, CallerUser annotation, Headers headers) {
 		long clientId = headers.getNonNullLong(Headers.SOURCE_ID);
 
-		String playerId = ClientPlayerMappingResolver.getPlayerIdByClientId(clientId)
+		String playerId = clientPlayerMappingResolver.getPlayerIdByClientId(clientId)
 				.orElseThrow(() -> new NotAuthenticatedException(
 						String.format("Client with id %s not authenticated for method call %s", clientId, method)));
 
