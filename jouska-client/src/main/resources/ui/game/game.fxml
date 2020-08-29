@@ -9,7 +9,7 @@
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
 <?import javafx.scene.text.*?>
-<AnchorPane fx:id="mainPane" minHeight="900.0" minWidth="1300.0" stylesheets="@game.css"
+<AnchorPane fx:id="mainPane" prefHeight="900.0" prefWidth="1300.0" stylesheets="@game.css"
 			xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
 			fx:controller="com.github.tix320.jouska.client.ui.controller.GameController">
 	<children>

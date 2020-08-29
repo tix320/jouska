@@ -14,7 +14,7 @@ public class PlayOffEntity {
 
 	private RestorablePlayOffSettings settings;
 
-	@Reference(lazy = true)
+	@Reference
 	private List<PlayerEntity> players;
 
 	private List<List<PlayOffGameEntity>> tours;

@@ -22,6 +22,10 @@ public class ServerPlayerEndpoint {
 
 	@Endpoint
 	public List<Player> getPlayersByNickname(List<String> nicknames) {
+		if (nicknames.isEmpty()) {
+			return List.of();
+		}
+
 		return playerDao.findPlayersByNickname(nicknames)
 				.stream()
 				.map(PlayerService::convertEntityToModel)

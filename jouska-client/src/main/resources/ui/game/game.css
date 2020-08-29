@@ -1,6 +1,7 @@
-.root {
+#mainPane {
+    /*TODO esi achqis mi ban anuma*/
+    -fx-background-image:url('../../Images/game-background.png');
     -fx-font-family: "Comic Sans MS";
-    -fx-background-color: #faf7f4;
 }
 
 .separator {

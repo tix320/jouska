@@ -3,15 +3,17 @@
 }
 
 #menu {
-    -fx-background-color: radial-gradient(radius 180%, #1e323a, #363841);
+    -fx-background-image: url('../../images/menu-background.jpg');
 }
 
 .game-menu-item {
-    -fx-border-color: transparent;
     -fx-background-color: transparent;
     -fx-font-size: 1.5em; /* 12 */
     -fx-text-fill: #e3faff;
+    -fx-border-radius: 7px;
     -fx-background-radius: 7px;
+    -fx-border-width: 2px;
+    -fx-border-color: #7aa456;
 }
 
 .game-menu-item:hover {

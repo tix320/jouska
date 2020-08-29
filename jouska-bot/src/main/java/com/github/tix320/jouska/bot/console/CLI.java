@@ -91,7 +91,7 @@ public class CLI {
 	}
 
 	private static ParsedCommand parseCommand(String command) {
-		String[] parts = command.split(" ");
+		String[] parts = command.strip().split(" ");
 		if (parts.length == 0) {
 			throw new CommandParseException("Empty command");
 		}

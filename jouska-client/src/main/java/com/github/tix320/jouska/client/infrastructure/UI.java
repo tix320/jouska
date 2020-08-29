@@ -20,10 +20,12 @@ import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
+import javafx.geometry.Rectangle2D;
 import javafx.scene.ImageCursor;
 import javafx.scene.Parent;
 import javafx.scene.Scene;
 import javafx.scene.image.Image;
+import javafx.stage.Screen;
 import javafx.stage.Stage;
 
 public final class UI {
@@ -37,6 +39,7 @@ public final class UI {
 			UI.stage = stage;
 			stage.getIcons().add(new Image(UI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.VERSION);
+			normalize();
 		}
 		else {
 			throw new IllegalStateException("Application already initialized");
@@ -67,7 +70,6 @@ public final class UI {
 			normalize();
 			stage.centerOnScreen();
 			switchCompletePublisher.publish(None.SELF);
-
 		});
 
 		return switchCompletePublisher.asObservable().toMono();
@@ -75,8 +77,19 @@ public final class UI {
 
 	public static void normalize() {
 		stage.sizeToScene();
-		stage.setMinWidth(stage.getWidth());
-		stage.setMinHeight(stage.getHeight());
+
+		double stageWidth = stage.getWidth();
+		double stageHeight = stage.getHeight();
+
+		Rectangle2D screenBounds = Screen.getPrimary().getBounds();
+		double screenWidth = screenBounds.getWidth();
+		double screenHeight = screenBounds.getHeight();
+
+		// keep 70% of screen, when larger
+		stage.setWidth(Math.min(stageWidth, screenWidth * 0.7));
+		stage.setHeight(Math.min(stageHeight, screenHeight * 0.7));
+
+		stage.centerOnScreen();
 	}
 
 	public static Component loadComponent(ComponentType componentType, Object data) {

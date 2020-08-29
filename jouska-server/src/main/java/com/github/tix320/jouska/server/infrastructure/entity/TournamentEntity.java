@@ -28,7 +28,7 @@ public class TournamentEntity implements Identifiable {
 
 	private RestorableTournamentSettings settings;
 
-	@Reference(lazy = true)
+	@Reference
 	private Set<PlayerEntity> players;
 
 	private List<GroupEntity> groups;

@@ -18,7 +18,7 @@ public class GroupEntity {
 	@Reference
 	private Set<PlayerEntity> players;
 
-	@Reference(lazy = true)
+	@Reference
 	private List<GameEntity> games;
 
 	private GroupEntity() {
