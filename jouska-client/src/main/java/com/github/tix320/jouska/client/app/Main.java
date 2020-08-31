@@ -11,6 +11,9 @@ import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
+import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.sonder.api.client.event.ConnectionClosedEvent;
+import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -39,7 +42,7 @@ public class Main extends Application {
 			Platform.runLater(stage::show);
 
 			try {
-				AppConfig.connect();
+				AppConfig.connectToServer();
 				ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(ApplicationUpdateOrigin.class);
 				applicationUpdateOrigin.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
 					if (!lastVersion.equals("")) { // update
@@ -49,6 +52,31 @@ public class Main extends Application {
 						authenticate();
 					}
 				});
+
+
+				AppConfig.sonderClient.onEvent(ConnectionEstablishedEvent.class)
+						.subscribe(connectionEstablishedEvent -> {
+							System.out.println("Connected");
+
+							AppConfig.sonderClient.onEvent(ConnectionClosedEvent.class)
+									.toMono()
+									.subscribe(connectionClosedEvent -> {
+										System.out.println("Disconnected");
+										Threads.createLoopDaemonThread(() -> {
+											Thread.sleep(5000);
+											System.out.println("trying to reconnect");
+											try {
+												AppConfig.connectToServer();
+												authenticate();
+												throw new InterruptedException();
+											}
+											catch (IOException e) {
+												e.printStackTrace();
+											}
+										}).start();
+									});
+						});
+
 			}
 			catch (Exception e) {
 				e.printStackTrace();

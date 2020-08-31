@@ -16,7 +16,7 @@ import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 import com.github.tix320.sonder.api.common.rpc.RPCProtocolBuilder;
 
 public class AppConfig {
-	private static SonderClient sonderClient;
+	public static SonderClient sonderClient;
 
 	public static Injector INJECTOR;
 
@@ -49,17 +49,12 @@ public class AppConfig {
 		INJECTOR = injector;
 	}
 
-	public static synchronized void connect() {
+	public static synchronized void connectToServer() throws IOException {
 		if (sonderClient == null) {
 			throw new IllegalStateException();
 		}
 
-		try {
-			sonderClient.connect();
-		}
-		catch (IOException e) {
-			throw new RuntimeException("Cannot connect to server", e);
-		}
+		sonderClient.connect();
 	}
 
 	public static synchronized void stop() throws IOException {
