@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.core.model;
 
-public enum RoleName implements Comparable<RoleName> {
+public enum Role implements Comparable<Role> {
 	PLAYER,
 	ADMIN
 }

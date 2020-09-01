@@ -12,7 +12,7 @@ import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.ravel.api.module.UseModules;
 import com.github.tix320.ravel.api.scope.Singleton;
 
-@UseModules(classes = {ServiceModule.class, DaoModule.class}, names = "origins")
+@UseModules(classes = {ServiceModule.class, DaoModule.class}, dynamic = "origins")
 public class EndpointModule {
 
 	@Singleton

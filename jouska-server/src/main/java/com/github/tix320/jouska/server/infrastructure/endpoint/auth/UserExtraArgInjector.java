@@ -3,7 +3,7 @@ package com.github.tix320.jouska.server.infrastructure.endpoint.auth;
 import java.lang.reflect.Method;
 
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.RoleName;
+import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.sonder.api.common.communication.Headers;
@@ -39,21 +39,19 @@ public class UserExtraArgInjector implements EndpointExtraArgInjector<CallerUser
 
 		Player player = playerService.getPlayerById(playerId).orElseThrow();
 
-		Role role = method.getAnnotation(Role.class);
+		Role role = annotation.role();
 
-		if (role != null) {
-			checkAuthorization(player, role, method);
-		}
+		checkAuthorization(player, role, method);
 
 		return player;
 	}
 
 	private void checkAuthorization(Player player, Role role, Method method) {
 		String playerId = player.getId();
-		RoleName roleName = player.getRole();
-		if (roleName.compareTo(role.value()) < 0) {
+		Role playerRole = player.getRole();
+		if (playerRole.compareTo(role) < 0) {
 			throw new UnauthorizedException(
-					String.format("Player `%s` with role `%s` does not have access to method %s", playerId, roleName,
+					String.format("Player `%s` with role `%s` does not have access to method %s", playerId, playerRole,
 							method));
 		}
 	}

@@ -13,7 +13,7 @@ import com.github.tix320.jouska.client.ui.controller.MenuController.MenuContentT
 import com.github.tix320.jouska.client.ui.tournament.TournamentItem;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.jouska.core.model.RoleName;
+import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
 import com.github.tix320.kiwi.api.util.None;
@@ -51,8 +51,8 @@ public class TournamentLobbyController implements Controller<Object> {
 	}
 
 	private void subscribeToTournaments() {
-		RoleName role = CurrentUserContext.getPlayer().getRole();
-		if (role != RoleName.ADMIN) {
+		Role role = CurrentUserContext.getPlayer().getRole();
+		if (role != Role.ADMIN) {
 			createTournamentButton.setVisible(false);
 		}
 		tournamentOrigin.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {

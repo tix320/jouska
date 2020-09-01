@@ -10,10 +10,9 @@ import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.core.infrastructure.OS;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.RoleName;
+import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.app.Configuration;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
-import com.github.tix320.jouska.server.infrastructure.endpoint.auth.Role;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.sonder.api.common.communication.*;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
@@ -33,7 +32,6 @@ public class ApplicationUpdateEndpoint {
 	@Endpoint
 	public String checkUpdate(String version, OS os) {
 		String applicationVersion = Configuration.getApplicationVersion();
-		Path clientAppPath = Configuration.getClientAppPath();
 
 		if (version.equals(applicationVersion)) {
 			return "";
@@ -73,22 +71,19 @@ public class ApplicationUpdateEndpoint {
 	}
 
 	@Endpoint
-	@Role(RoleName.ADMIN)
-	public void uploadWindowsClient(Transfer transfer, @CallerUser Player player) {
+	public void uploadWindowsClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
 		Path clientAppPath = Configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + WINDOWS_CLIENT_FILE_NAME);
 	}
 
 	@Endpoint
-	@Role(RoleName.ADMIN)
-	public void uploadLinuxClient(Transfer transfer, @CallerUser Player player) {
+	public void uploadLinuxClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
 		Path clientAppPath = Configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + LINUX_CLIENT_FILE_NAME);
 	}
 
 	@Endpoint
-	@Role(RoleName.ADMIN)
-	public void uploadMacClient(Transfer transfer, @CallerUser Player player) {
+	public void uploadMacClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
 		Path clientAppPath = Configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + MAC_CLIENT_FILE_NAME);
 	}

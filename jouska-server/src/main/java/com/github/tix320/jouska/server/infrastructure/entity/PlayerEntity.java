@@ -2,7 +2,7 @@ package com.github.tix320.jouska.server.infrastructure.entity;
 
 import java.util.Objects;
 
-import com.github.tix320.jouska.core.model.RoleName;
+import com.github.tix320.jouska.core.model.Role;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import org.bson.types.ObjectId;
@@ -17,7 +17,7 @@ public class PlayerEntity implements Identifiable {
 
 	private String password;
 
-	private RoleName role;
+	private Role role;
 
 	public PlayerEntity() {
 	}
@@ -26,7 +26,7 @@ public class PlayerEntity implements Identifiable {
 		this.id = new ObjectId(id);
 	}
 
-	public PlayerEntity(String nickname, String password, RoleName role) {
+	public PlayerEntity(String nickname, String password, Role role) {
 		this.nickname = nickname;
 		this.password = password;
 		this.role = role;
@@ -44,7 +44,7 @@ public class PlayerEntity implements Identifiable {
 		return password;
 	}
 
-	public RoleName getRole() {
+	public Role getRole() {
 		return role;
 	}
 

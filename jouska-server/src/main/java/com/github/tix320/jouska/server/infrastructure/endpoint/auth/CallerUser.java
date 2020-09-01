@@ -5,6 +5,7 @@ import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
+import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.sonder.api.common.rpc.extra.ExtraParamQualifier;
 
 /**
@@ -13,4 +14,7 @@ import com.github.tix320.sonder.api.common.rpc.extra.ExtraParamQualifier;
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.PARAMETER)
 @ExtraParamQualifier
-public @interface CallerUser {}
+public @interface CallerUser {
+
+	Role role() default Role.PLAYER;
+}

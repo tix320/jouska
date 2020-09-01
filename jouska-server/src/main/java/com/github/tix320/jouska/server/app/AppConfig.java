@@ -62,7 +62,7 @@ public class AppConfig {
 				.build();
 
 		sonderServer.onEvent(NewClientConnectionEvent.class).subscribe(newClientConnectionEvent -> {
-			// System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
+			System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
 		});
 
 		sonderServer.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
@@ -75,13 +75,14 @@ public class AppConfig {
 		});
 
 		INJECTOR = injector;
+	}
 
-		try {
-			sonderServer.start();
+	public static synchronized void start() throws IOException {
+		if (sonderServer == null) {
+			throw new IllegalStateException();
 		}
-		catch (IOException e) {
-			throw new RuntimeException("Cannot start server", e);
-		}
+
+		sonderServer.start();
 	}
 
 	public static synchronized void stop() throws IOException {

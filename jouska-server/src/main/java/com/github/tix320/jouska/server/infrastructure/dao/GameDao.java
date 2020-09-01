@@ -4,7 +4,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.github.tix320.jouska.server.app.DatastoreHolder;
+import com.github.tix320.jouska.server.app.DatastoreProvider;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 
 import static java.util.stream.Collectors.toMap;
@@ -18,8 +18,8 @@ public class GameDao extends BaseDao<GameEntity> {
 			GameEntity::getCreator, "settings", GameEntity::getSettings, "state", GameEntity::getState, "players",
 			GameEntity::getPlayers, "changes", GameEntity::getChanges, "statistics", GameEntity::getStatistics);
 
-	public GameDao(DatastoreHolder datastoreHolder) {
-		super(datastoreHolder);
+	public GameDao(DatastoreProvider datastoreProvider) {
+		super(datastoreProvider);
 	}
 
 	public void update(GameEntity gameEntity, List<String> fieldsToUpdate) {

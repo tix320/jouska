@@ -10,11 +10,11 @@ import dev.morphia.Morphia;
 import dev.morphia.mapping.Mapper;
 import dev.morphia.mapping.MapperOptions;
 
-public class DatastoreHolder {
+public class DatastoreProvider {
 
 	private final Datastore datastore;
 
-	public DatastoreHolder() {
+	public DatastoreProvider() {
 		datastore = createDatasource();
 	}
 	public Datastore getInstance() {

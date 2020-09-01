@@ -13,10 +13,9 @@ import com.github.tix320.jouska.core.dto.TournamentStructure.GroupPlayerView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.GroupView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.PlayOffView;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.jouska.core.model.RoleName;
+import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.infrastructure.application.TournamentManager;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
-import com.github.tix320.jouska.server.infrastructure.endpoint.auth.Role;
 import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
@@ -81,7 +80,6 @@ public class ServerTournamentEndpoint {
 	}
 
 	@Endpoint("create")
-	@Role(RoleName.ADMIN)
 	public String create(CreateTournamentCommand createTournamentCommand, @CallerUser Player player) {
 		return tournamentManager.createTournament(createTournamentCommand.getTournamentSettings().toModel(), player);
 	}
@@ -93,8 +91,7 @@ public class ServerTournamentEndpoint {
 	}
 
 	@Endpoint
-	@Role(RoleName.ADMIN)
-	public void startTournament(String tournamentId, @CallerUser Player player) {
+	public void startTournament(String tournamentId, @CallerUser(role = Role.ADMIN) Player player) {
 		Objects.requireNonNull(tournamentId, "Tournament id not specified");
 		tournamentManager.startTournament(tournamentId);
 	}

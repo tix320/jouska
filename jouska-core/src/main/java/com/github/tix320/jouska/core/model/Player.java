@@ -10,13 +10,13 @@ public final class Player {
 
 	private final String nickname;
 
-	private final RoleName role;
+	private final Role role;
 
 	private Player() {
 		this(null, null, null);
 	}
 
-	public Player(String id, String nickname, RoleName role) {
+	public Player(String id, String nickname, Role role) {
 		this.id = id;
 		this.nickname = nickname;
 		this.role = role;
@@ -30,13 +30,13 @@ public final class Player {
 		return nickname;
 	}
 
-	public RoleName getRole() {
+	public Role getRole() {
 		return role;
 	}
 
 	@JsonIgnore
 	public boolean isAdmin() {
-		return role == RoleName.ADMIN;
+		return role == Role.ADMIN;
 	}
 
 	@Override
