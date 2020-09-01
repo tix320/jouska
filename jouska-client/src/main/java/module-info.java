@@ -6,6 +6,6 @@ open module jouska.client {
 
 	requires jouska.core;
 
-	requires sonder;
+	requires com.github.tix.sonder;
 	requires com.github.tix.ravel;
 }

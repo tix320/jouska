@@ -1,5 +1,4 @@
 open module jouska.bot {
-	requires sonder;
 	requires jouska.core;
-	requires kiwi;
+	requires com.github.tix.sonder;
 }
