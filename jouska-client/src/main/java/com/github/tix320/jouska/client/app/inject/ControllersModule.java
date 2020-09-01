@@ -2,8 +2,8 @@ package com.github.tix320.jouska.client.app.inject;
 
 import com.github.tix320.jouska.client.service.origin.*;
 import com.github.tix320.jouska.client.ui.controller.*;
-import com.github.tix320.ravel.api.Prototype;
-import com.github.tix320.ravel.api.UseModules;
+import com.github.tix320.ravel.api.module.UseModules;
+import com.github.tix320.ravel.api.scope.Prototype;
 
 /**
  * @author Tigran Sargsyan on 27-Aug-20

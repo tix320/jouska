@@ -3,7 +3,7 @@ package com.github.tix320.jouska.client.app.inject;
 import com.github.tix320.jouska.client.service.endpoint.AuthenticationEndpoint;
 import com.github.tix320.jouska.client.service.endpoint.ClientGameEndpoint;
 import com.github.tix320.jouska.client.service.endpoint.ClientTournamentEndpoint;
-import com.github.tix320.ravel.api.Singleton;
+import com.github.tix320.ravel.api.scope.Singleton;
 
 public class EndpointModule {
 

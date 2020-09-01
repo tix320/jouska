@@ -9,8 +9,8 @@ import com.github.tix320.jouska.server.infrastructure.dao.TournamentDao;
 import com.github.tix320.jouska.server.infrastructure.endpoint.*;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.UserExtraArgInjector;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
-import com.github.tix320.ravel.api.Singleton;
-import com.github.tix320.ravel.api.UseModules;
+import com.github.tix320.ravel.api.module.UseModules;
+import com.github.tix320.ravel.api.scope.Singleton;
 
 @UseModules(classes = {ServiceModule.class, DaoModule.class}, names = "origins")
 public class EndpointModule {

@@ -4,7 +4,7 @@ import com.github.tix320.jouska.server.app.DatastoreHolder;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
 import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.dao.TournamentDao;
-import com.github.tix320.ravel.api.Singleton;
+import com.github.tix320.ravel.api.scope.Singleton;
 
 public class DaoModule {
 

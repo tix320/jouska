@@ -9,8 +9,8 @@ import com.github.tix320.jouska.server.infrastructure.origin.AuthenticationOrigi
 import com.github.tix320.jouska.server.infrastructure.origin.ServerGameManagementOrigin;
 import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOrigin;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
-import com.github.tix320.ravel.api.Singleton;
-import com.github.tix320.ravel.api.UseModules;
+import com.github.tix320.ravel.api.module.UseModules;
+import com.github.tix320.ravel.api.scope.Singleton;
 
 @UseModules(classes = DaoModule.class)
 public class ServiceModule {

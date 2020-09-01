@@ -10,7 +10,11 @@ import java.util.Map.Entry;
 
 import com.github.tix320.jouska.client.app.inject.ControllersModule;
 import com.github.tix320.jouska.client.app.inject.EndpointModule;
-import com.github.tix320.ravel.api.*;
+import com.github.tix320.ravel.api.Injector;
+import com.github.tix320.ravel.api.bean.BeanDefinition;
+import com.github.tix320.ravel.api.bean.BeanKey;
+import com.github.tix320.ravel.api.module.DynamicModuleDefinition;
+import com.github.tix320.ravel.api.scope.Scope;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 import com.github.tix320.sonder.api.common.rpc.RPCProtocolBuilder;
