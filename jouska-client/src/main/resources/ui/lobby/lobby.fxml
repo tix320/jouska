@@ -25,7 +25,7 @@
 						<RowConstraints minHeight="10.0" prefHeight="30.0" vgrow="SOMETIMES" />
 					</rowConstraints>
 					<children>
-						<ScrollPane id="players-scroll-pane" fitToHeight="true" fitToWidth="true" focusTraversable="false" hbarPolicy="NEVER" pannable="true" prefWidth="200.0" GridPane.columnIndex="1">
+						<ScrollPane id="players-scroll-pane" fitToHeight="true" fitToWidth="true" hbarPolicy="NEVER" pannable="true" prefWidth="200.0" GridPane.columnIndex="1">
 							<content>
 
             								<VBox id="connected-players-pane" fx:id="connectedPlayersPane" alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity">

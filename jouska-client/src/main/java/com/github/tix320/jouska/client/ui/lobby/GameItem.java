@@ -49,7 +49,6 @@ public class GameItem extends AnchorPane {
 	@FXML
 	private Button startButton;
 
-
 	private final GameView gameView;
 
 	public GameItem(GameView gameView) {

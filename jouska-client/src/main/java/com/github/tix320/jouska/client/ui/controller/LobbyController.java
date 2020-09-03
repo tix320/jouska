@@ -201,13 +201,13 @@ public class LobbyController implements Controller<Object> {
 	}
 
 	private void subscribeToTournamentList() {
-		tournamentOrigin.getTournaments().takeUntil(destroyPublisher.asObservable()).subscribe(tournamentViews -> {
-			Platform.runLater(() -> {
-				ObservableList<TournamentView> items = FXCollections.observableArrayList(tournamentViews);
-				items.add(ALL);
-				tournamentFilter.setItems(items);
-			});
-		});
+		tournamentOrigin.getTournaments()
+				.takeUntil(destroyPublisher.asObservable())
+				.subscribe(tournamentViews -> Platform.runLater(() -> {
+					ObservableList<TournamentView> items = FXCollections.observableArrayList(tournamentViews);
+					items.add(ALL);
+					tournamentFilter.setItems(items);
+				}));
 	}
 
 	private void subscribeToConnectedPlayersList() {

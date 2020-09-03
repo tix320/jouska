@@ -55,8 +55,8 @@ public class ClassicTournamentSettingsDto {
 
 	public ClassicTournamentSettings toModel() {
 		return new ClassicTournamentSettings(name, maxPlayersCount,
-				new ClassicGroupSettings((RestorableGameSettings) groupGameSettings.toModel()),
-				new ClassicPlayOffSettings((RestorableGameSettings) playOffGameSettings.toModel()));
+				new ClassicGroupSettings(groupGameSettings.toModel()),
+				new ClassicPlayOffSettings(playOffGameSettings.toModel()));
 	}
 
 	public static ClassicTournamentSettingsDto fromModel(ClassicTournamentSettings tournamentSettings) {

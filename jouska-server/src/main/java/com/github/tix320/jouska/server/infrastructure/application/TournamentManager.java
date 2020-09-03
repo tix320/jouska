@@ -119,9 +119,9 @@ public class TournamentManager {
 
 		tournament.start();
 
-		changesPublisher.publish(None.SELF);
-
 		tournament.completed().subscribe(TournamentManager::onTournamentComplete);
+
+		changesPublisher.publish(None.SELF);
 	}
 
 	private static void onTournamentComplete(DBTournament tournament) {

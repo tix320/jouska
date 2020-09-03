@@ -63,6 +63,15 @@ public final class DBTournamentSettings implements TournamentSettings {
 		return wrappedTournamentSettings;
 	}
 
+	public static DBTournamentSettings wrap(RestorableTournamentSettings settings, Player creator) {
+		return new DBTournamentSettings(creator, settings.changeGroupSettings(settings.getGroupSettings()
+				.changeBaseGameSettings(new DBGameSettings(creator, Collections.emptySet(),
+						(RestorableGameSettings) settings.getGroupSettings().getBaseGameSettings())))
+				.changePlayOffSettings(settings.getPlayOffSettings()
+						.changeBaseGameSettings(new DBGameSettings(creator, Collections.emptySet(),
+								(RestorableGameSettings) settings.getPlayOffSettings().getBaseGameSettings()))));
+	}
+
 	public RestorableTournamentSettings extractPureSettings() {
 		RestorableGroupSettings groupSettings = wrappedTournamentSettings.getGroupSettings();
 		RestorablePlayOffSettings playOffSettings = wrappedTournamentSettings.getPlayOffSettings();
@@ -73,16 +82,7 @@ public final class DBTournamentSettings implements TournamentSettings {
 		return wrappedTournamentSettings.changeGroupSettings(groupSettings).changePlayOffSettings(playOffSettings);
 	}
 
-	public static DBTournamentSettings wrap(RestorableTournamentSettings settings, Player creator) {
-		return new DBTournamentSettings(creator, settings.changeGroupSettings(settings.getGroupSettings()
-				.changeBaseGameSettings(new DBGameSettings(creator, Collections.emptySet(),
-						(RestorableGameSettings) settings.getGroupSettings().getBaseGameSettings())))
-				.changePlayOffSettings(settings.getPlayOffSettings()
-						.changeBaseGameSettings(new DBGameSettings(creator, Collections.emptySet(),
-								(RestorableGameSettings) settings.getPlayOffSettings().getBaseGameSettings()))));
-	}
-
-	public static RestorableGroupSettings extractPureSettings(GroupSettings groupSettings) {
+	private static RestorableGroupSettings extractPureSettings(GroupSettings groupSettings) {
 		GameSettings baseGameSettings = groupSettings.getBaseGameSettings();
 		if (baseGameSettings instanceof DBGameSettings) {
 			DBGameSettings dbGameSettings = (DBGameSettings) baseGameSettings;
@@ -94,7 +94,7 @@ public final class DBTournamentSettings implements TournamentSettings {
 		}
 	}
 
-	public static RestorablePlayOffSettings extractPureSettings(PlayOffSettings playOffSettings) {
+	private static RestorablePlayOffSettings extractPureSettings(PlayOffSettings playOffSettings) {
 		GameSettings baseGameSettings = playOffSettings.getBaseGameSettings();
 		if (baseGameSettings instanceof DBGameSettings) {
 			DBGameSettings dbGameSettings = (DBGameSettings) baseGameSettings;

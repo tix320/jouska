@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.core.dto;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonSubTypes;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.github.tix320.jouska.core.application.game.BoardType;

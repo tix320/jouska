@@ -1,6 +1,5 @@
 package com.github.tix320.jouska.client.infrastructure.notifcation;
 
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
 import com.github.tix320.jouska.core.event.Event;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;

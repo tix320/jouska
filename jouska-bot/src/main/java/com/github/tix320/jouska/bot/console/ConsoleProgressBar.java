@@ -30,6 +30,6 @@ public final class ConsoleProgressBar {
 		System.out.print(ICON);
 		System.out.print(loadingSpace);
 		System.out.print(ICON);
-		System.out.print(String.format(" %d%% Completed", loadedPartInPercent));
+		System.out.printf(" %d%% Completed", loadedPartInPercent);
 	}
 }

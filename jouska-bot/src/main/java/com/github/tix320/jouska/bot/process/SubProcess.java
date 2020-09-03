@@ -3,6 +3,8 @@ package com.github.tix320.jouska.bot.process;
 import java.io.*;
 import java.nio.channels.ClosedChannelException;
 
+import com.github.tix320.kiwi.api.util.Threads;
+
 /**
  * @author Tigran Sargsyan on 02-Apr-20.
  */
@@ -20,21 +22,19 @@ public final class SubProcess {
 			String messagePrefix = "Process " + process.pid() + ": ";
 			System.out.println(messagePrefix + "Started");
 			process.onExit().thenRunAsync(() -> System.out.println(messagePrefix + "End"));
-			new Thread(() -> {
+			Threads.createLoopDaemonThread(() -> {
 				BufferedReader errorStream = new BufferedReader(new InputStreamReader(process.getErrorStream()));
 				try {
-					String line;
-					while (true) {
-						if ((line = errorStream.readLine()) != null) {
-							System.err.println(messagePrefix + line);
-						}
-						break;
+					String line = errorStream.readLine();
+					if (line == null) {
+						throw new InterruptedException();
 					}
+					System.err.println(messagePrefix + line);
 				}
 				catch (IOException e) {
 					e.printStackTrace();
+					throw new InterruptedException();
 				}
-
 			}).start();
 		}
 		catch (IOException e) {

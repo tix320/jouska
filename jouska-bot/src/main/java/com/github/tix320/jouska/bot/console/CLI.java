@@ -76,7 +76,7 @@ public class CLI {
 			}
 
 			@Override
-			public String accept(Map<String, String> params) throws CommandException {
+			public String accept(Map<String, String> params) {
 				thread.stop();
 				return "Bye";
 			}

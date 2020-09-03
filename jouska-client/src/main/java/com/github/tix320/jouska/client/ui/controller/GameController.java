@@ -188,12 +188,10 @@ public class GameController implements Controller<GameWatchDto> {
 
 		game.completed().takeUntil(destroy).subscribe(none -> onGameComplete());
 
-		destroy.subscribe(Subscriber.builder().onComplete(completionType -> {
-			Platform.runLater(() -> {
-				turnTimeIndicator.stop();
-				turnTotalTimeIndicator.stop();
-			});
-		}));
+		destroy.subscribe(Subscriber.builder().onComplete(completionType -> Platform.runLater(() -> {
+			turnTimeIndicator.stop();
+			turnTotalTimeIndicator.stop();
+		})));
 
 		gameOrigin.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
 	}

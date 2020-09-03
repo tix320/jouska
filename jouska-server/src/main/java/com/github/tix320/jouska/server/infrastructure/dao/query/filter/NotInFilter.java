@@ -3,7 +3,6 @@ package com.github.tix320.jouska.server.infrastructure.dao.query.filter;
 import java.util.List;
 
 import dev.morphia.query.Criteria;
-import dev.morphia.query.CriteriaContainerImpl;
 import dev.morphia.query.Query;
 
 /**

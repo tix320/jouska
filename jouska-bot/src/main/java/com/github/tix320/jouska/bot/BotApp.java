@@ -13,7 +13,8 @@ import com.github.tix320.jouska.bot.config.Configuration;
 import com.github.tix320.jouska.bot.config.Version;
 import com.github.tix320.jouska.bot.console.CLI;
 import com.github.tix320.jouska.bot.console.ConsoleProgressBar;
-import com.github.tix320.jouska.bot.console.JoinCLICommand;
+import com.github.tix320.jouska.bot.console.JoinGameCLICommand;
+import com.github.tix320.jouska.bot.console.JoinTournamentCLICommand;
 import com.github.tix320.jouska.bot.process.BotProcess;
 import com.github.tix320.jouska.bot.service.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.bot.service.AuthenticationService;
@@ -108,8 +109,8 @@ public class BotApp {
 
 		Context.setBotProcess(botProcess);
 
-		CLI cli = new CLI(List.of(new JoinCLICommand(rpcProtocol.getOrigin(BotTournamentOrigin.class),
-				rpcProtocol.getOrigin(BotGameManagementOrigin.class))));
+		CLI cli = new CLI(List.of(new JoinGameCLICommand(rpcProtocol.getOrigin(BotGameManagementOrigin.class)),
+				new JoinTournamentCLICommand(rpcProtocol.getOrigin(BotTournamentOrigin.class))));
 
 		cli.run();
 	}

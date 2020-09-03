@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.bot;
 
 import com.github.tix320.jouska.bot.process.BotProcess;
-import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 
 /**

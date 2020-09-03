@@ -8,7 +8,6 @@ import java.util.Set;
 import com.github.tix320.jouska.core.application.game.GameChange;
 import com.github.tix320.jouska.core.application.game.GameState;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
-import dev.morphia.annotations.Embedded;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
 import dev.morphia.annotations.Reference;

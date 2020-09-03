@@ -61,9 +61,9 @@ public class AppConfig {
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
-		sonderServer.onEvent(NewClientConnectionEvent.class).subscribe(newClientConnectionEvent -> {
-			System.out.println("Connected client: " + newClientConnectionEvent.getClientId());
-		});
+		sonderServer.onEvent(NewClientConnectionEvent.class)
+				.subscribe(newClientConnectionEvent -> System.out.println(
+						"Connected client: " + newClientConnectionEvent.getClientId()));
 
 		sonderServer.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
 			long clientId = event.getClientId();

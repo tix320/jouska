@@ -51,19 +51,13 @@ public class Uploader {
 				new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
 		switch (os) {
 			case "WINDOWS":
-				uploaderService.uploadWindowsClient(transfer).subscribe(none -> {
-					Try.runOrRethrow(sonderClient::close);
-				});
+				uploaderService.uploadWindowsClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::close));
 				break;
 			case "LINUX":
-				uploaderService.uploadLinuxClient(transfer).subscribe(none -> {
-					Try.runOrRethrow(sonderClient::close);
-				});
+				uploaderService.uploadLinuxClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::close));
 				break;
 			case "MAC":
-				uploaderService.uploadMacClient(transfer).subscribe(none -> {
-					Try.runOrRethrow(sonderClient::close);
-				});
+				uploaderService.uploadMacClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::close));
 				break;
 			default:
 				throw new IllegalArgumentException(os);

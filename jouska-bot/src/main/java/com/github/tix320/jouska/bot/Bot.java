@@ -34,12 +34,12 @@ public final class Bot {
 		game.start();
 		ReadOnlyGameBoard board = game.getBoard();
 		botProcess.startGame(board.getHeight(), board.getWidth());
-		gameService.changes(gameId).subscribe(this::onChange);
+		gameService.changes(gameId).conditionalSubscribe(this::onChange);
 		game.completed().subscribe(g -> botProcess.endGame());
 		tryTurn();
 	}
 
-	private void onChange(GameChangeDto gameChange) {
+	private boolean onChange(GameChangeDto gameChange) {
 		if (gameChange instanceof PlayerTimedTurnDto) {
 			PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
 
@@ -47,8 +47,8 @@ public final class Bot {
 			List<GamePlayer> losers = game.getLosers();
 			for (GamePlayer loser : losers) {
 				if (loser.getColor().equals(myPlayer)) {
-					// TODO Bot lose
-					break;
+					botProcess.endGame();
+					return false;
 				}
 			}
 
@@ -67,6 +67,8 @@ public final class Bot {
 		else {
 			throw new IllegalArgumentException();
 		}
+
+		return true;
 	}
 
 	private void tryTurn() {

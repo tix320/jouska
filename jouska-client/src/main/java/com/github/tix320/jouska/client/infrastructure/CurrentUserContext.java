@@ -12,6 +12,6 @@ public class CurrentUserContext {
 
 	public static void setPlayer(Player player) {
 		CurrentUserContext.player = player;
-		System.out.println(String.format("I am %s", player));
+		System.out.printf("I am %s%n", player);
 	}
 }

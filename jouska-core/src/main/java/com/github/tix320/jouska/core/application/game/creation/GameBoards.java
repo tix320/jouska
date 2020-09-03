@@ -26,25 +26,22 @@ public final class GameBoards {
 		int height = 7;
 		int width = 7;
 
-		int penultRowIndex;
+		int penultRowIndex = height - 2;
 		switch (players.length) {
 			case 1:
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(1, 1), new BoardCell(players[0], 3))));
 			case 2:
-				penultRowIndex = height - 2;
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(1, width / 2 - 1), new BoardCell(players[0], 3)),
 								new CellDomination(new Point(penultRowIndex, width / 2),
 										new BoardCell(players[1], 3))));
 			case 3:
-				penultRowIndex = height - 2;
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(1, 3), new BoardCell(players[0], 3)),
 								new CellDomination(new Point(4, 1), new BoardCell(players[1], 3)),
 								new CellDomination(new Point(4, 5), new BoardCell(players[2], 3))));
 			case 4:
-				penultRowIndex = height - 2;
 				return createBoard(height, width,
 						List.of(new CellDomination(new Point(1, 4), new BoardCell(players[0], 3)),
 								new CellDomination(new Point(penultRowIndex, 4), new BoardCell(players[1], 3)),

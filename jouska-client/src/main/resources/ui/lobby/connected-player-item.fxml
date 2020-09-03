@@ -12,7 +12,7 @@
 			<ImageView fitHeight="30.0" fitWidth="30.0" pickOnBounds="true" preserveRatio="true">
 				<Image url="@../../images/player-icon.png" />
 			</ImageView>
-			<Label fx:id="nickname" text="name">
+			<Label fx:id="nicknameLabel" text="name">
 				<HBox.margin>
 					<Insets top="5.0" />
 				</HBox.margin>

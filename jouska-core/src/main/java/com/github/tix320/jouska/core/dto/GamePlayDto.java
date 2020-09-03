@@ -4,7 +4,6 @@ import java.util.List;
 
 import com.github.tix320.jouska.core.application.game.GamePlayer;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
-import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 
 public final class GamePlayDto extends GameWatchDto {
 
