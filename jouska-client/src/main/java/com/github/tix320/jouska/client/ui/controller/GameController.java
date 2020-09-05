@@ -434,6 +434,22 @@ public class GameController implements Controller<GameWatchDto> {
 				tiles[i][j] = tile;
 				int x = i;
 				int y = j;
+				tile.setHoverColorFactory(() -> {
+					if (game.isCompleted()) {
+						return null;
+					}
+					else {
+						PlayerColor currentPlayerColor = game.getCurrentPlayer().getColor();
+						PlayerColor myPlayerColor = myPlayer.getColor();
+						if (currentPlayerColor == myPlayerColor
+							&& game.getBoard().get(x, y).getColor() == myPlayerColor) {
+							return Color.web(currentPlayerColor.getColorCode());
+						}
+						else {
+							return Color.rgb(181, 167, 167);
+						}
+					}
+				});
 				tile.setOnMouseClicked(event -> onTileClick(x, y, tile));
 				gameBoardPane.add(tile, j, i);
 			}

@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.client.ui.game;
 
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
@@ -33,6 +34,8 @@ public class Tile extends VBox {
 	@FXML
 	private ImageView imageHolder;
 
+	private Supplier<Color> hoverColorFactory = () -> Color.rgb(181, 167, 167);
+
 	public Tile() {
 		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/game/tile.fxml"));
 		fxmlLoader.setRoot(this);
@@ -41,17 +44,28 @@ public class Tile extends VBox {
 		setBorder(new Border(new BorderStroke(DEFAULT_BORDER_COLOR, BorderStrokeStyle.SOLID, new CornerRadii(5),
 				new BorderWidths(2))));
 		setOnMouseEntered(event -> {
-			KeyFrame[] keyFrames = createBackgroundAppearKeyFrames(Color.rgb(181, 167, 167), 0, 200);
+			Color hoverColor = hoverColorFactory.get();
+			if (hoverColor != null) {
+				KeyFrame[] keyFrames = createBackgroundAppearKeyFrames(hoverColor, 0, 200);
 
-			Timeline timeline = new Timeline(keyFrames);
-			timeline.play();
+				Timeline timeline = new Timeline(keyFrames);
+				timeline.play();
+			}
+
 		});
 		setOnMouseExited(event -> {
-			KeyFrame[] keyFrames = createBackgroundDisAppearKeyFrames(Color.rgb(181, 167, 167), 0, 200);
+			Color hoverColor = hoverColorFactory.get();
+			if (hoverColor != null) {
+				KeyFrame[] keyFrames = createBackgroundDisAppearKeyFrames(hoverColorFactory.get(), 0, 200);
 
-			Timeline timeline = new Timeline(keyFrames);
-			timeline.play();
+				Timeline timeline = new Timeline(keyFrames);
+				timeline.play();
+			}
 		});
+	}
+
+	public void setHoverColorFactory(Supplier<Color> hoverColorFactory) {
+		this.hoverColorFactory = hoverColorFactory;
 	}
 
 	public Transition makeAppearTransition(PlayerColor player, int points, Duration duration) {
