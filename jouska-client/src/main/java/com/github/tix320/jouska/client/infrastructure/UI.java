@@ -36,6 +36,8 @@ public final class UI {
 
 	public static void initialize(Stage stage) {
 		if (UI.stage == null) {
+			stage.setMinWidth(400);
+			stage.setMinHeight(400);
 			UI.stage = stage;
 			stage.getIcons().add(new Image(UI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.VERSION);
@@ -66,7 +68,7 @@ public final class UI {
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
-			scene.setCursor(new ImageCursor(new Image(UI.class.getResourceAsStream("/images/cursor.png"))));
+			scene.setCursor(new ImageCursor(new Image(UI.class.getResourceAsStream("/images/cursor.jpg"))));
 			normalize();
 			stage.centerOnScreen();
 			switchCompletePublisher.publish(None.SELF);

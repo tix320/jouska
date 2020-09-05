@@ -3,8 +3,6 @@ package com.github.tix320.jouska.client.ui.controller;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -31,9 +29,7 @@ import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.kiwi.api.util.LoopThread;
 import com.github.tix320.kiwi.api.util.None;
-import com.github.tix320.kiwi.api.util.Threads;
 import javafx.animation.*;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleDoubleProperty;
@@ -72,6 +68,9 @@ public class GameController implements Controller<GameWatchDto> {
 	private Label gameNameLabel;
 
 	@FXML
+	private AnchorPane rightPane;
+
+	@FXML
 	private VBox statisticsBoard;
 
 	@FXML
@@ -96,8 +95,6 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private final AtomicBoolean turned = new AtomicBoolean();
 
-	private BlockingQueue<GameChangeDto> changesQueue;
-
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
 	private final SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
@@ -115,7 +112,7 @@ public class GameController implements Controller<GameWatchDto> {
 	public void init(GameWatchDto gameWatchDto) {
 		if (gameWatchDto instanceof GamePlayDto) {
 			this.playerMode = PlayerMode.PLAY;
-			mainPane.getChildren().remove(gameSpeedSlider);
+			rightPane.getChildren().remove(gameSpeedSlider);
 		}
 		else {
 			this.playerMode = PlayerMode.WATCH;
@@ -151,7 +148,6 @@ public class GameController implements Controller<GameWatchDto> {
 		}
 
 		this.gameNameLabel.setText("Game: " + this.gameSettings.getName());
-		this.changesQueue = new LinkedBlockingQueue<>();
 
 		createStatisticsBoardComponent(players);
 		BoardCell[][] matrix = gameBoard.getMatrix();
@@ -165,7 +161,6 @@ public class GameController implements Controller<GameWatchDto> {
 
 		initTotalTurnTimers(players);
 
-		runBoardChangesConsumer();
 		registerListeners();
 
 		game.start();
@@ -193,47 +188,37 @@ public class GameController implements Controller<GameWatchDto> {
 			turnTotalTimeIndicator.stop();
 		})));
 
-		gameOrigin.changes(gameId).takeUntil(destroy).subscribe(changesQueue::add);
+		gameOrigin.changes(gameId).takeUntil(destroy).subscribe(this::processChange);
 	}
 
-	private void runBoardChangesConsumer() {
-		LoopThread loopThread = Threads.createLoopDaemonThread(() -> {
-			// set timeout to avoid infinitely sleep in case, when queue won't be filled anymore
-			GameChangeDto gameChange = changesQueue.take();
-			if (gameChange instanceof PlayerTimedTurnDto) {
-				PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
-				turn(playerTurn);
-				List<GamePlayer> losers = game.getLosers();
-				if (losers.contains(myPlayer)) {
-					showLose();
-				}
+	private void processChange(GameChangeDto gameChange) {
+		if (gameChange instanceof PlayerTimedTurnDto) {
+			PlayerTimedTurnDto playerTurn = (PlayerTimedTurnDto) gameChange;
+			turn(playerTurn);
+			List<GamePlayer> losers = game.getLosers();
+			if (losers.contains(myPlayer)) {
+				showLose();
 			}
-			else if (gameChange instanceof PlayerLeaveDto) {
-				PlayerLeaveDto playerLeave = (PlayerLeaveDto) gameChange;
-				kickPlayer(playerLeave);
+		}
+		else if (gameChange instanceof PlayerLeaveDto) {
+			PlayerLeaveDto playerLeave = (PlayerLeaveDto) gameChange;
+			kickPlayer(playerLeave);
+		}
+		else if (gameChange instanceof GameCompleteDto) {
+			GameCompleteDto gameComplete = (GameCompleteDto) gameChange;
+			if (!game.isCompleted()) {
+				game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
 			}
-			else if (gameChange instanceof GameCompleteDto) {
-				GameCompleteDto gameComplete = (GameCompleteDto) gameChange;
-				if (!game.isCompleted()) {
-					game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
-				}
-				throw new InterruptedException();
-			}
-			else {
-				throw new IllegalArgumentException();
-			}
-			turned.set(false);
-		});
-
-		loopThread.start();
-
-		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
+		}
+		else {
+			throw new IllegalArgumentException();
+		}
+		turned.set(false);
 	}
 
 	@Override
 	public void destroy() {
 		destroyPublisher.complete();
-		changesQueue.clear();
 	}
 
 	@FXML
@@ -316,6 +301,11 @@ public class GameController implements Controller<GameWatchDto> {
 		animateCellChanges(rootChange);
 		Map<GamePlayer, Integer> statistics = game.getStatistics().summaryPoints();
 		updateStatistics(statistics);
+
+		if (game.isCompleted()) {
+			return;
+		}
+
 		GamePlayer currentPlayer = game.getCurrentPlayer();
 		Platform.runLater(() -> {
 			turnProperty.set(currentPlayer);
@@ -348,10 +338,6 @@ public class GameController implements Controller<GameWatchDto> {
 
 	private void onGameComplete() {
 		GamePlayer winner = game.getWinner().orElseThrow();
-		List<GamePlayer> losers = game.getLosers();
-		if (losers.contains(myPlayer)) {
-			showLose();
-		}
 
 		resetTimersToZero();
 		Platform.runLater(() -> {

@@ -1,6 +1,5 @@
 #mainPane {
-    /*TODO esi achqis mi ban anuma*/
-    -fx-background-image:url('../../Images/game-background.png');
+    -fx-background-image: url('../../Images/game-background.png');
     -fx-font-family: "Comic Sans MS";
 }
 
@@ -9,14 +8,28 @@
 }
 
 #statisticsBoard {
+
+}
+
+#rightPane {
     -fx-border-width: 2px;
     -fx-border-color: #948fff;
     -fx-border-radius: 10px;
     -fx-padding: 5px;
 }
 
+#leaveButton {
+    -fx-background-radius: 10px;
+    -fx-background-color: linear-gradient(#e96e6e, #ef3434 80%) no-repeat;
+}
+
+#leaveButton:hover  {
+    -fx-background-radius: 10px;
+    -fx-background-color: linear-gradient(#ef3434, #e96e6e 80%) no-repeat;
+}
+
 #fullScreenButton {
-    -fx-background-color: transparent;
+    -fx-background-color: rgba(0, 0, 0, 0);
     -fx-background-radius: 10px;
 }
 

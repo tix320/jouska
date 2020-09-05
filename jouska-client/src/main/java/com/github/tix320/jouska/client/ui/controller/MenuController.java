@@ -1,8 +1,5 @@
 package com.github.tix320.jouska.client.ui.controller;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
@@ -16,9 +13,7 @@ import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.kiwi.api.util.LoopThread;
 import com.github.tix320.kiwi.api.util.None;
-import com.github.tix320.kiwi.api.util.Threads;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -53,8 +48,6 @@ public final class MenuController implements Controller<Object> {
 
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
-	private BlockingQueue<NotificationEvent<?, ?>> notificationsQueue;
-
 	private final AuthenticationOrigin authenticationOrigin;
 
 	public MenuController(AuthenticationOrigin authenticationOrigin) {
@@ -63,8 +56,6 @@ public final class MenuController implements Controller<Object> {
 
 	@Override
 	public void init(Object data) {
-		notificationsQueue = new LinkedBlockingQueue<>();
-
 		changeContent(MenuContentType.LOBBY);
 		loadingIndicator.visibleProperty().bind(loading);
 		nicknameLabel.setText(CurrentUserContext.getPlayer().getNickname());
@@ -74,9 +65,7 @@ public final class MenuController implements Controller<Object> {
 
 		EventDispatcher.on(NotificationEvent.class)
 				.takeUntil(destroyPublisher.asObservable())
-				.subscribe(event -> notificationsQueue.add(event));
-
-		runNotificationConsumer();
+				.subscribe(this::processNotification);
 	}
 
 	@Override
@@ -137,71 +126,71 @@ public final class MenuController implements Controller<Object> {
 		UI.switchComponent(ComponentType.LOGIN);
 	}
 
-	private void runNotificationConsumer() {
-		LoopThread loopThread = Threads.createLoopDaemonThread(() -> {
-			NotificationEvent<?, ?> notificationEvent = notificationsQueue.take();
-			NotificationType notificationType = notificationEvent.getNotificationType();
-			Component component = UI.loadNotificationComponent(notificationType, notificationEvent);
+	private void processNotification(NotificationEvent<?, ?> notificationEvent) {
+		NotificationType notificationType = notificationEvent.getNotificationType();
+		Component component = UI.loadNotificationComponent(notificationType, notificationEvent);
 
-			if (!(component.getController() instanceof NotificationController)) {
-				throw new IllegalStateException("");
-			}
+		if (!(component.getController() instanceof NotificationController)) {
+			throw new IllegalStateException("");
+		}
 
-			NotificationController<?> notificationController = (NotificationController<?>) component.getController();
+		NotificationController<?> notificationController = (NotificationController<?>) component.getController();
 
-			Parent content = component.getRoot();
+		Parent content = component.getRoot();
 
+		Platform.runLater(() -> {
+			AnchorPane.setTopAnchor(content, 0.0);
+			AnchorPane.setRightAnchor(content, 0.0);
+			AnchorPane.setLeftAnchor(content, 0.0);
+			AnchorPane.setBottomAnchor(content, 0.0);
+			ObservableList<Node> children = this.notificationPane.getChildren();
+			children.add(content);
+
+			notificationPane.setDisable(true);
+
+			FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.3), notificationPane);
+
+			translateTransition.setFromValue(0);
+			translateTransition.setToValue(1);
+
+			translateTransition.setOnFinished(event -> notificationPane.setDisable(false));
+
+			translateTransition.play();
+		});
+
+		try {
+			notificationEvent.onResolve().await(java.time.Duration.ofSeconds(30));
+		}
+		catch (TimeoutException | InterruptedException ignored) {
+			System.out.println("Notification skipped in Menu");
+		}
+		finally {
+			MonoPublisher<None> onDestroy = Publisher.mono();
 			Platform.runLater(() -> {
-				AnchorPane.setTopAnchor(content, 0.0);
-				AnchorPane.setRightAnchor(content, 0.0);
-				AnchorPane.setLeftAnchor(content, 0.0);
-				AnchorPane.setBottomAnchor(content, 0.0);
-				ObservableList<Node> children = this.notificationPane.getChildren();
-				children.add(content);
+				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.1), notificationPane);
 
 				notificationPane.setDisable(true);
 
-				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.3), notificationPane);
+				translateTransition.setFromValue(1);
+				translateTransition.setToValue(0);
+				translateTransition.play();
 
-				translateTransition.setFromValue(0);
-				translateTransition.setToValue(1);
-
-				translateTransition.setOnFinished(event -> notificationPane.setDisable(false));
+				translateTransition.setOnFinished(event -> {
+					notificationPane.getChildren().clear();
+					notificationController.destroy();
+					onDestroy.publish(None.SELF);
+				});
 
 				translateTransition.play();
 			});
 
 			try {
-				notificationEvent.onResolve().await(java.time.Duration.ofSeconds(30));
-			}
-			catch (TimeoutException ignored) {
-				System.out.println("Notification skipped in Menu");
-			}
-			finally {
-				MonoPublisher<None> onDestroy = Publisher.mono();
-				Platform.runLater(() -> {
-					FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.1), notificationPane);
-
-					notificationPane.setDisable(true);
-
-					translateTransition.setFromValue(1);
-					translateTransition.setToValue(0);
-					translateTransition.play();
-
-					translateTransition.setOnFinished(event -> {
-						notificationPane.getChildren().clear();
-						notificationController.destroy();
-						onDestroy.publish(None.SELF);
-					});
-
-					translateTransition.play();
-				});
-
 				onDestroy.asObservable().await(java.time.Duration.ofSeconds(5));
 			}
-		});
-		loopThread.start();
-		destroyPublisher.asObservable().subscribe(none -> loopThread.stop());
+			catch (InterruptedException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 
 	public enum MenuContentType {

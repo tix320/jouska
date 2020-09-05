@@ -8,21 +8,14 @@
 <?import javafx.scene.image.ImageView?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.shape.Circle?>
-<?import javafx.scene.text.*?>
-<AnchorPane fx:id="mainPane" prefHeight="900.0" prefWidth="1300.0" stylesheets="@game.css"
-			xmlns="http://javafx.com/javafx/10.0.2-internal" xmlns:fx="http://javafx.com/fxml/1"
+<?import javafx.scene.text.Font?>
+<AnchorPane fx:id="mainPane" minHeight="800" minWidth="1200.0" prefHeight="814.0" prefWidth="1278.0"
+			stylesheets="@game.css" xmlns="http://javafx.com/javafx/11.0.1" xmlns:fx="http://javafx.com/fxml/1"
 			fx:controller="com.github.tix320.jouska.client.ui.controller.GameController">
 	<children>
 		<Label fx:id="loseWinLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="1344.0" layoutY="455.0"
 			   maxHeight="40.0" prefHeight="40.0" prefWidth="200.0" text="Foo" textAlignment="CENTER" textFill="#c61616"
 			   visible="false" AnchorPane.rightAnchor="10.0"/>
-		<Button focusTraversable="false" layoutX="1344.0" layoutY="810.0" mnemonicParsing="false"
-				onAction="#onLeaveClick" prefHeight="51.0" prefWidth="185.0" text="Leave" textFill="#393535"
-				AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0">
-			<font>
-				<Font size="20.0"/>
-			</font>
-		</Button>
 		<HBox alignment="CENTER" layoutX="521.0" layoutY="14.0" spacing="5.0" styleClass="hbox"
 			  AnchorPane.leftAnchor="400.0" AnchorPane.topAnchor="10.0">
 			<children>
@@ -66,8 +59,7 @@
 				</ImageView>
 			</graphic>
 		</Button>
-		<SpeedSlider fx:id="gameSpeedSlider" AnchorPane.rightAnchor="200.0" AnchorPane.topAnchor="0.0"/>
-		<GridPane hgap="20.0" AnchorPane.bottomAnchor="100.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="0.0"
+		<GridPane hgap="20.0" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="0.0"
 				  AnchorPane.topAnchor="80.0">
 			<columnConstraints>
 				<ColumnConstraints hgrow="SOMETIMES" minWidth="10.0" percentWidth="80"/>
@@ -78,7 +70,17 @@
 			</rowConstraints>
 			<children>
 				<GridPane fx:id="gameBoardPane"/>
-				<VBox id="statisticsBoard" fx:id="statisticsBoard" GridPane.columnIndex="1"/>
+				<AnchorPane fx:id="rightPane" prefHeight="200.0" prefWidth="200.0" GridPane.columnIndex="1">
+					<children>
+						<VBox id="statisticsBoard" fx:id="statisticsBoard" AnchorPane.bottomAnchor="100.0"
+							  AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+						<Button id="leaveButton" mnemonicParsing="false" onAction="#onLeaveClick" prefHeight="26.0"
+								prefWidth="164.0" text="Leave" AnchorPane.bottomAnchor="10.0"
+								AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+						<SpeedSlider fx:id="gameSpeedSlider" AnchorPane.bottomAnchor="100.0"
+									 AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0"/>
+					</children>
+				</AnchorPane>
 			</children>
 		</GridPane>
 	</children>
