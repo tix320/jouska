@@ -5,7 +5,7 @@ import java.util.stream.Stream;
 
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import javafx.animation.*;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

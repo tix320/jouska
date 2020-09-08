@@ -8,7 +8,7 @@ import com.github.tix320.jouska.core.dto.TournamentStructure;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.skimp.api.object.None;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 import com.github.tix320.sonder.api.common.rpc.Response;
 import com.github.tix320.sonder.api.common.rpc.Subscription;

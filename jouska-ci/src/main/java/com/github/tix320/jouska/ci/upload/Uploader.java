@@ -9,8 +9,8 @@ import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.ChannelTransfer;
 import com.github.tix320.sonder.api.common.communication.Headers;
@@ -24,7 +24,7 @@ public class Uploader {
 		String os = args[1];
 
 
-		RPCProtocol rpcProtocol = RPCProtocol.forClient()
+		RPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.ci.upload")
 				.build();
 		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("52.57.98.213", 8888))

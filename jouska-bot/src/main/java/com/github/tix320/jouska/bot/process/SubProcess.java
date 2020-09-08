@@ -3,7 +3,9 @@ package com.github.tix320.jouska.bot.process;
 import java.io.*;
 import java.nio.channels.ClosedChannelException;
 
-import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.skimp.api.thread.LoopThread.BreakLoopException;
+import com.github.tix320.skimp.api.thread.Threads;
+
 
 /**
  * @author Tigran Sargsyan on 02-Apr-20.
@@ -27,13 +29,13 @@ public final class SubProcess {
 				try {
 					String line = errorStream.readLine();
 					if (line == null) {
-						throw new InterruptedException();
+						throw new BreakLoopException();
 					}
 					System.err.println(messagePrefix + line);
 				}
 				catch (IOException e) {
 					e.printStackTrace();
-					throw new InterruptedException();
+					throw new BreakLoopException();
 				}
 			}).start();
 		}

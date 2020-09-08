@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.client.ui.helper.component;
 
 import com.github.tix320.jouska.client.ui.helper.FXHelper;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

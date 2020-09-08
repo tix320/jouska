@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.property.BiMapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.util.collection.BiConcurrentHashMap;
-import com.github.tix320.kiwi.api.util.collection.BiMap;
+import com.github.tix320.skimp.api.collection.BiConcurrentHashMap;
+import com.github.tix320.skimp.api.collection.BiMap;
 
 /**
  * @author Tigran Sargsyan on 22-Mar-20.

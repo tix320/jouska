@@ -20,8 +20,8 @@ import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOri
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
-import com.github.tix320.kiwi.api.util.None;
-import com.github.tix320.kiwi.api.util.collection.Tuple;
+import com.github.tix320.skimp.api.collection.Tuple;
+import com.github.tix320.skimp.api.object.None;
 
 public class TournamentManager {
 

@@ -6,7 +6,7 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicReference;
 
-import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.skimp.api.thread.Threads;
 
 /**
  * @author Tigran Sargsyan on 27-Mar-20.

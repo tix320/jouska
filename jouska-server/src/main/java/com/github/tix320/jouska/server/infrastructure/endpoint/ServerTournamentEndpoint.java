@@ -16,9 +16,9 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.infrastructure.application.TournamentManager;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
-import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 

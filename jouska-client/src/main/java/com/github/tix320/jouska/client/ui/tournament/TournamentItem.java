@@ -3,7 +3,7 @@ package com.github.tix320.jouska.client.ui.tournament;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;

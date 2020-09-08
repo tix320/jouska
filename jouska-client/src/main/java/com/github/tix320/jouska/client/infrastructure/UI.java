@@ -14,10 +14,10 @@ import com.github.tix320.jouska.client.ui.controller.notification.GameStartSoonN
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.kiwi.api.check.Try;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.skimp.api.check.Try;
+import com.github.tix320.skimp.api.object.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;

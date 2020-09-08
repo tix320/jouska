@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.ci.upload;
 
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.skimp.api.object.None;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 

@@ -23,7 +23,7 @@ import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
@@ -81,7 +81,7 @@ public class BotApp {
 		// 	return;
 		// }
 
-		RPCProtocol rpcProtocol = RPCProtocol.forClient()
+		RPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.bot.service")
 				.scanEndpointPackages("com.github.tix320.jouska.bot.service")
 				.build();

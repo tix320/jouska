@@ -6,7 +6,7 @@ import com.github.tix320.jouska.core.dto.GameSettingsDto;
 import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.EventHandler;

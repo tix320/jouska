@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;

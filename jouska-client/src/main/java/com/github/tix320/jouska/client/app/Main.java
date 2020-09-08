@@ -11,7 +11,8 @@ import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.skimp.api.thread.LoopThread.BreakLoopException;
+import com.github.tix320.skimp.api.thread.Threads;
 import com.github.tix320.sonder.api.client.event.ConnectionClosedEvent;
 import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
@@ -63,12 +64,17 @@ public class Main extends Application {
 									.subscribe(connectionClosedEvent -> {
 										System.out.println("Disconnected");
 										Threads.createLoopDaemonThread(() -> {
-											Thread.sleep(5000);
+											try {
+												Thread.sleep(5000);
+											}
+											catch (InterruptedException e) {
+												throw new IllegalStateException(e);
+											}
 											System.out.println("trying to reconnect");
 											try {
 												AppConfig.connectToServer();
 												authenticate();
-												throw new InterruptedException();
+												throw new BreakLoopException();
 											}
 											catch (IOException e) {
 												e.printStackTrace();

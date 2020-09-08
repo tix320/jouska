@@ -33,7 +33,7 @@ public class AppConfig {
 		injector.registerModule(EndpointModule.class);
 		injector.registerModule(ControllersModule.class);
 
-		RPCProtocolBuilder builder = RPCProtocol.forClient()
+		RPCProtocolBuilder builder = SonderClient.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.client.service.origin")
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);

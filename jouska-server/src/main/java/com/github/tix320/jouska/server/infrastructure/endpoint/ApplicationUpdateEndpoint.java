@@ -13,7 +13,7 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.app.Configuration;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
-import com.github.tix320.kiwi.api.check.Try;
+import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.common.communication.*;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 

@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.github.tix320.jouska.client.infrastructure.notifcation.GamePlayersOfflineNotificationEvent;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.util.None;
+import com.github.tix320.skimp.api.object.None;
 
 /**
  * @author Tigran Sargsyan on 19-Apr-20.

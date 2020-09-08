@@ -16,8 +16,8 @@ import com.github.tix320.jouska.core.dto.TournamentStructure.GroupView;
 import com.github.tix320.jouska.core.dto.TournamentStructure.PlayOffView;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.MathUtils;
-import com.github.tix320.kiwi.api.util.LoopThread;
-import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.skimp.api.thread.LoopThread;
+import com.github.tix320.skimp.api.thread.Threads;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Label;
@@ -56,7 +56,12 @@ public class TournamentViewController implements Controller<TournamentStructure>
 						initView(newStructure);
 					}));
 
-			Thread.sleep(5000);
+			try {
+				Thread.sleep(5000);
+			}
+			catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 		});
 
 		stateUpdaterThread.start();

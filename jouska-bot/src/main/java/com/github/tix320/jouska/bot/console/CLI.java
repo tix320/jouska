@@ -9,8 +9,9 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
 
-import com.github.tix320.kiwi.api.util.LoopThread;
-import com.github.tix320.kiwi.api.util.Threads;
+import com.github.tix320.skimp.api.thread.LoopThread;
+import com.github.tix320.skimp.api.thread.LoopThread.BreakLoopException;
+import com.github.tix320.skimp.api.thread.Threads;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -41,7 +42,7 @@ public class CLI {
 			}
 			catch (IOException e) {
 				errWriter.println(e.getMessage());
-				throw new InterruptedException();
+				throw new BreakLoopException();
 			}
 
 			ParsedCommand parsedCommand;
