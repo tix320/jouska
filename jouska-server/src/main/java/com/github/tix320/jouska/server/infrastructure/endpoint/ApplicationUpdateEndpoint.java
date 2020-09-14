@@ -30,14 +30,8 @@ public class ApplicationUpdateEndpoint {
 	private static final String MAC_BOT_FILE_NAME = "/jouska-bot-mac.zip";
 
 	@Endpoint
-	public String checkUpdate(String version, OS os) {
-		String applicationVersion = Configuration.getApplicationVersion();
-
-		if (version.equals(applicationVersion)) {
-			return "";
-		}
-
-		return applicationVersion;
+	public String getLatestVersion() {
+		return Configuration.getApplicationVersion();
 	}
 
 	@Endpoint

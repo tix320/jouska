@@ -45,8 +45,8 @@ public class Main extends Application {
 			try {
 				AppConfig.connectToServer();
 				ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(ApplicationUpdateOrigin.class);
-				applicationUpdateOrigin.checkUpdate(Version.VERSION, Version.os).subscribe(lastVersion -> {
-					if (!lastVersion.equals("")) { // update
+				applicationUpdateOrigin.getLatestVersion().subscribe(lastVersion -> {
+					if (!lastVersion.equals(Version.VERSION)) { // update
 						UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
 					}
 					else {

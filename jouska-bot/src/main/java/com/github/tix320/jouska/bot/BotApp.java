@@ -118,9 +118,8 @@ public class BotApp {
 	private static void checkApplicationUpdate() throws InterruptedException {
 		ApplicationUpdateOrigin applicationUpdateOrigin = Context.getRPCProtocol()
 				.getOrigin(ApplicationUpdateOrigin.class);
-		String lastVersion = applicationUpdateOrigin.checkUpdate(Version.VERSION, Version.os)
-				.get(Duration.ofSeconds(30));
-		if (!lastVersion.equals("")) { // update
+		String lastVersion = applicationUpdateOrigin.getLatestVersion().get(Duration.ofSeconds(30));
+		if (!lastVersion.equals(Version.VERSION)) { // update
 			System.out.printf("The newer version of bot is available: %s%n", lastVersion);
 			System.out.println("Start downloading...");
 			applicationUpdateOrigin.downloadBot(Version.os).waitAndApply(Duration.ofSeconds(30), transfer -> {

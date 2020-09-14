@@ -9,7 +9,7 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 public interface ApplicationUpdateOrigin {
 
 	@Origin
-	MonoObservable<String> checkUpdate(String version, OS os);
+	MonoObservable<String> getLatestVersion();
 
 	@Origin
 	MonoObservable<Transfer> downloadClient(OS os);
