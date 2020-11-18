@@ -7,12 +7,12 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
-import javafx.scene.layout.AnchorPane;
+import javafx.scene.layout.GridPane;
 
 /**
  * @author Tigran Sargsyan on 09-May-20.
  */
-public class SpeedSlider extends AnchorPane {
+public class SpeedSlider extends GridPane {
 
 	private final SimpleDoubleProperty gameSpeedCoefficient = new SimpleDoubleProperty(1);
 

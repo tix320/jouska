@@ -26,7 +26,7 @@ public class DatastoreProvider {
 		int dbPort = Integer.parseInt(getProperty("jouskaDbPort", "27017"));
 		String dbName = getProperty("jouskaDbName", "jouska");
 		String dbUsername = getProperty("jouskaDbUsername", "admin");
-		String dbPassword = getProperty("jouskaDbPassword", "");
+		String dbPassword = getProperty("jouskaDbPassword", "foo");
 
 		System.out.println("Connecting to db...");
 		System.out.println("Host: " + dbHost);
