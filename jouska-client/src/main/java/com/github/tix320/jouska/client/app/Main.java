@@ -11,9 +11,6 @@ import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.skimp.api.thread.LoopThread.BreakLoopException;
-import com.github.tix320.skimp.api.thread.Threads;
-import com.github.tix320.sonder.api.client.event.ConnectionClosedEvent;
 import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
 import javafx.application.Platform;
@@ -42,49 +39,26 @@ public class Main extends Application {
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			Platform.runLater(stage::show);
 
+			AppConfig.sonderClient.getEventListener()
+					.on(ConnectionEstablishedEvent.class)
+					.toMono()
+					.subscribe(connectionEstablishedEvent -> {
+						ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(
+								ApplicationUpdateOrigin.class);
+						applicationUpdateOrigin.getLatestVersion().subscribe(lastVersion -> {
+							if (!lastVersion.equals(Version.VERSION)) { // update
+								UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
+							}
+							else {
+								authenticate();
+							}
+						});
+					});
+
 			try {
 				AppConfig.connectToServer();
-				ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(ApplicationUpdateOrigin.class);
-				applicationUpdateOrigin.getLatestVersion().subscribe(lastVersion -> {
-					if (!lastVersion.equals(Version.VERSION)) { // update
-						UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
-					}
-					else {
-						authenticate();
-					}
-				});
-
-
-				AppConfig.sonderClient.onEvent(ConnectionEstablishedEvent.class)
-						.subscribe(connectionEstablishedEvent -> {
-							System.out.println("Connected");
-
-							AppConfig.sonderClient.onEvent(ConnectionClosedEvent.class)
-									.toMono()
-									.subscribe(connectionClosedEvent -> {
-										System.out.println("Disconnected");
-										Threads.createLoopDaemonThread(() -> {
-											try {
-												Thread.sleep(5000);
-											}
-											catch (InterruptedException e) {
-												throw new IllegalStateException(e);
-											}
-											System.out.println("trying to reconnect");
-											try {
-												AppConfig.connectToServer();
-												authenticate();
-												throw new BreakLoopException();
-											}
-											catch (IOException e) {
-												e.printStackTrace();
-											}
-										}).start();
-									});
-						});
-
 			}
-			catch (Exception e) {
+			catch (IOException e) {
 				e.printStackTrace();
 				StringWriter out = new StringWriter();
 				PrintWriter stringWriter = new PrintWriter(out);

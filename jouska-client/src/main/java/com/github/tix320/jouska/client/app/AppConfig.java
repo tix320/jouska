@@ -16,8 +16,8 @@ import com.github.tix320.ravel.api.bean.BeanKey;
 import com.github.tix320.ravel.api.module.DynamicModuleDefinition;
 import com.github.tix320.ravel.api.scope.Scope;
 import com.github.tix320.sonder.api.client.SonderClient;
-import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
-import com.github.tix320.sonder.api.common.rpc.RPCProtocolBuilder;
+import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
+import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocolBuilder;
 
 public class AppConfig {
 	public static SonderClient sonderClient;
@@ -33,7 +33,7 @@ public class AppConfig {
 		injector.registerModule(EndpointModule.class);
 		injector.registerModule(ControllersModule.class);
 
-		RPCProtocolBuilder builder = SonderClient.getRPCProtocolBuilder()
+		ClientRPCProtocolBuilder builder = SonderClient.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.client.service.origin")
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);
@@ -42,12 +42,13 @@ public class AppConfig {
 
 		injector.build();
 
-		RPCProtocol protocol = builder.scanEndpointPackages(List.of("com.github.tix320.jouska.client.service.endpoint"),
-				injector::inject).build();
+		ClientRPCProtocol protocol = builder.scanEndpointPackages(
+				List.of("com.github.tix320.jouska.client.service.endpoint"), injector::inject).build();
 
 		sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.registerProtocol(protocol)
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
+				.autoReconnect(true)
 				.build();
 
 		INJECTOR = injector;
@@ -65,7 +66,7 @@ public class AppConfig {
 		if (sonderClient == null) {
 			throw new IllegalStateException("Not connected yet");
 		}
-		sonderClient.close();
+		sonderClient.stop();
 	}
 
 	private static DynamicModuleDefinition createDynamicOriginsModule(Map<Class<?>, Object> instances) {

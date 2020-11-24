@@ -9,6 +9,7 @@ import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
 import com.github.tix320.sonder.api.common.communication.Headers;
 import com.github.tix320.sonder.api.common.rpc.extra.EndpointExtraArgInjector;
 import com.github.tix320.sonder.api.common.rpc.extra.ExtraParamDefinition;
+import com.github.tix320.sonder.api.server.rpc.ServerRPCProtocol.ServerRPCHeaders;
 
 /**
  * @author Tigran Sargsyan on 23-Mar-20.
@@ -31,7 +32,7 @@ public class UserExtraArgInjector implements EndpointExtraArgInjector<CallerUser
 
 	@Override
 	public Player extract(Method method, CallerUser annotation, Headers headers) {
-		long clientId = headers.getNonNullLong(Headers.SOURCE_ID);
+		long clientId = headers.getNonNullLong(ServerRPCHeaders.SOURCE_CLIENT_ID);
 
 		String playerId = clientPlayerMappingResolver.getPlayerIdByClientId(clientId)
 				.orElseThrow(() -> new NotAuthenticatedException(

@@ -25,8 +25,8 @@ import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
+import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
-import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
 
 public class BotApp {
 
@@ -81,7 +81,7 @@ public class BotApp {
 		// 	return;
 		// }
 
-		RPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
+		ClientRPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.bot.service")
 				.scanEndpointPackages("com.github.tix320.jouska.bot.service")
 				.build();
@@ -101,7 +101,7 @@ public class BotApp {
 				.get(Duration.ofSeconds(15));
 
 		if (answer.getLoginResult() != LoginResult.SUCCESS) {
-			Try.run(sonderClient::close);
+			Try.run(sonderClient::stop);
 			throw new IllegalStateException("Invalid credentials");
 		}
 
@@ -154,7 +154,7 @@ public class BotApp {
 				}
 				catch (IOException e) {
 					try {
-						sonderClient.close();
+						sonderClient.stop();
 					}
 					catch (IOException ex) {
 						ex.printStackTrace();

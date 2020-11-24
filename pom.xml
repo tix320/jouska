@@ -12,7 +12,7 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>2.0.0</sonder.version>
+		<sonder.version>3.0.0</sonder.version>
 		<ravel.version>0.1.0</ravel.version>
 	</properties>
 

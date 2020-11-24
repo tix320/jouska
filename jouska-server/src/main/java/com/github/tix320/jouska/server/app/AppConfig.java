@@ -20,11 +20,11 @@ import com.github.tix320.ravel.api.bean.BeanDefinition;
 import com.github.tix320.ravel.api.bean.BeanKey;
 import com.github.tix320.ravel.api.module.DynamicModuleDefinition;
 import com.github.tix320.ravel.api.scope.Scope;
-import com.github.tix320.sonder.api.common.rpc.RPCProtocol;
-import com.github.tix320.sonder.api.common.rpc.RPCProtocolBuilder;
 import com.github.tix320.sonder.api.server.SonderServer;
 import com.github.tix320.sonder.api.server.event.ClientConnectionClosedEvent;
 import com.github.tix320.sonder.api.server.event.NewClientConnectionEvent;
+import com.github.tix320.sonder.api.server.rpc.ServerRPCProtocol;
+import com.github.tix320.sonder.api.server.rpc.ServerRPCProtocolBuilder;
 
 public class AppConfig {
 	private static SonderServer sonderServer;
@@ -39,7 +39,7 @@ public class AppConfig {
 		Injector injector = new Injector();
 		injector.registerModule(EndpointModule.class);
 
-		RPCProtocolBuilder builder = SonderServer.getRPCProtocolBuilder()
+		ServerRPCProtocolBuilder builder = SonderServer.getRPCProtocolBuilder()
 				.scanOriginPackages("com.github.tix320.jouska.server.infrastructure.origin")
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);
@@ -48,7 +48,7 @@ public class AppConfig {
 
 		injector.build();
 
-		RPCProtocol protocol = builder.scanEndpointPackages(
+		ServerRPCProtocol protocol = builder.scanEndpointPackages(
 				List.of("com.github.tix320.jouska.server.infrastructure.endpoint"), injector::inject)
 				.registerEndpointExtraArgInjector(injector.inject(UserExtraArgInjector.class))
 				.build();
@@ -61,11 +61,12 @@ public class AppConfig {
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
-		sonderServer.onEvent(NewClientConnectionEvent.class)
+		sonderServer.getEventListener()
+				.on(NewClientConnectionEvent.class)
 				.subscribe(newClientConnectionEvent -> System.out.println(
 						"Connected client: " + newClientConnectionEvent.getClientId()));
 
-		sonderServer.onEvent(ClientConnectionClosedEvent.class).subscribe(event -> {
+		sonderServer.getEventListener().on(ClientConnectionClosedEvent.class).subscribe(event -> {
 			long clientId = event.getClientId();
 			String playerId = clientPlayerMappingResolver.removeByClientId(clientId);
 			if (playerId != null) {
@@ -89,7 +90,7 @@ public class AppConfig {
 		if (sonderServer == null) {
 			throw new IllegalStateException("Server does not started");
 		}
-		sonderServer.close();
+		sonderServer.stop();
 	}
 
 	private static DynamicModuleDefinition createDynamicOriginsModule(Map<Class<?>, Object> instances) {
