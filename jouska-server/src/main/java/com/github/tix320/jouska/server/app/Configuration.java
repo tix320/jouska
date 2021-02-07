@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.nimble.api.SystemProperties;
 
 public class Configuration {
@@ -15,15 +16,15 @@ public class Configuration {
 	private final String clientAppPAth;
 
 	public Configuration() {
-		String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
+		String hostPort = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_ADDRESS);
 		InetSocketAddress serverAddress;
 		try {
-			serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+			serverAddress = ArgUtils.resolveSocketAddress(hostPort);
 		} catch (IllegalArgumentException e) {
 			serverAddress = new InetSocketAddress("localhost", 8888);
 		}
 
-		String clientAppPath = SystemProperties.getFromEnvOrElseJava("jouska.client-app-path", "client-app");
+		String clientAppPath = SystemProperties.getFromEnvOrElseJava(JouskaProperties.CLIENT_APP_PATH, "client-app");
 
 		this.serverAddress = serverAddress;
 		this.clientAppPAth = clientAppPath;

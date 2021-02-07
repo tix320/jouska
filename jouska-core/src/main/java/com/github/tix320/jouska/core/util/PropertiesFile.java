@@ -59,8 +59,12 @@ public class PropertiesFile {
 		return Integer.parseInt(value);
 	}
 
-	public void set(String key, String value) {
+	public void put(String key, String value) {
 		properties.put(key, value);
+	}
+
+	public void putIfAbsent(String key, String value) {
+		properties.putIfAbsent(key, value);
 	}
 
 	public synchronized void flush() throws IOException {

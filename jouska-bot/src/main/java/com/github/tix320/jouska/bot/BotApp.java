@@ -41,9 +41,7 @@ public class BotApp {
 		String password = args[2];
 		Configuration configuration = new Configuration(
 				Path.of(SystemProperties.getUserDirectory(), "jouska-bot", "config.properties"));
-		String host = configuration.getServerHost();
-		int port = configuration.getServerPort();
-
+		InetSocketAddress serverAddress = configuration.getServerAddress();
 		// for (int i = 1; i <= 5; i++) {
 		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 		// 			.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
@@ -93,7 +91,7 @@ public class BotApp {
 				.registerOriginInterfaces(originInterfaces)
 				.registerEndpointClasses(endpointClasses)
 				.build();
-		sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
+		sonderClient = SonderClient.forAddress(serverAddress)
 				.registerProtocol(rpcProtocol)
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();

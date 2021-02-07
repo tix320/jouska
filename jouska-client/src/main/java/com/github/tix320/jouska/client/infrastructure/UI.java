@@ -12,6 +12,7 @@ import com.github.tix320.jouska.client.ui.controller.notification.GamePlayersOff
 import com.github.tix320.jouska.client.ui.controller.notification.GameStartSoonNotificationController;
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
+import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
@@ -39,7 +40,7 @@ public final class UI {
 			stage.setMinHeight(400);
 			UI.stage = stage;
 			stage.getIcons().add(new Image(UI.class.getResourceAsStream("/installer.ico")));
-			stage.setTitle("Jouska " + Version.VERSION);
+			stage.setTitle("Jouska " + Version.CURRENT);
 			normalize();
 		}
 		else {

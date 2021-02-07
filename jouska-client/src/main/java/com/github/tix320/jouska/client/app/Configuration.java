@@ -1,11 +1,11 @@
 package com.github.tix320.jouska.client.app;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 
 import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.jouska.core.util.PropertiesFile;
 import com.github.tix320.nimble.api.SystemProperties;
 
@@ -32,18 +32,18 @@ public class Configuration {
 		}
 
 		if (propertiesFile != null) {
-			String hostPort = propertiesFile.getString("server.host-port");
+			String hostPort = propertiesFile.getString(JouskaProperties.SERVER_ADDRESS);
 			try {
-				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+				serverAddress = ArgUtils.resolveSocketAddress(hostPort);
 			} catch (IllegalArgumentException ignored) {
 
 			}
-			nickname = propertiesFile.getString("nickname", "");
-			password = propertiesFile.getString("password", "");
+			nickname = propertiesFile.getString(JouskaProperties.NICKNAME, "");
+			password = propertiesFile.getString(JouskaProperties.PASSWORD, "");
 		} else {
-			String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
+			String hostPort = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_ADDRESS);
 			try {
-				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+				serverAddress = ArgUtils.resolveSocketAddress(hostPort);
 			} catch (IllegalArgumentException ignored) {
 
 			}
@@ -58,6 +58,7 @@ public class Configuration {
 		this.nickname = nickname;
 		this.password = password;
 
+		fillPropertiesFile(propertiesFile);
 	}
 
 	public InetSocketAddress getServerAddress() {
@@ -77,8 +78,8 @@ public class Configuration {
 		this.password = password;
 
 		if (propertiesFile != null) {
-			propertiesFile.set("nickname", nickname);
-			propertiesFile.set("password", password);
+			propertiesFile.put(JouskaProperties.NICKNAME, nickname);
+			propertiesFile.put(JouskaProperties.PASSWORD, password);
 			try {
 				propertiesFile.flush();
 			} catch (IOException e) {
@@ -86,4 +87,16 @@ public class Configuration {
 			}
 		}
 	}
+
+	private void fillPropertiesFile(PropertiesFile propertiesFile) {
+		if (propertiesFile != null) {
+			propertiesFile.putIfAbsent(JouskaProperties.SERVER_ADDRESS, serverAddress.getHostName() + ":" + serverAddress.getPort());
+			try {
+				propertiesFile.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+
 }

@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.client.app.inject;
 
+import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.service.origin.*;
 import com.github.tix320.jouska.client.ui.controller.*;
 import com.github.tix320.ravel.api.module.UseModules;
@@ -22,8 +23,8 @@ public class ControllersModule {
 	}
 
 	@Prototype
-	public MenuController menuController(AuthenticationOrigin authenticationOrigin) {
-		return new MenuController(authenticationOrigin);
+	public MenuController menuController(Configuration configuration, AuthenticationOrigin authenticationOrigin) {
+		return new MenuController(configuration, authenticationOrigin);
 	}
 
 	@Prototype
@@ -45,8 +46,8 @@ public class ControllersModule {
 	}
 
 	@Prototype
-	public LoginController loginController(AuthenticationOrigin authenticationOrigin) {
-		return new LoginController(authenticationOrigin);
+	public LoginController loginController(Configuration configuration, AuthenticationOrigin authenticationOrigin) {
+		return new LoginController(configuration, authenticationOrigin);
 	}
 
 	@Prototype
