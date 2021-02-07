@@ -1,7 +1,8 @@
-package com.github.tix320.jouska.bot.service;
+package com.github.tix320.jouska.bot.service.origin;
 
-import com.github.tix320.jouska.core.infrastructure.OS;
+import com.github.tix320.jouska.core.Version;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.nimble.api.OS;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 
@@ -9,7 +10,7 @@ import com.github.tix320.sonder.api.common.rpc.Origin;
 public interface ApplicationUpdateOrigin {
 
 	@Origin
-	MonoObservable<String> getLatestVersion();
+	MonoObservable<Version> getVersion();
 
 	@Origin
 	MonoObservable<Transfer> downloadBot(OS os);

@@ -10,6 +10,7 @@ import com.github.tix320.jouska.client.infrastructure.UI;
 import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
+import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
@@ -34,7 +35,7 @@ public class Main extends Application {
 
 	@Override
 	public void start(Stage stage) {
-		AppConfig.initialize(Configuration.getServerHost(), Configuration.getServerPort());
+		AppConfig.initialize();
 		UI.initialize(stage);
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			Platform.runLater(stage::show);
@@ -45,11 +46,15 @@ public class Main extends Application {
 					.subscribe(connectionEstablishedEvent -> {
 						ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(
 								ApplicationUpdateOrigin.class);
-						applicationUpdateOrigin.getLatestVersion().subscribe(lastVersion -> {
-							if (!lastVersion.equals(Version.VERSION)) { // update
+						applicationUpdateOrigin.getVersion().subscribe(lastVersion -> {
+							int compareResult = lastVersion.compareTo(Version.CURRENT);
+							if (compareResult < 0) {
+								System.err.printf("Server version - %s, Bot version - %s ", lastVersion,
+										Version.CURRENT);
+								System.exit(1);
+							} else if (compareResult > 0) { // update
 								UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
-							}
-							else {
+							} else {
 								authenticate();
 							}
 						});
@@ -57,8 +62,7 @@ public class Main extends Application {
 
 			try {
 				AppConfig.connectToServer();
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				e.printStackTrace();
 				StringWriter out = new StringWriter();
 				PrintWriter stringWriter = new PrintWriter(out);
@@ -75,48 +79,40 @@ public class Main extends Application {
 
 	private static void authenticate() {
 		AuthenticationOrigin authenticationOrigin = INJECTOR.inject(AuthenticationOrigin.class);
-		Credentials credentials = new Credentials(Configuration.getNickname(), Configuration.getPassword());
+		Configuration configuration = INJECTOR.inject(Configuration.class);
+		Credentials credentials = new Credentials(configuration.getNickname(), configuration.getPassword());
 		authenticationOrigin.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {
-				case SUCCESS:
+				case SUCCESS -> {
 					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
 					UI.switchComponent(ComponentType.MENU);
-					break;
-				case ALREADY_LOGGED:
-					Platform.runLater(() -> {
-						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.setTitle("Confirmation");
-						alert.setHeaderText("Another logged session found.");
-						alert.setContentText(String.format(
-								"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
-								loginAnswer.getPlayer().getNickname()));
+				}
+				case ALREADY_LOGGED -> Platform.runLater(() -> {
+					Alert alert = new Alert(AlertType.CONFIRMATION);
+					alert.setTitle("Confirmation");
+					alert.setHeaderText("Another logged session found.");
+					alert.setContentText(String.format(
+							"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
+							loginAnswer.getPlayer().getNickname()));
 
-						Optional<ButtonType> result = alert.showAndWait();
-						if (result.isPresent() && result.get() == ButtonType.OK) {
-							authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
-								switch (answer.getLoginResult()) {
-									case SUCCESS:
-										UI.switchComponent(ComponentType.MENU);
-										CurrentUserContext.setPlayer(answer.getPlayer());
-										break;
-									case INVALID_CREDENTIALS:
-										UI.switchComponent(ComponentType.LOGIN);
-										break;
-									default:
-										throw new IllegalStateException();
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent() && result.get() == ButtonType.OK) {
+						authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
+							switch (answer.getLoginResult()) {
+								case SUCCESS -> {
+									UI.switchComponent(ComponentType.MENU);
+									CurrentUserContext.setPlayer(answer.getPlayer());
 								}
-							});
-						}
-						else {
-							UI.switchComponent(ComponentType.LOGIN, credentials);
-						}
-					});
-					break;
-				case INVALID_CREDENTIALS:
-					UI.switchComponent(ComponentType.LOGIN);
-					break;
-				default:
-					throw new IllegalStateException();
+								case INVALID_CREDENTIALS -> UI.switchComponent(ComponentType.LOGIN);
+								default -> throw new IllegalStateException();
+							}
+						});
+					} else {
+						UI.switchComponent(ComponentType.LOGIN, credentials);
+					}
+				});
+				case INVALID_CREDENTIALS -> UI.switchComponent(ComponentType.LOGIN);
+				default -> throw new IllegalStateException();
 			}
 		});
 	}

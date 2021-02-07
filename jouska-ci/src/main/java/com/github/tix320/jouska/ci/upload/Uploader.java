@@ -24,43 +24,43 @@ public class Uploader {
 		String os = args[1];
 
 
-		ClientRPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
-				.scanOriginPackages("com.github.tix320.jouska.ci.upload")
-				.build();
-		SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("52.57.98.213", 8888))
-				.registerProtocol(rpcProtocol)
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
-				.build();
-
-		sonderClient.connect();
-
-		try {
-			rpcProtocol.getOrigin(AuthenticationService.class)
-					.forceLogin(new Credentials("uploader", "uploader"))
-					.get(Duration.ofSeconds(30));
-		}
-		catch (TimeoutException e) {
-			sonderClient.stop();
-			return;
-		}
-
-		UploaderService uploaderService = rpcProtocol.getOrigin(UploaderService.class);
-		Path file = Path.of(filePath);
-		long length = Files.size(file);
-		ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY,
-				new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
-		switch (os) {
-			case "WINDOWS":
-				uploaderService.uploadWindowsClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
-				break;
-			case "LINUX":
-				uploaderService.uploadLinuxClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
-				break;
-			case "MAC":
-				uploaderService.uploadMacClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
-				break;
-			default:
-				throw new IllegalArgumentException(os);
-		}
+		// ClientRPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
+		// 		.scanOriginPackages("com.github.tix320.jouska.ci.upload")
+		// 		.build();
+		// SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress("52.57.98.213", 8888))
+		// 		.registerProtocol(rpcProtocol)
+		// 		.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
+		// 		.build();
+		//
+		// sonderClient.connect();
+		//
+		// try {
+		// 	rpcProtocol.getOrigin(AuthenticationService.class)
+		// 			.forceLogin(new Credentials("uploader", "uploader"))
+		// 			.get(Duration.ofSeconds(30));
+		// }
+		// catch (TimeoutException e) {
+		// 	sonderClient.stop();
+		// 	return;
+		// }
+		//
+		// UploaderService uploaderService = rpcProtocol.getOrigin(UploaderService.class);
+		// Path file = Path.of(filePath);
+		// long length = Files.size(file);
+		// ChannelTransfer transfer = new ChannelTransfer(Headers.EMPTY,
+		// 		new LimitedReadableByteChannel(FileChannel.open(file, StandardOpenOption.READ), length));
+		// switch (os) {
+		// 	case "WINDOWS":
+		// 		uploaderService.uploadWindowsClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
+		// 		break;
+		// 	case "LINUX":
+		// 		uploaderService.uploadLinuxClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
+		// 		break;
+		// 	case "MAC":
+		// 		uploaderService.uploadMacClient(transfer).subscribe(none -> Try.runOrRethrow(sonderClient::stop));
+		// 		break;
+		// 	default:
+		// 		throw new IllegalArgumentException(os);
+		// }
 	}
 }

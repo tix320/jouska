@@ -3,7 +3,7 @@ package com.github.tix320.jouska.bot;
 import java.util.List;
 
 import com.github.tix320.jouska.bot.process.BotProcess;
-import com.github.tix320.jouska.bot.service.BotGameOrigin;
+import com.github.tix320.jouska.bot.service.origin.BotGameOrigin;
 import com.github.tix320.jouska.core.application.game.*;
 import com.github.tix320.jouska.core.dto.GameChangeDto;
 import com.github.tix320.jouska.core.dto.GameCompleteDto;

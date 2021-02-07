@@ -12,81 +12,6 @@
 
 	<artifactId>jouska-ci</artifactId>
 
-	<build>
-		<plugins>
-			<plugin>
-				<groupId>org.codehaus.mojo</groupId>
-				<artifactId>appassembler-maven-plugin</artifactId>
-				<version>2.1.0</version>
-				<executions>
-					<execution>
-						<id>package</id>
-						<phase>package</phase>
-						<goals>
-							<goal>assemble</goal>
-						</goals>
-					</execution>
-					<execution>
-						<id>install</id>
-						<phase>install</phase>
-						<goals>
-							<goal>assemble</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<programs>
-						<program>
-							<id>client-jre</id>
-							<mainClass>com.github.tix320.jouska.ci.jre.ClientJRE</mainClass>
-						</program>
-						<program>
-							<id>bot-jre</id>
-							<mainClass>com.github.tix320.jouska.ci.jre.BotJRE</mainClass>
-						</program>
-						<program>
-							<id>upload</id>
-							<mainClass>com.github.tix320.jouska.ci.upload.Uploader</mainClass>
-						</program>
-					</programs>
-					<showConsoleWindow>true</showConsoleWindow>
-					<configurationDirectory>conf</configurationDirectory>
-					<copyConfigurationDirectory>true</copyConfigurationDirectory>
-					<binFileExtensions>
-						<unix>.sh</unix>
-					</binFileExtensions>
-					<platforms>
-						<platform>unix</platform>
-						<platform>windows</platform>
-					</platforms>
-				</configuration>
-			</plugin>
-			<plugin>
-				<groupId>com.google.code.maven-replacer-plugin</groupId>
-				<artifactId>maven-replacer-plugin</artifactId>
-				<version>1.4.0</version>
-				<executions>
-					<execution>
-						<phase>process-sources</phase>
-						<goals>
-							<goal>replace</goal>
-						</goals>
-					</execution>
-				</executions>
-				<configuration>
-					<file>build/windows/installer/jouska-installer-template.iss</file>
-					<outputFile>build/windows/installer/jouska-installer.iss</outputFile>
-					<replacements>
-						<replacement>
-							<token>@version@</token>
-							<value>${parent.version}</value>
-						</replacement>
-					</replacements>
-				</configuration>
-			</plugin>
-		</plugins>
-	</build>
-
 	<dependencies>
 		<dependency>
 			<groupId>com.github.tix320</groupId>
@@ -96,7 +21,7 @@
 		<dependency>
 			<groupId>com.github.tix320</groupId>
 			<artifactId>jouska-core</artifactId>
-			<version>2.7.1</version>
+			<version>${project.parent.version}</version>
 		</dependency>
 	</dependencies>
 

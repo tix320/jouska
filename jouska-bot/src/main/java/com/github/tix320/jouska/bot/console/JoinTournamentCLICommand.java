@@ -5,7 +5,7 @@ import java.util.Map;
 
 import com.github.tix320.jouska.bot.console.CLI.CLICommand;
 import com.github.tix320.jouska.bot.console.CLI.CommandException;
-import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
+import com.github.tix320.jouska.bot.service.origin.BotTournamentOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 
 /**

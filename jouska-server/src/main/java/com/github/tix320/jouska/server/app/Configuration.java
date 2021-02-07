@@ -1,46 +1,45 @@
 package com.github.tix320.jouska.server.app;
 
 import java.io.IOException;
-import java.io.InputStream;
+import java.net.InetSocketAddress;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+
+import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.nimble.api.SystemProperties;
 
 public class Configuration {
 
-	private static final Map<String, String> properties = new HashMap<>();
+	private final InetSocketAddress serverAddress;
 
-	static {
-		try (InputStream inputStream = Configuration.class.getResourceAsStream("/config.properties")) {
-			Properties properties = new Properties();
-			properties.load(inputStream);
-			@SuppressWarnings("all")
-			Map<String, String> castedMap = (Map) properties;
-			Configuration.properties.putAll(castedMap);
+	private final String clientAppPAth;
+
+	public Configuration() {
+		String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
+		InetSocketAddress serverAddress;
+		try {
+			serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+		} catch (IllegalArgumentException e) {
+			serverAddress = new InetSocketAddress("localhost", 8888);
 		}
-		catch (IOException e) {
-			e.printStackTrace();
-		}
+
+		String clientAppPath = SystemProperties.getFromEnvOrElseJava("jouska.client-app-path", "client-app");
+
+		this.serverAddress = serverAddress;
+		this.clientAppPAth = clientAppPath;
 	}
 
-	public static int getPort() {
-		return Integer.parseInt(properties.getOrDefault("port", "8888"));
+	public int getPort() {
+		return serverAddress.getPort();
 	}
 
-	public static String getApplicationVersion() {
-		return properties.get("applicationVersion");
-	}
-
-	public static Path getClientAppPath() {
-		Path path = Path.of(properties.getOrDefault("clientAppPath", "client-app"));
+	public Path getClientAppPath() {
+		Path path = Path.of(clientAppPAth);
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectories(path);
-			}
-			catch (IOException e) {
-				e.printStackTrace();
+			} catch (IOException e) {
+				throw new RuntimeException(e);
 			}
 		}
 

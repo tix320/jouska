@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.AppConfig;
-import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
 import com.github.tix320.jouska.client.ui.controller.Component;

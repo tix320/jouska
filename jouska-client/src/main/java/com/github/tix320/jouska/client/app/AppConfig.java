@@ -3,13 +3,17 @@ package com.github.tix320.jouska.client.app;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.time.Duration;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.stream.Collectors;
 
+import com.github.tix320.jouska.client.app.inject.CommonModule;
 import com.github.tix320.jouska.client.app.inject.ControllersModule;
 import com.github.tix320.jouska.client.app.inject.EndpointModule;
+import com.github.tix320.jouska.core.util.ClassUtils;
 import com.github.tix320.ravel.api.Injector;
 import com.github.tix320.ravel.api.bean.BeanDefinition;
 import com.github.tix320.ravel.api.bean.BeanKey;
@@ -24,17 +28,20 @@ public class AppConfig {
 
 	public static Injector INJECTOR;
 
-	public static synchronized void initialize(String host, int port) {
+	public static synchronized void initialize() {
 		if (sonderClient != null) {
 			throw new IllegalStateException("Server already start");
 		}
 
 		Injector injector = new Injector();
+		injector.registerModule(CommonModule.class);
 		injector.registerModule(EndpointModule.class);
 		injector.registerModule(ControllersModule.class);
 
+		Class<?>[] originInterfaces = ClassUtils.getPackageClasses("com.github.tix320.jouska.client.service.origin");
+
 		ClientRPCProtocolBuilder builder = SonderClient.getRPCProtocolBuilder()
-				.scanOriginPackages("com.github.tix320.jouska.client.service.origin")
+				.registerOriginInterfaces(originInterfaces)
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);
 					injector.registerDynamicModule(dynamicOriginsModule);
@@ -42,10 +49,16 @@ public class AppConfig {
 
 		injector.build();
 
-		ClientRPCProtocol protocol = builder.scanEndpointPackages(
-				List.of("com.github.tix320.jouska.client.service.endpoint"), injector::inject).build();
+		Class<?>[] endpointClasses = ClassUtils.getPackageClasses("com.github.tix320.jouska.client.service.endpoint");
+		List<Object> endpointInstances = Arrays.stream(endpointClasses)
+				.map(injector::inject)
+				.collect(Collectors.toList());
 
-		sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
+		ClientRPCProtocol protocol = builder.registerEndpointInstances(endpointInstances).build();
+
+		Configuration configuration = AppConfig.INJECTOR.inject(Configuration.class);
+
+		sonderClient = SonderClient.forAddress(configuration.getServerAddress())
 				.registerProtocol(protocol)
 				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.autoReconnect(true)

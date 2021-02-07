@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.server.app.inject;
 
+import com.github.tix320.jouska.server.app.Configuration;
 import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolver;
 import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.application.TournamentManager;
@@ -16,8 +17,8 @@ import com.github.tix320.ravel.api.scope.Singleton;
 public class EndpointModule {
 
 	@Singleton
-	public ApplicationUpdateEndpoint applicationUpdateEndpoint() {
-		return new ApplicationUpdateEndpoint();
+	public ApplicationUpdateEndpoint applicationUpdateEndpoint(Configuration configuration) {
+		return new ApplicationUpdateEndpoint(configuration);
 	}
 
 	@Singleton

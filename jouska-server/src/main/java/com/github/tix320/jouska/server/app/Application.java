@@ -5,9 +5,9 @@ import java.io.IOException;
 public class Application {
 
 	public static void main(String[] args) throws IOException {
-		int port = Configuration.getPort();
-		AppConfig.initialize(port);
+		AppConfig.initialize();
 		AppConfig.start();
-		System.out.println("Server successfully started on port " + port);
+		Configuration configuration = AppConfig.INJECTOR.inject(Configuration.class);
+		System.out.println("Server successfully started on port " + configuration);
 	}
 }
