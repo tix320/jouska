@@ -10,19 +10,22 @@ import java.time.Duration;
 import java.util.List;
 
 import com.github.tix320.jouska.bot.config.Configuration;
-import com.github.tix320.jouska.bot.config.Version;
 import com.github.tix320.jouska.bot.console.CLI;
 import com.github.tix320.jouska.bot.console.ConsoleProgressBar;
 import com.github.tix320.jouska.bot.console.JoinGameCLICommand;
 import com.github.tix320.jouska.bot.console.JoinTournamentCLICommand;
 import com.github.tix320.jouska.bot.process.BotProcess;
-import com.github.tix320.jouska.bot.service.ApplicationUpdateOrigin;
-import com.github.tix320.jouska.bot.service.AuthenticationService;
-import com.github.tix320.jouska.bot.service.BotGameManagementOrigin;
-import com.github.tix320.jouska.bot.service.BotTournamentOrigin;
+import com.github.tix320.jouska.bot.service.origin.ApplicationUpdateOrigin;
+import com.github.tix320.jouska.bot.service.origin.AuthenticationService;
+import com.github.tix320.jouska.bot.service.origin.BotGameManagementOrigin;
+import com.github.tix320.jouska.bot.service.origin.BotTournamentOrigin;
+import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.util.ClassUtils;
+import com.github.tix320.nimble.api.OS;
+import com.github.tix320.nimble.api.SystemProperties;
 import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
@@ -36,8 +39,10 @@ public class BotApp {
 		String processCommand = args[0];
 		String nickname = args[1];
 		String password = args[2];
-		String host = Configuration.getServerHost();
-		int port = Configuration.getServerPort();
+		Configuration configuration = new Configuration(
+				Path.of(SystemProperties.getUserDirectory(), "jouska-bot", "config.properties"));
+		String host = configuration.getServerHost();
+		int port = configuration.getServerPort();
 
 		// for (int i = 1; i <= 5; i++) {
 		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
@@ -81,9 +86,12 @@ public class BotApp {
 		// 	return;
 		// }
 
+		Class<?>[] originInterfaces = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.origin");
+		Class<?>[] endpointClasses = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.endpoint");
+
 		ClientRPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
-				.scanOriginPackages("com.github.tix320.jouska.bot.service")
-				.scanEndpointPackages("com.github.tix320.jouska.bot.service")
+				.registerOriginInterfaces(originInterfaces)
+				.registerEndpointClasses(endpointClasses)
 				.build();
 		sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
 				.registerProtocol(rpcProtocol)
@@ -118,11 +126,16 @@ public class BotApp {
 	private static void checkApplicationUpdate() throws InterruptedException {
 		ApplicationUpdateOrigin applicationUpdateOrigin = Context.getRPCProtocol()
 				.getOrigin(ApplicationUpdateOrigin.class);
-		String lastVersion = applicationUpdateOrigin.getLatestVersion().get(Duration.ofSeconds(30));
-		if (!lastVersion.equals(Version.VERSION)) { // update
+		Version lastVersion = applicationUpdateOrigin.getVersion().get(Duration.ofSeconds(30));
+		int compareResult = lastVersion.compareTo(Version.CURRENT);
+		if (compareResult < 0) {
+			System.err.printf("Server version - %s, Bot version - %s ", lastVersion, Version.CURRENT);
+			System.exit(1);
+		}
+		if (compareResult > 0) { // update
 			System.out.printf("The newer version of bot is available: %s%n", lastVersion);
 			System.out.println("Start downloading...");
-			applicationUpdateOrigin.downloadBot(Version.os).waitAndApply(Duration.ofSeconds(30), transfer -> {
+			applicationUpdateOrigin.downloadBot(OS.CURRENT).waitAndApply(Duration.ofSeconds(30), transfer -> {
 				boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
 				if (!ready) {
 					throw new IllegalStateException("Unable to download now");
@@ -151,12 +164,10 @@ public class BotApp {
 
 					System.out.printf("New bot zip successfully download, use it: %s%n", fileName);
 					System.exit(0);
-				}
-				catch (IOException e) {
+				} catch (IOException e) {
 					try {
 						sonderClient.stop();
-					}
-					catch (IOException ex) {
+					} catch (IOException ex) {
 						ex.printStackTrace();
 					}
 					throw new RuntimeException(e);

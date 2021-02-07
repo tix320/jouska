@@ -1,34 +1,56 @@
 package com.github.tix320.jouska.bot.config;
 
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
+
+import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.jouska.core.util.PropertiesFile;
+import com.github.tix320.nimble.api.SystemProperties;
 
 public class Configuration {
 
-	private static final Map<String, String> properties = new HashMap<>();
+	private final InetSocketAddress serverAddress;
 
-	static {
-		try (InputStream inputStream = new FileInputStream("config.properties")) {
-			Properties properties = new Properties();
-			properties.load(inputStream);
-			@SuppressWarnings("all")
-			Map<String, String> castedMap = (Map) properties;
-			Configuration.properties.putAll(castedMap);
-		}
-		catch (IOException e) {
+	public Configuration(Path path) {
+		PropertiesFile propertiesFile = null;
+		InetSocketAddress serverAddress = null;
+
+		try {
+			propertiesFile = PropertiesFile.of(path);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
+
+		if (propertiesFile != null) {
+			String hostPort = propertiesFile.getString("server.host-port");
+			try {
+				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+			} catch (IllegalArgumentException ignored) {
+
+			}
+		} else {
+			String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
+			try {
+				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+			} catch (IllegalArgumentException ignored) {
+
+			}
+		}
+
+		if (serverAddress == null) {
+			serverAddress = new InetSocketAddress("localhost", 8888);
+		}
+
+		this.serverAddress = serverAddress;
+
 	}
 
-	public static String getServerHost() {
-		return properties.getOrDefault("serverHost", "localhost");
+	public String getServerHost() {
+		return serverAddress.getHostName();
 	}
 
-	public static int getServerPort() {
-		return Integer.parseInt(properties.getOrDefault("serverPort", "8888"));
+	public int getServerPort() {
+		return serverAddress.getPort();
 	}
 }

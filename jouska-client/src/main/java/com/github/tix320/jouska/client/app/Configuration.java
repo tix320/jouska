@@ -1,60 +1,89 @@
 package com.github.tix320.jouska.client.app;
 
-import java.io.FileInputStream;
-import java.io.FileOutputStream;
+import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Properties;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
+
+import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.jouska.core.util.PropertiesFile;
+import com.github.tix320.nimble.api.SystemProperties;
 
 public class Configuration {
 
-	private static final Map<String, String> properties = new HashMap<>();
+	private final PropertiesFile propertiesFile;
 
-	static {
-		try (InputStream inputStream = new FileInputStream("config.properties")) {
-			Properties properties = new Properties();
-			properties.load(inputStream);
-			@SuppressWarnings("all")
-			Map<String, String> castedMap = (Map) properties;
-			Configuration.properties.putAll(castedMap);
-		}
-		catch (IOException e) {
+	private final InetSocketAddress serverAddress;
+
+	private volatile String nickname;
+
+	private volatile String password;
+
+	public Configuration(Path path) {
+		PropertiesFile propertiesFile = null;
+		InetSocketAddress serverAddress = null;
+		String nickname = null;
+		String password = null;
+
+		try {
+			propertiesFile = PropertiesFile.of(path);
+		} catch (IOException e) {
 			e.printStackTrace();
 		}
-	}
 
-	public static String getServerHost() {
-		return properties.getOrDefault("serverHost", "localhost");
-	}
+		if (propertiesFile != null) {
+			String hostPort = propertiesFile.getString("server.host-port");
+			try {
+				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+			} catch (IllegalArgumentException ignored) {
 
-	public static int getServerPort() {
-		return Integer.parseInt(properties.getOrDefault("serverPort", "8888"));
-	}
+			}
+			nickname = propertiesFile.getString("nickname", "");
+			password = propertiesFile.getString("password", "");
+		} else {
+			String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
+			try {
+				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
+			} catch (IllegalArgumentException ignored) {
 
-	public static String getNickname() {
-		return properties.getOrDefault("nickname", "");
-	}
-
-	public static String getPassword() {
-		return properties.getOrDefault("password", "");
-	}
-
-	public static void updateCredentials(String username, String password) {
-		properties.put("nickname", username);
-		properties.put("password", password);
-		flush();
-	}
-
-	private static void flush() {
-		Properties properties = new Properties();
-		properties.putAll(Configuration.properties);
-		try (FileOutputStream outputStream = new FileOutputStream("config.properties")) {
-			properties.store(outputStream, null);
+			}
 		}
-		catch (IOException e) {
-			e.printStackTrace();
+
+		if (serverAddress == null) {
+			serverAddress = new InetSocketAddress("localhost", 8888);
+		}
+
+		this.propertiesFile = propertiesFile;
+		this.serverAddress = serverAddress;
+		this.nickname = nickname;
+		this.password = password;
+
+	}
+
+	public InetSocketAddress getServerAddress() {
+		return serverAddress;
+	}
+
+	public String getNickname() {
+		return nickname;
+	}
+
+	public String getPassword() {
+		return password;
+	}
+
+	public synchronized void updateCredentials(String nickname, String password) {
+		this.nickname = nickname;
+		this.password = password;
+
+		if (propertiesFile != null) {
+			propertiesFile.set("nickname", nickname);
+			propertiesFile.set("password", password);
+			try {
+				propertiesFile.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
 		}
 	}
 }

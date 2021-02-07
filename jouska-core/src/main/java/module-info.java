@@ -6,6 +6,9 @@ open module jouska.core {
 	requires com.github.tix.kiwi;
 	requires com.github.tix.skimp;
 
+	requires io.github.classgraph;
+
+	exports com.github.tix320.jouska.core;
 	exports com.github.tix320.jouska.core.model;
 	exports com.github.tix320.jouska.core.dto;
 	exports com.github.tix320.jouska.core.application.game;

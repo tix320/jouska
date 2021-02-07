@@ -8,4 +8,5 @@ open module jouska.client {
 
 	requires com.github.tix.sonder;
 	requires com.github.tix.ravel;
+	requires com.github.tix.nimble;
 }

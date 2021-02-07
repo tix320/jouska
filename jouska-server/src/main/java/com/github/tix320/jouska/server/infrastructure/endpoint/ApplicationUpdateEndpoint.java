@@ -8,11 +8,12 @@ import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import com.github.tix320.jouska.core.infrastructure.OS;
+import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.app.Configuration;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
+import com.github.tix320.nimble.api.OS;
 import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.common.communication.*;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
@@ -29,14 +30,20 @@ public class ApplicationUpdateEndpoint {
 	private static final String MAC_CLIENT_FILE_NAME = "/jouska-client-mac.zip";
 	private static final String MAC_BOT_FILE_NAME = "/jouska-bot-mac.zip";
 
+	private final Configuration configuration;
+
+	public ApplicationUpdateEndpoint(Configuration configuration) {
+		this.configuration = configuration;
+	}
+
 	@Endpoint
-	public String getLatestVersion() {
-		return Configuration.getApplicationVersion();
+	public Version getVersion() {
+		return Version.CURRENT;
 	}
 
 	@Endpoint
 	public Transfer downloadClient(OS os) {
-		Path clientAppPath = Configuration.getClientAppPath();
+		Path clientAppPath = configuration.getClientAppPath();
 		switch (os) {
 			case WINDOWS:
 				return fileToTransfer(clientAppPath + WINDOWS_CLIENT_FILE_NAME);
@@ -51,7 +58,7 @@ public class ApplicationUpdateEndpoint {
 
 	@Endpoint
 	public Transfer downloadBot(OS os) {
-		Path clientAppPath = Configuration.getClientAppPath();
+		Path clientAppPath = configuration.getClientAppPath();
 		switch (os) {
 			case WINDOWS:
 				return fileToTransfer(clientAppPath + WINDOWS_BOT_FILE_NAME);
@@ -66,19 +73,19 @@ public class ApplicationUpdateEndpoint {
 
 	@Endpoint
 	public void uploadWindowsClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
-		Path clientAppPath = Configuration.getClientAppPath();
+		Path clientAppPath = configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + WINDOWS_CLIENT_FILE_NAME);
 	}
 
 	@Endpoint
 	public void uploadLinuxClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
-		Path clientAppPath = Configuration.getClientAppPath();
+		Path clientAppPath = configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + LINUX_CLIENT_FILE_NAME);
 	}
 
 	@Endpoint
 	public void uploadMacClient(Transfer transfer, @CallerUser(role = Role.ADMIN) Player player) {
-		Path clientAppPath = Configuration.getClientAppPath();
+		Path clientAppPath = configuration.getClientAppPath();
 		transferToFile(transfer, clientAppPath + MAC_CLIENT_FILE_NAME);
 	}
 

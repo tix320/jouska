@@ -7,10 +7,9 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
-import com.github.tix320.jouska.client.app.Version;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
-import com.github.tix320.jouska.core.infrastructure.OS;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.nimble.OS;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
@@ -58,7 +57,7 @@ public class UpdateAppController implements Controller<String> {
 		Observable<Transfer> observable;
 		String fileName;
 		String command;
-		switch (Version.os) {
+		switch (OS.CURRENT) {
 			case WINDOWS:
 				observable = applicationUpdateOrigin.downloadClient(OS.WINDOWS);
 				fileName = "jouska-windows.zip";
@@ -75,7 +74,7 @@ public class UpdateAppController implements Controller<String> {
 				command = "sh update-mac.sh";
 				break;
 			default:
-				throw new IllegalStateException(Version.os + "");
+				throw new IllegalStateException(OS.CURRENT + "");
 		}
 
 		observable.subscribe(transfer -> {
