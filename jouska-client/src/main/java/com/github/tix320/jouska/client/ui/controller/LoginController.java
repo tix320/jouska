@@ -29,9 +29,12 @@ public class LoginController implements Controller<Credentials> {
 	@FXML
 	private Label errorLabel;
 
+	private final Configuration configuration;
+
 	private final AuthenticationOrigin authenticationOrigin;
 
-	public LoginController(AuthenticationOrigin authenticationOrigin) {
+	public LoginController(Configuration configuration, AuthenticationOrigin authenticationOrigin) {
+		this.configuration = configuration;
 		this.authenticationOrigin = authenticationOrigin;
 	}
 
@@ -54,46 +57,37 @@ public class LoginController implements Controller<Credentials> {
 		Credentials credentials = new Credentials(nicknameInput.getText(), passwordInput.getText());
 		authenticationOrigin.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {
-				case SUCCESS:
-					Configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
+				case SUCCESS -> {
+					configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
 					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
 					UI.switchComponent(ComponentType.MENU);
-					break;
-				case ALREADY_LOGGED:
-					Platform.runLater(() -> {
-						Alert alert = new Alert(AlertType.CONFIRMATION);
-						alert.setTitle("Confirmation");
-						alert.setHeaderText("Another logged session found.");
-						alert.setContentText(String.format(
-								"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
-								loginAnswer.getPlayer().getNickname()));
+				}
+				case ALREADY_LOGGED -> Platform.runLater(() -> {
+					Alert alert = new Alert(AlertType.CONFIRMATION);
+					alert.setTitle("Confirmation");
+					alert.setHeaderText("Another logged session found.");
+					alert.setContentText(String.format(
+							"Dear %s. You are already logged with other session. Are you sure want to login now? Other session will be stopped.",
+							loginAnswer.getPlayer().getNickname()));
 
-						Optional<ButtonType> result = alert.showAndWait();
-						if (result.isPresent() && result.get() == ButtonType.OK) {
-							authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
-								switch (answer.getLoginResult()) {
-									case SUCCESS:
-										CurrentUserContext.setPlayer(answer.getPlayer());
-										UI.switchComponent(ComponentType.MENU);
-										break;
-									case INVALID_CREDENTIALS:
-										showError("Invalid username/password");
-										break;
-									default:
-										throw new IllegalStateException();
+					Optional<ButtonType> result = alert.showAndWait();
+					if (result.isPresent() && result.get() == ButtonType.OK) {
+						authenticationOrigin.forceLogin(credentials).subscribe(answer -> {
+							switch (answer.getLoginResult()) {
+								case SUCCESS -> {
+									CurrentUserContext.setPlayer(answer.getPlayer());
+									UI.switchComponent(ComponentType.MENU);
 								}
-							});
-						}
-						else {
-							UI.switchComponent(ComponentType.LOGIN, credentials);
-						}
-					});
-					break;
-				case INVALID_CREDENTIALS:
-					showError("Invalid username/password");
-					break;
-				default:
-					throw new IllegalStateException();
+								case INVALID_CREDENTIALS -> showError("Invalid username/password");
+								default -> throw new IllegalStateException();
+							}
+						});
+					} else {
+						UI.switchComponent(ComponentType.LOGIN, credentials);
+					}
+				});
+				case INVALID_CREDENTIALS -> showError("Invalid username/password");
+				default -> throw new IllegalStateException();
 			}
 		});
 	}

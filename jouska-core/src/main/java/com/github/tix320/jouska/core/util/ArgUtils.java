@@ -8,14 +8,14 @@ import java.net.InetSocketAddress;
  **/
 public class ArgUtils {
 
-	public static InetSocketAddress resolveHostAndPort(String hostAndPort) {
-		if (hostAndPort == null) {
-			throw new IllegalArgumentException("Host not specified");
+	public static InetSocketAddress resolveSocketAddress(String address) {
+		if (address == null) {
+			throw new IllegalArgumentException("Address not specified");
 		}
 
-		String[] parts = hostAndPort.split(":");
+		String[] parts = address.split(":");
 		if (parts.length != 2) {
-			throw new IllegalArgumentException("Invalid host and port: " + hostAndPort);
+			throw new IllegalArgumentException("Invalid address: " + address);
 		}
 
 		String host = parts[0];
@@ -23,6 +23,4 @@ public class ArgUtils {
 
 		return new InetSocketAddress(host, port);
 	}
-
-	public static String get
 }

@@ -48,9 +48,12 @@ public final class MenuController implements Controller<Object> {
 
 	private final MonoPublisher<None> destroyPublisher = Publisher.mono();
 
+	private final Configuration configuration;
+
 	private final AuthenticationOrigin authenticationOrigin;
 
-	public MenuController(AuthenticationOrigin authenticationOrigin) {
+	public MenuController(Configuration configuration, AuthenticationOrigin authenticationOrigin) {
+		this.configuration = configuration;
 		this.authenticationOrigin = authenticationOrigin;
 	}
 
@@ -122,7 +125,7 @@ public final class MenuController implements Controller<Object> {
 	public void logout() {
 		CurrentUserContext.setPlayer(null);
 		authenticationOrigin.logout();
-		Configuration.updateCredentials("", "");
+		configuration.updateCredentials("", "");
 		UI.switchComponent(ComponentType.LOGIN);
 	}
 

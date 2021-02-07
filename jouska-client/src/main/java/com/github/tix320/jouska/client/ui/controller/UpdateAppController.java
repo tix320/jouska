@@ -9,7 +9,7 @@ import java.nio.file.StandardOpenOption;
 
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.nimble.OS;
+import com.github.tix320.nimble.api.OS;
 import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;
@@ -58,23 +58,22 @@ public class UpdateAppController implements Controller<String> {
 		String fileName;
 		String command;
 		switch (OS.CURRENT) {
-			case WINDOWS:
+			case WINDOWS -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.WINDOWS);
 				fileName = "jouska-windows.zip";
 				command = "cmd /c start \"\" update.bat";
-				break;
-			case LINUX:
+			}
+			case LINUX -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.LINUX);
 				fileName = "jouska-linux.zip";
 				command = "sh update-linux.sh";
-				break;
-			case MAC:
+			}
+			case MAC -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.MAC);
 				fileName = "jouska-mac.zip";
 				command = "sh update-mac.sh";
-				break;
-			default:
-				throw new IllegalStateException(OS.CURRENT + "");
+			}
+			default -> throw new IllegalStateException(OS.CURRENT + "");
 		}
 
 		observable.subscribe(transfer -> {
@@ -108,8 +107,7 @@ public class UpdateAppController implements Controller<String> {
 						getRuntime().
 						exec(command, null, new File("."));
 				System.exit(0);
-			}
-			catch (IOException e) {
+			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}
 		});

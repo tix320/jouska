@@ -5,6 +5,7 @@ import java.net.InetSocketAddress;
 import java.nio.file.Path;
 
 import com.github.tix320.jouska.core.util.ArgUtils;
+import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.jouska.core.util.PropertiesFile;
 import com.github.tix320.nimble.api.SystemProperties;
 
@@ -22,20 +23,16 @@ public class Configuration {
 			e.printStackTrace();
 		}
 
+		String hostPort;
 		if (propertiesFile != null) {
-			String hostPort = propertiesFile.getString("server.host-port");
-			try {
-				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
-			} catch (IllegalArgumentException ignored) {
-
-			}
+			hostPort = propertiesFile.getString(JouskaProperties.SERVER_ADDRESS);
 		} else {
-			String hostPort = SystemProperties.getFromEnvOrElseJava("jouska.server.host-port");
-			try {
-				serverAddress = ArgUtils.resolveHostAndPort(hostPort);
-			} catch (IllegalArgumentException ignored) {
+			hostPort = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_ADDRESS);
+		}
+		try {
+			serverAddress = ArgUtils.resolveSocketAddress(hostPort);
+		} catch (IllegalArgumentException ignored) {
 
-			}
 		}
 
 		if (serverAddress == null) {
@@ -44,13 +41,22 @@ public class Configuration {
 
 		this.serverAddress = serverAddress;
 
+		fillPropertiesFile(propertiesFile);
 	}
 
-	public String getServerHost() {
-		return serverAddress.getHostName();
+	public InetSocketAddress getServerAddress() {
+		return serverAddress;
 	}
 
-	public int getServerPort() {
-		return serverAddress.getPort();
+	private void fillPropertiesFile(PropertiesFile propertiesFile) {
+		if (propertiesFile != null) {
+			propertiesFile.putIfAbsent(JouskaProperties.SERVER_ADDRESS,
+					serverAddress.getHostName() + ":" + serverAddress.getPort());
+			try {
+				propertiesFile.flush();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 }
