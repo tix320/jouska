@@ -56,7 +56,7 @@ public class AppConfig {
 
 		ClientRPCProtocol protocol = builder.registerEndpointInstances(endpointInstances).build();
 
-		Configuration configuration = AppConfig.INJECTOR.inject(Configuration.class);
+		Configuration configuration = injector.inject(Configuration.class);
 
 		sonderClient = SonderClient.forAddress(configuration.getServerAddress())
 				.registerProtocol(protocol)

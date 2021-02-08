@@ -9,7 +9,7 @@ import com.github.tix320.ravel.api.scope.Prototype;
 /**
  * @author Tigran Sargsyan on 27-Aug-20
  */
-@UseModules(dynamic = "origins")
+@UseModules(classes = CommonModule.class, dynamic = "origins")
 public class ControllersModule {
 
 	@Prototype

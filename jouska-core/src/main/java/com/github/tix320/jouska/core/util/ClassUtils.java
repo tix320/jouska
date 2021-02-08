@@ -10,7 +10,7 @@ import io.github.classgraph.ScanResult;
 public class ClassUtils {
 
 	public static Class<?>[] getPackageClasses(String packageName) {
-		try (ScanResult scanResult = new ClassGraph().acceptPackages().enableClassInfo().scan()) {
+		try (ScanResult scanResult = new ClassGraph().acceptPackages(packageName).enableClassInfo().scan()) {
 			return scanResult.getAllClasses().getNames().stream().map(s -> {
 				try {
 					return Class.forName(s);
