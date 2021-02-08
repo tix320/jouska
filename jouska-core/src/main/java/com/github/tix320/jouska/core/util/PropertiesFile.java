@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
 import java.util.Properties;
@@ -20,9 +21,8 @@ public class PropertiesFile {
 	private final Map<String, String> properties;
 
 	private PropertiesFile(Path path) throws IOException {
-		File file = path.toFile();
-		file.createNewFile();
-		this.file = file;
+		createFileIfNotValid(path);
+		this.file = path.toFile();
 		Properties properties = new Properties();
 		try (FileInputStream stream = new FileInputStream(file)) {
 			properties.load(stream);
@@ -72,6 +72,26 @@ public class PropertiesFile {
 		properties.putAll(this.properties);
 		try (FileOutputStream outputStream = new FileOutputStream(file)) {
 			properties.store(outputStream, null);
+		}
+	}
+
+	private static void createFileIfNotValid(Path path) throws IOException {
+		boolean needCreate;
+		if (Files.exists(path)) {
+			if (Files.isRegularFile(path)) {
+				needCreate = false;
+			} else {
+				Files.delete(path);
+				needCreate = true;
+			}
+		} else {
+			needCreate = true;
+		}
+
+		if (needCreate) {
+			Path parentDirectory = path.getParent();
+			Files.createDirectories(parentDirectory);
+			Files.createFile(path);
 		}
 	}
 }
