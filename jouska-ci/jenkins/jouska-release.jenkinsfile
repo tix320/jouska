@@ -4,6 +4,8 @@ def JOUSKA_SERVER_PORT = params.JOUSKA_SERVER_PORT
 
 def RELEASE_VERSION
 
+def CLIENT_APP_DIR = "client-app"
+
 def JDK_PATH_PREFIX = '/opt/jdk'
 def JAVAFX_PATH_PREFIX = '/opt/javafx'
 
@@ -46,47 +48,15 @@ node('JAVAFX') {
     }
 
     stage('Build Linux Client') {
-        def jdkPath = "$JDK_PATH_PREFIX/linux"
-        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
-        sh "sh jouska-ci/build/unix/linux/linux-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
-
-        sh "sh jouska-ci/build/unix/linux/linux-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
-
-        archiveArtifacts artifacts: "client-app/jouska-linux.zip",
-                fingerprint: true
-
-        archiveArtifacts artifacts: "client-app/jouska-bot-linux.zip",
-                fingerprint: true
+       createImageAndArchive("linux")
     }
 
     stage('Build Mac Client') {
-        def jdkPath = "$JDK_PATH_PREFIX/mac/Contents/Home"
-        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/mac"
-
-        sh "sh jouska-ci/build/unix/mac/mac-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
-
-        sh "sh jouska-ci/build/unix/mac/mac-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
-
-        archiveArtifacts artifacts: "client-app/jouska-mac.zip",
-                fingerprint: true
-
-        archiveArtifacts artifacts: "client-app/jouska-bot-mac.zip",
-                fingerprint: true
+        createImageAndArchive("mac")
     }
 
     stage('Build Windows Client') {
-        def jdkPath = "$JDK_PATH_PREFIX/windows"
-        def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
-
-        sh "sh jouska-ci/build/windows/windows-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath $javaFxJmodsPath client-app"
-
-        sh "sh jouska-ci/build/windows/windows-bot-build.sh \"-Djouska.server.host=$JOUSKA_SERVER_HOST -Djouska.server.port=$JOUSKA_SERVER_PORT\" $jdkPath client-app"
-
-        archiveArtifacts artifacts: "client-app/jouska-windows.zip",
-                fingerprint: true
-
-        archiveArtifacts artifacts: "client-app/jouska-bot-windows.zip",
-                fingerprint: true
+        createImageAndArchive("windows")
     }
 
     stage('Build Server Image') {
@@ -106,4 +76,21 @@ node('JAVAFX') {
         sh "git tag v${RELEASE_VERSION}"
         sh "git push origin HEAD:refs/heads/master --tags"
     }
+}
+
+def createImageAndArchive(String osName) {
+    def jdkPath = "$JDK_PATH_PREFIX/$osName"
+    def javaFxJmodsPath = "$JAVAFX_PATH_PREFIX/$osName"
+    sh "sh jouska-ci/build/script/client-build.sh $jdkPath $javaFxJmodsPath $JOUSKA_SERVER_HOST $JOUSKA_SERVER_PORT"
+    sh "sh jouska-ci/build/script/bot-build.sh $jdkPath $JOUSKA_SERVER_HOST $JOUSKA_SERVER_PORT"
+
+    def clientZipPath = "$CLIENT_APP_DIR/jouska-${osName}.zip"
+    def botZipPath = "$CLIENT_APP_DIR/jouska-bot-${osName}.zip"
+
+    sh "mv jouska-client/target/image.zip $clientZipPath"
+    sh "mv jouska-bot/target/image.zip $botZipPath"
+
+    archiveArtifacts artifacts: clientZipPath, fingerprint: true
+
+    archiveArtifacts artifacts: botZipPath, fingerprint: true
 }
