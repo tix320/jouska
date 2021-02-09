@@ -19,4 +19,10 @@ jlink --compress 1 --no-header-files --no-man-pages --strip-debug `
 --module-path "$JDKJmodsPath;$JavaFxJmodsPath;jouska-client/target/app.jar;jouska-client/target/lib/" `
 --add-modules "jouska.client" `
 --add-options="-Djouska.server.host=$serverHost -Djouska.server.port=$serverPort" `
---output "jouska-client/target/output"
+--output "jouska-client/target/image"
+
+$compress = @{
+    Path = "jouska-client/target/image"
+    CompressionLevel = "Fastest"
+    DestinationPath = "jouska-client/target/image.zip"
+}
