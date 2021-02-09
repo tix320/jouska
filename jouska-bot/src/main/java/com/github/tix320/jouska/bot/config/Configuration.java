@@ -23,7 +23,7 @@ public class Configuration {
 		}
 
 		String host;
-		int port;
+		Integer port;
 		if (propertiesFile != null) {
 			host = propertiesFile.getString(JouskaProperties.SERVER_HOST);
 			port = propertiesFile.getInt(JouskaProperties.SERVER_PORT);
@@ -32,12 +32,11 @@ public class Configuration {
 			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT));
 		}
 		try {
+			if (port == null) {
+				port = 8888;
+			}
 			serverAddress = new InetSocketAddress(host, port);
 		} catch (IllegalArgumentException ignored) {
-
-		}
-
-		if (serverAddress == null) {
 			serverAddress = new InetSocketAddress("localhost", 8888);
 		}
 

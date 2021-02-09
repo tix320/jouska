@@ -69,7 +69,7 @@ public class AppConfig {
 		PlayerService playerService = injector.inject(PlayerService.class);
 		ClientPlayerMappingResolver clientPlayerMappingResolver = injector.inject(ClientPlayerMappingResolver.class);
 
-		Configuration configuration = AppConfig.INJECTOR.inject(Configuration.class);
+		Configuration configuration = injector.inject(Configuration.class);
 
 		sonderServer = SonderServer.forAddress(new InetSocketAddress(configuration.getPort()))
 				.registerProtocol(protocol)
