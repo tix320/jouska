@@ -15,7 +15,9 @@ public class Configuration {
 	private final String clientAppPAth;
 
 	public Configuration() {
-		int port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT));
+		int port;
+		String portString = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT);
+		port = portString == null ? 8888 : Integer.parseInt(portString);
 		InetSocketAddress serverAddress;
 		try {
 			serverAddress = new InetSocketAddress(port);

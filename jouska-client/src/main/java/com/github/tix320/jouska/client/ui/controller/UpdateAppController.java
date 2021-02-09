@@ -60,18 +60,18 @@ public class UpdateAppController implements Controller<String> {
 		switch (OS.CURRENT) {
 			case WINDOWS -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.WINDOWS);
-				fileName = "jouska-windows.zip";
-				command = "cmd /c start \"\" update.bat";
+				fileName = "jouska-windows.zip"; //TODO commands
+				command = "ping 127.0.0.1 -n 6 > nul && unzip -o jouska-windows.zip && del /f jouska-windows.zip\n";
 			}
 			case LINUX -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.LINUX);
 				fileName = "jouska-linux.zip";
-				command = "sh update-linux.sh";
+				command = "sh sleep 5 && unzip -o jouska-linux.zip";
 			}
 			case MAC -> {
 				observable = applicationUpdateOrigin.downloadClient(OS.MAC);
 				fileName = "jouska-mac.zip";
-				command = "sh update-mac.sh";
+				command = "sh sleep 5 && unzip -o jouska-mac.zip";
 			}
 			default -> throw new IllegalStateException(OS.CURRENT + "");
 		}

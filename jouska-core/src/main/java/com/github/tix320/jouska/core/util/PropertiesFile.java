@@ -50,11 +50,16 @@ public class PropertiesFile {
 		}
 	}
 
-	public int getInt(String key) {
-		return Integer.parseInt(getString(key));
+	public Integer getInt(String key) {
+		String value = getString(key);
+		if (value == null) {
+			return null;
+		}
+
+		return Integer.parseInt(value);
 	}
 
-	public int getInt(String key, int defaultValue) {
+	public Integer getInt(String key, int defaultValue) {
 		String value = getString(key, defaultValue + "");
 		return Integer.parseInt(value);
 	}
