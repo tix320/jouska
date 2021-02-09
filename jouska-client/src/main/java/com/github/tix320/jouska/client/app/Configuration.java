@@ -4,7 +4,6 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.file.Path;
 
-import com.github.tix320.jouska.core.util.ArgUtils;
 import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.jouska.core.util.PropertiesFile;
 import com.github.tix320.nimble.api.SystemProperties;
@@ -31,22 +30,22 @@ public class Configuration {
 			e.printStackTrace();
 		}
 
+		String host;
+		int port;
 		if (propertiesFile != null) {
-			String hostPort = propertiesFile.getString(JouskaProperties.SERVER_ADDRESS);
-			try {
-				serverAddress = ArgUtils.resolveSocketAddress(hostPort);
-			} catch (IllegalArgumentException ignored) {
-
-			}
+			host = propertiesFile.getString(JouskaProperties.SERVER_HOST);
+			port = propertiesFile.getInt(JouskaProperties.SERVER_PORT);
 			nickname = propertiesFile.getString(JouskaProperties.NICKNAME, "");
 			password = propertiesFile.getString(JouskaProperties.PASSWORD, "");
 		} else {
-			String hostPort = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_ADDRESS);
-			try {
-				serverAddress = ArgUtils.resolveSocketAddress(hostPort);
-			} catch (IllegalArgumentException ignored) {
+			host = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_HOST);
+			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT));
+		}
 
-			}
+		try {
+			serverAddress = new InetSocketAddress(host, port);
+		} catch (IllegalArgumentException ignored) {
+
 		}
 
 		if (serverAddress == null) {
@@ -90,7 +89,8 @@ public class Configuration {
 
 	private void fillPropertiesFile(PropertiesFile propertiesFile) {
 		if (propertiesFile != null) {
-			propertiesFile.putIfAbsent(JouskaProperties.SERVER_ADDRESS, serverAddress.getHostName() + ":" + serverAddress.getPort());
+			propertiesFile.putIfAbsent(JouskaProperties.SERVER_HOST, serverAddress.getHostName());
+			propertiesFile.putIfAbsent(JouskaProperties.SERVER_PORT, String.valueOf(serverAddress.getPort()));
 			try {
 				propertiesFile.flush();
 			} catch (IOException e) {
