@@ -110,18 +110,18 @@ public class GameCreatingController implements Controller<Object> {
 			if (!nonExistingNicknames.isEmpty()) {
 				showError(String.format("The following nicknames does not exists %s", nonExistingNicknames));
 				loading.set(false);
-			}
-			else {
+			} else {
 				gameManagementOrigin.create(new CreateGameCommand(new TimedGameSettingsDto(
 						new SimpleGameSettingsDto(gameNameInput.getText(), BoardType.STANDARD,
 								playersCountChoice.getValue()), turnDuration.get(), playerTurnTotalDurationSeconds),
 						new HashSet<>(players))).subscribe(response -> {
-					if (response.isSuccess()) {
+					try {
+						//noinspection ResultOfMethodCallIgnored
+						response.get();
 						EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.LOBBY));
-					}
-					else {
+					} catch (Exception e) {
 						loading.set(false);
-						response.getError().printStackTrace();
+						e.printStackTrace();
 					}
 				});
 			}

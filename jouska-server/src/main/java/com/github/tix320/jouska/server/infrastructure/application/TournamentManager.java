@@ -21,6 +21,7 @@ import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
 import com.github.tix320.skimp.api.collection.Tuple;
+import com.github.tix320.skimp.api.exception.ThreadInterruptedException;
 import com.github.tix320.skimp.api.object.None;
 
 public class TournamentManager {
@@ -83,7 +84,7 @@ public class TournamentManager {
 					canJoin = true;
 				}
 			}
-			catch (TimeoutException | InterruptedException e) {
+			catch (TimeoutException | ThreadInterruptedException e) {
 				canJoin = false;
 			}
 		}

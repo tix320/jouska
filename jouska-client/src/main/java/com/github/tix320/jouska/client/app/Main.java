@@ -12,7 +12,6 @@ import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
-import com.github.tix320.sonder.api.client.event.ConnectionEstablishedEvent;
 import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -40,25 +39,20 @@ public class Main extends Application {
 		UI.switchComponent(ComponentType.SERVER_CONNECT).subscribe(none -> {
 			Platform.runLater(stage::show);
 
-			AppConfig.sonderClient.getEventListener()
-					.on(ConnectionEstablishedEvent.class)
-					.toMono()
-					.subscribe(connectionEstablishedEvent -> {
-						ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(
-								ApplicationUpdateOrigin.class);
-						applicationUpdateOrigin.getVersion().subscribe(lastVersion -> {
-							int compareResult = lastVersion.compareTo(Version.CURRENT);
-							if (compareResult < 0) {
-								System.err.printf("Server version - %s, Bot version - %s ", lastVersion,
-										Version.CURRENT);
-								System.exit(1);
-							} else if (compareResult > 0) { // update
-								UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
-							} else {
-								authenticate();
-							}
-						});
-					});
+			AppConfig.sonderClient.events().connected().toMono().subscribe(connectionEstablishedEvent -> {
+				ApplicationUpdateOrigin applicationUpdateOrigin = INJECTOR.inject(ApplicationUpdateOrigin.class);
+				applicationUpdateOrigin.getVersion().subscribe(lastVersion -> {
+					int compareResult = lastVersion.compareTo(Version.CURRENT);
+					if (compareResult < 0) {
+						System.err.printf("Server version - %s, Bot version - %s ", lastVersion, Version.CURRENT);
+						System.exit(1);
+					} else if (compareResult > 0) { // update
+						UI.switchComponent(ComponentType.UPDATE_APP, lastVersion);
+					} else {
+						authenticate();
+					}
+				});
+			});
 
 			try {
 				AppConfig.connectToServer();

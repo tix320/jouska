@@ -1,6 +1,7 @@
 package com.github.tix320.jouska.client.infrastructure;
 
 import java.io.IOException;
+import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
 
 import com.github.tix320.jouska.client.app.AppConfig;
@@ -16,7 +17,6 @@ import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.skimp.api.object.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
@@ -42,8 +42,7 @@ public final class UI {
 			stage.getIcons().add(new Image(UI.class.getResourceAsStream("/installer.ico")));
 			stage.setTitle("Jouska " + Version.CURRENT);
 			normalize();
-		}
-		else {
+		} else {
 			throw new IllegalStateException("Application already initialized");
 		}
 
@@ -103,12 +102,18 @@ public final class UI {
 		return new ComponentImpl(root, controller);
 	}
 
+	@SuppressWarnings("unchecked")
 	public static Component loadNotificationComponent(NotificationType notificationType, NotificationEvent<?, ?> data) {
 		ComponentType componentType = notificationType.componentType;
 
-		@SuppressWarnings("unchecked")
-		NotificationController<NotificationEvent<?, ?>> controller = (NotificationController<NotificationEvent<?, ?>>) Try
-				.supplyOrRethrow(() -> notificationType.controllerClass.getConstructors()[0].newInstance());
+		NotificationController<NotificationEvent<?, ?>> controller;
+		try {
+			controller = (NotificationController<NotificationEvent<?, ?>>) notificationType.controllerClass.getConstructors()[0]
+					.newInstance();
+		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
+			throw new RuntimeException(e);
+		}
+
 		FXMLLoader fxmlLoader = loadFxml(componentType, controller);
 
 		controller.init(data);
@@ -124,14 +129,12 @@ public final class UI {
 		FXMLLoader loader = new FXMLLoader(resource);
 		if (controller == null) {
 			loader.setControllerFactory(controllerClass -> AppConfig.INJECTOR.inject(controllerClass));
-		}
-		else {
+		} else {
 			loader.setController(controller);
 		}
 		try {
 			loader.load();
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			throw new IllegalArgumentException(String.format("Scene %s not found", componentType), e);
 		}
 

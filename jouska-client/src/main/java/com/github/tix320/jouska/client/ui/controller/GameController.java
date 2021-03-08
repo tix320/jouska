@@ -28,7 +28,6 @@ import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
 import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.skimp.api.object.None;
 import javafx.animation.*;
 import javafx.application.Platform;
@@ -113,8 +112,7 @@ public class GameController implements Controller<GameWatchDto> {
 		if (gameWatchDto instanceof GamePlayDto) {
 			this.playerMode = PlayerMode.PLAY;
 			rightPane.getChildren().remove(gameSpeedSlider);
-		}
-		else {
+		} else {
 			this.playerMode = PlayerMode.WATCH;
 			Platform.runLater(() -> {
 				gameSpeedSlider.setLabel("Game speed");
@@ -142,8 +140,7 @@ public class GameController implements Controller<GameWatchDto> {
 
 		if (playerMode == PlayerMode.PLAY) {
 			this.myPlayer = new GamePlayer(CurrentUserContext.getPlayer(), ((GamePlayDto) gameWatchDto).getMyPlayer());
-		}
-		else {
+		} else {
 			this.myPlayer = new GamePlayer(CurrentUserContext.getPlayer(), PlayerColor.RED);
 		}
 
@@ -199,18 +196,15 @@ public class GameController implements Controller<GameWatchDto> {
 			if (losers.contains(myPlayer)) {
 				showLose();
 			}
-		}
-		else if (gameChange instanceof PlayerLeaveDto) {
+		} else if (gameChange instanceof PlayerLeaveDto) {
 			PlayerLeaveDto playerLeave = (PlayerLeaveDto) gameChange;
 			kickPlayer(playerLeave);
-		}
-		else if (gameChange instanceof GameCompleteDto) {
+		} else if (gameChange instanceof GameCompleteDto) {
 			GameCompleteDto gameComplete = (GameCompleteDto) gameChange;
 			if (!game.isCompleted()) {
 				game.forceCompleteGame(gameComplete.getWinner().getRealPlayer());
 			}
-		}
-		else {
+		} else {
 			throw new IllegalArgumentException();
 		}
 		turned.set(false);
@@ -292,7 +286,11 @@ public class GameController implements Controller<GameWatchDto> {
 			long turnDurationMillis = gameSettings.getTurnDurationSeconds() * 1000L;
 			long remainingTurnMillis = playerTurnDto.getRemainingTurnMillis();
 			long timeToSleep = (long) ((turnDurationMillis - remainingTurnMillis) / gameSpeedCoefficient.get());
-			Try.run(() -> Thread.sleep(timeToSleep));
+			try {
+				Thread.sleep(timeToSleep);
+			} catch (InterruptedException e) {
+				throw new IllegalStateException(e);
+			}
 		}
 		Platform.runLater(() -> {
 			turnTimeIndicator.stop();
@@ -343,8 +341,7 @@ public class GameController implements Controller<GameWatchDto> {
 		Platform.runLater(() -> {
 			if (playerMode == PlayerMode.WATCH) {
 				show3PartyWin(winner);
-			}
-			else {
+			} else {
 				if (myPlayer.equals(winner)) {
 					showWin();
 				}
@@ -396,7 +393,8 @@ public class GameController implements Controller<GameWatchDto> {
 		Publisher<None> onFinishPublisher = Publisher.mono();
 		fullTransition.setOnFinished(event -> onFinishPublisher.publish(None.SELF));
 		fullTransition.play();
-		Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
+
+		onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3));
 	}
 
 	private Transition appearLoseWinLabel(String text, Color color) {
@@ -437,15 +435,13 @@ public class GameController implements Controller<GameWatchDto> {
 				tile.setHoverColorFactory(() -> {
 					if (game.isCompleted()) {
 						return null;
-					}
-					else {
+					} else {
 						PlayerColor currentPlayerColor = game.getCurrentPlayer().getColor();
 						PlayerColor myPlayerColor = myPlayer.getColor();
 						if (currentPlayerColor == myPlayerColor
 							&& game.getBoard().get(x, y).getColor() == myPlayerColor) {
 							return Color.web(currentPlayerColor.getColorCode());
-						}
-						else {
+						} else {
 							return Color.rgb(181, 167, 167);
 						}
 					}
@@ -513,8 +509,7 @@ public class GameController implements Controller<GameWatchDto> {
 				gameOrigin.turn(gameId, point);
 				turned.set(true);
 				tile.animateBackground(Color.web(myPlayer.getColor().getColorCode())).play();
-			}
-			else {
+			} else {
 				turned.set(false);
 				tile.animateBackground(Color.GRAY).play();
 			}
@@ -533,7 +528,8 @@ public class GameController implements Controller<GameWatchDto> {
 
 		if (root.getChildren().isEmpty()) {
 			fullAnimation.play();
-			Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
+
+			onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3));
 			return;
 		}
 
@@ -576,7 +572,7 @@ public class GameController implements Controller<GameWatchDto> {
 		}
 
 		fullAnimation.play();
-		Try.runOrRethrow(() -> onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3)));
+		onFinishPublisher.asObservable().await(java.time.Duration.ofMinutes(3));
 	}
 
 	private Transition makeTileTransition(Point point, BoardCell boardCell, Duration duration) {

@@ -12,9 +12,9 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>2.2.2-SNAPSHOT</sonder.version>
-		<ravel.version>0.1.0</ravel.version>
-		<nimble.version>0.1.0-SNAPSHOT</nimble.version>
+		<sonder.version>3.0.0</sonder.version>
+		<ravel.version>0.2.0</ravel.version>
+		<deft.version>0.2.1</deft.version>
 		<classgraph.version>4.8.102</classgraph.version>
 	</properties>
 

@@ -7,6 +7,7 @@ import com.github.tix320.jouska.bot.console.CLI.CLICommand;
 import com.github.tix320.jouska.bot.console.CLI.CommandException;
 import com.github.tix320.jouska.bot.service.origin.BotTournamentOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.skimp.api.exception.ThreadInterruptedException;
 
 /**
  * @author Tigran Sargsyan on 05-May-20.
@@ -33,11 +34,10 @@ public class JoinTournamentCLICommand implements CLICommand {
 		}
 		try {
 			String result = botTournamentOrigin.join(tournamentId).map(response -> {
-				if (response.isSuccess()) {
-					return response.getResult().name();
-				}
-				else {
-					return response.getError().getMessage();
+				try {
+					return response.get().name();
+				} catch (Exception e) {
+					return e.getMessage();
 				}
 			}).get(Duration.ofSeconds(30));
 			if (result.equals("ACCEPT")) {
@@ -50,7 +50,7 @@ public class JoinTournamentCLICommand implements CLICommand {
 				throw new CommandException("Error from server: " + result);
 			}
 		}
-		catch (TimeoutException | InterruptedException e) {
+		catch (TimeoutException | ThreadInterruptedException e) {
 			throw new CommandException("Server did not respond within 30 seconds");
 		}
 	}

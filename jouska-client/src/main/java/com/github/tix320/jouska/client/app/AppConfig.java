@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.client.app;
 
 import java.io.IOException;
-import java.net.InetSocketAddress;
 import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -19,6 +18,7 @@ import com.github.tix320.ravel.api.bean.BeanDefinition;
 import com.github.tix320.ravel.api.bean.BeanKey;
 import com.github.tix320.ravel.api.module.DynamicModuleDefinition;
 import com.github.tix320.ravel.api.scope.Scope;
+import com.github.tix320.skimp.api.interval.Interval;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocolBuilder;
@@ -40,7 +40,7 @@ public class AppConfig {
 
 		Class<?>[] originInterfaces = ClassUtils.getPackageClasses("com.github.tix320.jouska.client.service.origin");
 
-		ClientRPCProtocolBuilder builder = SonderClient.getRPCProtocolBuilder()
+		ClientRPCProtocolBuilder builder = ClientRPCProtocol.builder()
 				.registerOriginInterfaces(originInterfaces)
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);
@@ -60,8 +60,7 @@ public class AppConfig {
 
 		sonderClient = SonderClient.forAddress(configuration.getServerAddress())
 				.registerProtocol(protocol)
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
-				.autoReconnect(true)
+				.autoReconnect(Interval.raising(Duration.ZERO, Duration.ofSeconds(5)))
 				.build();
 
 		INJECTOR = injector;
@@ -72,7 +71,7 @@ public class AppConfig {
 			throw new IllegalStateException();
 		}
 
-		sonderClient.connect();
+		sonderClient.start();
 	}
 
 	public static synchronized void stop() throws IOException {

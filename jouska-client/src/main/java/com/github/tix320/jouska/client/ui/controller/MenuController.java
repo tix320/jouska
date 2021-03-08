@@ -13,6 +13,7 @@ import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.skimp.api.exception.ThreadInterruptedException;
 import com.github.tix320.skimp.api.object.None;
 import javafx.animation.FadeTransition;
 import javafx.application.Platform;
@@ -164,7 +165,7 @@ public final class MenuController implements Controller<Object> {
 		try {
 			notificationEvent.onResolve().await(java.time.Duration.ofSeconds(30));
 		}
-		catch (TimeoutException | InterruptedException ignored) {
+		catch (TimeoutException | ThreadInterruptedException ignored) {
 			System.out.println("Notification skipped in Menu");
 		}
 		finally {
@@ -190,7 +191,7 @@ public final class MenuController implements Controller<Object> {
 			try {
 				onDestroy.asObservable().await(java.time.Duration.ofSeconds(5));
 			}
-			catch (InterruptedException e) {
+			catch (TimeoutException | ThreadInterruptedException e) {
 				e.printStackTrace();
 			}
 		}
