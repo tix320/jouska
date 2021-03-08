@@ -18,7 +18,6 @@ import com.github.tix320.jouska.server.infrastructure.application.TournamentMana
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
-import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 
@@ -56,14 +55,16 @@ public class ServerTournamentEndpoint {
 				.collect(Collectors.toList());
 
 		PlayOffView playOffView;
-		PlayOff playOff = Try.supply(() -> tournament.playOff().getValue())
-				.recover(TimeoutException.class, e -> null)
-				.forceGet();
+		PlayOff playOff;
+		try {
+			playOff = tournament.playOff().getValue();
+		} catch (TimeoutException e) {
+			playOff = null;
+		}
 
 		if (playOff == null) {
 			playOffView = null;
-		}
-		else {
+		} else {
 			List<List<PlayOffGameView>> playOffGamesViews = playOff.getTours()
 					.stream()
 					.map(tour -> tour.stream()

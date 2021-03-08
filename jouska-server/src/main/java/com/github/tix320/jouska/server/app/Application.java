@@ -8,6 +8,6 @@ public class Application {
 		AppConfig.initialize();
 		AppConfig.start();
 		Configuration configuration = AppConfig.INJECTOR.inject(Configuration.class);
-		System.out.println("Server successfully started on port " + configuration);
+		System.out.println("Server successfully started on port " + configuration.getPort());
 	}
 }

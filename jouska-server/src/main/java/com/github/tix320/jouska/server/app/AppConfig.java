@@ -2,7 +2,6 @@ package com.github.tix320.jouska.server.app;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.time.Duration;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
@@ -25,8 +24,6 @@ import com.github.tix320.ravel.api.bean.BeanKey;
 import com.github.tix320.ravel.api.module.DynamicModuleDefinition;
 import com.github.tix320.ravel.api.scope.Scope;
 import com.github.tix320.sonder.api.server.SonderServer;
-import com.github.tix320.sonder.api.server.event.ClientConnectionClosedEvent;
-import com.github.tix320.sonder.api.server.event.NewClientConnectionEvent;
 import com.github.tix320.sonder.api.server.rpc.ServerRPCProtocol;
 import com.github.tix320.sonder.api.server.rpc.ServerRPCProtocolBuilder;
 
@@ -47,7 +44,7 @@ public class AppConfig {
 		Class<?>[] originInterfaces = ClassUtils.getPackageClasses(
 				"com.github.tix320.jouska.server.infrastructure.origin");
 
-		ServerRPCProtocolBuilder builder = SonderServer.getRPCProtocolBuilder()
+		ServerRPCProtocolBuilder builder = ServerRPCProtocol.builder()
 				.registerOriginInterfaces(originInterfaces)
 				.processOriginInstances(originInstances -> {
 					DynamicModuleDefinition dynamicOriginsModule = createDynamicOriginsModule(originInstances);
@@ -73,16 +70,12 @@ public class AppConfig {
 
 		sonderServer = SonderServer.forAddress(new InetSocketAddress(configuration.getPort()))
 				.registerProtocol(protocol)
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
 				.build();
 
-		sonderServer.getEventListener()
-				.on(NewClientConnectionEvent.class)
-				.subscribe(newClientConnectionEvent -> System.out.println(
-						"Connected client: " + newClientConnectionEvent.getClientId()));
+		sonderServer.events().newConnections().subscribe(System.out::println);
 
-		sonderServer.getEventListener().on(ClientConnectionClosedEvent.class).subscribe(event -> {
-			long clientId = event.getClientId();
+		sonderServer.events().deadConnections().subscribe(client -> {
+			long clientId = client.getId();
 			String playerId = clientPlayerMappingResolver.removeByClientId(clientId);
 			if (playerId != null) {
 				Player player = playerService.getPlayerById(playerId).orElseThrow();

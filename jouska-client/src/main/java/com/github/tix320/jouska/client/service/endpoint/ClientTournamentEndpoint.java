@@ -23,13 +23,9 @@ public class ClientTournamentEndpoint {
 
 		try {
 			return event.onResolve().get(Duration.ofSeconds(30));
-		}
-		catch (TimeoutException e) {
+		} catch (TimeoutException e) {
 			System.out.println("Tournament Join notification skipped");
 			return Confirmation.REJECT;
-		}
-		catch (InterruptedException e) {
-			throw new IllegalStateException(e);
 		}
 	}
 }

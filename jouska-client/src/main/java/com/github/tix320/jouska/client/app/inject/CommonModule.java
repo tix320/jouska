@@ -3,7 +3,7 @@ package com.github.tix320.jouska.client.app.inject;
 import java.nio.file.Path;
 
 import com.github.tix320.jouska.client.app.Configuration;
-import com.github.tix320.nimble.api.SystemProperties;
+import com.github.tix320.deft.api.SystemProperties;
 import com.github.tix320.ravel.api.scope.Singleton;
 
 /**

@@ -1,12 +1,11 @@
 package com.github.tix320.jouska.client.ui.tournament;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
+import com.github.tix320.jouska.client.ui.helper.FXHelper;
 import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.skimp.api.check.Try;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
@@ -34,10 +33,7 @@ public class TournamentItem extends AnchorPane {
 	private final TournamentView tournamentView;
 
 	public TournamentItem(TournamentView tournamentView) {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/tournament/tournament-item.fxml"));
-		fxmlLoader.setRoot(this);
-		fxmlLoader.setController(this);
-		Try.runOrRethrow(fxmlLoader::load);
+		FXHelper.loadFxmlForController("/ui/tournament/tournament-item.fxml", this);
 		this.tournamentView = tournamentView;
 		initView(tournamentView);
 	}
@@ -78,8 +74,7 @@ public class TournamentItem extends AnchorPane {
 		if (tournamentView.isStarted()) {
 			startButton.setDisable(true);
 			joinButton.setDisable(true);
-		}
-		else {
+		} else {
 			viewButton.setDisable(true);
 		}
 

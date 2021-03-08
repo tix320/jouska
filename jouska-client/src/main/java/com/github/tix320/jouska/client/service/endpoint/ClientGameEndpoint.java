@@ -28,13 +28,9 @@ public class ClientGameEndpoint {
 		EventDispatcher.fire(event, NotificationEvent.class);
 
 		try {
-			return  event.onResolve().get(Duration.ofSeconds(30));
-		}
-		catch (TimeoutException e) {
+			return event.onResolve().get(Duration.ofSeconds(30));
+		} catch (TimeoutException e) {
 			return Confirmation.REJECT;
-		}
-		catch (InterruptedException e) {
-			throw new IllegalStateException(e);
 		}
 	}
 

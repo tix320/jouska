@@ -1,10 +1,8 @@
 package com.github.tix320.jouska.client.ui.helper.component;
 
 import com.github.tix320.jouska.client.ui.helper.FXHelper;
-import com.github.tix320.skimp.api.check.Try;
 import javafx.beans.property.SimpleDoubleProperty;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.control.Slider;
 import javafx.scene.layout.GridPane;
@@ -25,10 +23,7 @@ public class SpeedSlider extends GridPane {
 	private String labelPrefix;
 
 	public SpeedSlider() {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/common/speed-slider.fxml"));
-		fxmlLoader.setRoot(this);
-		fxmlLoader.setController(this);
-		Try.runOrRethrow(fxmlLoader::load);
+		FXHelper.loadFxmlForController("/ui/common/speed-slider.fxml", this);
 
 		gameSpeedCoefficient.bindBidirectional(slider.valueProperty());
 		gameSpeedCoefficient.addListener((observable, oldValue, newValue) -> this.label.setText(

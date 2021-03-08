@@ -41,8 +41,8 @@
 		</dependency>
 		<dependency>
 			<groupId>com.github.tix320</groupId>
-			<artifactId>nimble</artifactId>
-			<version>${nimble.version}</version>
+			<artifactId>deft</artifactId>
+			<version>${deft.version}</version>
 		</dependency>
 	</dependencies>
 </project>

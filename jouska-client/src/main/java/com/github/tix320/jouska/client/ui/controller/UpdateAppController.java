@@ -7,11 +7,11 @@ import java.nio.channels.FileChannel;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 
+import com.github.tix320.deft.api.OS;
 import com.github.tix320.jouska.client.service.origin.ApplicationUpdateOrigin;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.nimble.api.OS;
-import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
 import com.github.tix320.sonder.api.common.communication.Transfer;
+import com.github.tix320.sonder.api.common.communication.channel.FiniteReadableByteChannel;
 import javafx.application.Platform;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.fxml.FXML;
@@ -77,36 +77,37 @@ public class UpdateAppController implements Controller<String> {
 		}
 
 		observable.subscribe(transfer -> {
-			boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
-			if (!ready) {
-				Platform.runLater(() -> {
-					messageLabel.setText("Update not available now.\nPlease try later.");
-					loading.setValue(false);
-				});
-				return;
-			}
-
-			CertainReadableByteChannel channel = transfer.channel();
-			long zipLength = channel.getContentLength();
-			int consumedBytes = 0;
-
-			try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
-					StandardOpenOption.WRITE)) {
-				ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
-				int read;
-				while ((read = channel.read(buffer)) != -1) {
-					buffer.flip();
-					fileChannel.write(buffer);
-					buffer.clear();
-					consumedBytes += read;
-					final double progress = (double) consumedBytes / zipLength;
-					Platform.runLater(() -> loadingIndicator.setProgress(progress));
+			try (FiniteReadableByteChannel channel = transfer.contentChannel()) {
+				boolean ready = transfer.headers().getNonNullBoolean("ready");
+				if (!ready) {
+					Platform.runLater(() -> {
+						messageLabel.setText("Update not available now.\nPlease try later.");
+						loading.setValue(false);
+					});
+					return;
 				}
 
-				Runtime.
-						getRuntime().
-						exec(command, null, new File("."));
-				System.exit(0);
+				long zipLength = channel.getContentLength();
+				int consumedBytes = 0;
+
+				try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
+						StandardOpenOption.WRITE)) {
+					ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
+					int read;
+					while ((read = channel.read(buffer)) != -1) {
+						buffer.flip();
+						fileChannel.write(buffer);
+						buffer.clear();
+						consumedBytes += read;
+						final double progress = (double) consumedBytes / zipLength;
+						Platform.runLater(() -> loadingIndicator.setProgress(progress));
+					}
+
+					Runtime.
+							getRuntime().
+							exec(command, null, new File("."));
+					System.exit(0);
+				}
 			} catch (IOException e) {
 				throw new RuntimeException(e);
 			}

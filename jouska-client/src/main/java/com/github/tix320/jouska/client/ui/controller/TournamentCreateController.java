@@ -101,12 +101,13 @@ public class TournamentCreateController implements Controller<Object> {
 		tournamentOrigin.create(new CreateTournamentCommand(
 				new ClassicTournamentSettingsDto(gameNameInput.getText(), playersCountChoice.getValue(), groupSettings,
 						playOffSettings))).subscribe(response -> {
-			if (response.isSuccess()) {
+			try {
+				//noinspection ResultOfMethodCallIgnored
+				response.get();
 				EventDispatcher.fire(new MenuContentChangeEvent(MenuContentType.TOURNAMENT_LOBBY));
-			}
-			else {
-				response.getError().printStackTrace();
+			} catch (Exception e) {
 				loading.set(false);
+				e.printStackTrace();
 			}
 		});
 	}

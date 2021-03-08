@@ -9,6 +9,8 @@ import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
 
+import com.github.tix320.deft.api.OS;
+import com.github.tix320.deft.api.SystemProperties;
 import com.github.tix320.jouska.bot.config.Configuration;
 import com.github.tix320.jouska.bot.console.CLI;
 import com.github.tix320.jouska.bot.console.ConsoleProgressBar;
@@ -24,12 +26,9 @@ import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
 import com.github.tix320.jouska.core.util.ClassUtils;
-import com.github.tix320.nimble.api.OS;
-import com.github.tix320.nimble.api.SystemProperties;
-import com.github.tix320.skimp.api.check.Try;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
-import com.github.tix320.sonder.api.common.communication.CertainReadableByteChannel;
+import com.github.tix320.sonder.api.common.communication.channel.FiniteReadableByteChannel;
 
 public class BotApp {
 
@@ -87,16 +86,13 @@ public class BotApp {
 		Class<?>[] originInterfaces = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.origin");
 		Class<?>[] endpointClasses = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.endpoint");
 
-		ClientRPCProtocol rpcProtocol = SonderClient.getRPCProtocolBuilder()
+		ClientRPCProtocol rpcProtocol = ClientRPCProtocol.builder()
 				.registerOriginInterfaces(originInterfaces)
 				.registerEndpointClasses(endpointClasses)
 				.build();
-		sonderClient = SonderClient.forAddress(serverAddress)
-				.registerProtocol(rpcProtocol)
-				.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
-				.build();
+		sonderClient = SonderClient.forAddress(serverAddress).registerProtocol(rpcProtocol).build();
 
-		sonderClient.connect();
+		sonderClient.start();
 
 		Context.setRpcProtocol(rpcProtocol);
 
@@ -107,7 +103,7 @@ public class BotApp {
 				.get(Duration.ofSeconds(15));
 
 		if (answer.getLoginResult() != LoginResult.SUCCESS) {
-			Try.run(sonderClient::stop);
+			sonderClient.stop();
 			throw new IllegalStateException("Invalid credentials");
 		}
 
@@ -134,40 +130,37 @@ public class BotApp {
 			System.out.printf("The newer version of bot is available: %s%n", lastVersion);
 			System.out.println("Start downloading...");
 			applicationUpdateOrigin.downloadBot(OS.CURRENT).waitAndApply(Duration.ofSeconds(30), transfer -> {
-				boolean ready = transfer.getHeaders().getNonNullBoolean("ready");
-				if (!ready) {
-					throw new IllegalStateException("Unable to download now");
-				}
-
-				CertainReadableByteChannel channel = transfer.channel();
-				String fileName = "jouska-bot-" + lastVersion + ".zip";
-				long zipLength = channel.getContentLength();
-				int consumedBytes = 0;
-
-				try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
-						StandardOpenOption.WRITE)) {
-					ConsoleProgressBar progressBar = new ConsoleProgressBar();
-
-					ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
-					int read;
-					while ((read = channel.read(buffer)) != -1) {
-						buffer.flip();
-						fileChannel.write(buffer);
-						buffer.clear();
-						consumedBytes += read;
-						final double progress = (double) consumedBytes / zipLength;
-						progressBar.tick(progress);
+				try (FiniteReadableByteChannel channel = transfer.contentChannel()) {
+					boolean ready = transfer.headers().getNonNullBoolean("ready");
+					if (!ready) {
+						throw new IllegalStateException("Unable to download now");
 					}
-					System.out.println();
 
-					System.out.printf("New bot zip successfully download, use it: %s%n", fileName);
-					System.exit(0);
+					String fileName = "jouska-bot-" + lastVersion + ".zip";
+					long zipLength = channel.getContentLength();
+					int consumedBytes = 0;
+
+					try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
+							StandardOpenOption.WRITE)) {
+						ConsoleProgressBar progressBar = new ConsoleProgressBar();
+
+						ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
+						int read;
+						while ((read = channel.read(buffer)) != -1) {
+							buffer.flip();
+							fileChannel.write(buffer);
+							buffer.clear();
+							consumedBytes += read;
+							final double progress = (double) consumedBytes / zipLength;
+							progressBar.tick(progress);
+						}
+						System.out.println();
+
+						System.out.printf("New bot zip successfully download, use it: %s%n", fileName);
+						System.exit(0);
+					}
 				} catch (IOException e) {
-					try {
-						sonderClient.stop();
-					} catch (IOException ex) {
-						ex.printStackTrace();
-					}
+					sonderClient.stop();
 					throw new RuntimeException(e);
 				}
 			});

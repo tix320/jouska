@@ -1,17 +1,16 @@
 package com.github.tix320.jouska.client.ui.lobby;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
+import com.github.tix320.jouska.client.ui.helper.FXHelper;
 import com.github.tix320.jouska.core.application.game.GameState;
 import com.github.tix320.jouska.core.dto.GameSettingsDto;
 import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.dto.TimedGameSettingsDto;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.skimp.api.check.Try;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.value.ObservableBooleanValue;
 import javafx.event.EventHandler;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.input.Clipboard;
@@ -52,10 +51,7 @@ public class GameItem extends AnchorPane {
 	private final GameView gameView;
 
 	public GameItem(GameView gameView) {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/lobby/game-item.fxml"));
-		fxmlLoader.setRoot(this);
-		fxmlLoader.setController(this);
-		Try.runOrRethrow(fxmlLoader::load);
+		FXHelper.loadFxmlForController("/ui/lobby/game-item.fxml", this);
 		this.gameView = gameView;
 		initView(gameView);
 	}
@@ -111,8 +107,7 @@ public class GameItem extends AnchorPane {
 		if (gameView.getGameState() == GameState.COMPLETED) {
 			this.playersCountLabel.setText(String.valueOf(gameView.getGameSettings().getPlayersCount()));
 			this.getStyleClass().add("gameItemCompleted");
-		}
-		else {
+		} else {
 			this.playersCountLabel.setText(
 					gameView.getConnectedPlayers().size() + "/" + gameSettings.getPlayersCount());
 		}
@@ -121,8 +116,7 @@ public class GameItem extends AnchorPane {
 	private void setTurnDuration(GameSettingsDto gameSettings) {
 		if (gameSettings instanceof TimedGameSettingsDto) {
 			this.turnDurationLabel.setText(((TimedGameSettingsDto) gameSettings).getTurnDurationSeconds() + "s");
-		}
-		else {
+		} else {
 			this.turnDurationLabel.setText("-");
 		}
 	}
@@ -131,8 +125,7 @@ public class GameItem extends AnchorPane {
 		if (gameSettings instanceof TimedGameSettingsDto) {
 			this.turnTotalDurationLabel.setText(
 					((TimedGameSettingsDto) gameSettings).getPlayerTurnTotalDurationSeconds() / 60 + "m");
-		}
-		else {
+		} else {
 			this.turnTotalDurationLabel.setText("-");
 		}
 	}

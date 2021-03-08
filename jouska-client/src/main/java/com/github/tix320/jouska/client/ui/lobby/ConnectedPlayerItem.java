@@ -1,9 +1,9 @@
 package com.github.tix320.jouska.client.ui.lobby;
 
+import com.github.tix320.jouska.client.infrastructure.UI;
+import com.github.tix320.jouska.client.ui.helper.FXHelper;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.skimp.api.check.Try;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Label;
 import javafx.scene.layout.AnchorPane;
 
@@ -13,10 +13,7 @@ public class ConnectedPlayerItem extends AnchorPane {
 	private Label nicknameLabel;
 
 	public ConnectedPlayerItem(Player player) {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/lobby/connected-player-item.fxml"));
-		fxmlLoader.setRoot(this);
-		fxmlLoader.setController(this);
-		Try.runOrRethrow(fxmlLoader::load);
+		FXHelper.loadFxmlForController("/ui/lobby/connected-player-item.fxml", this);
 		initView(player);
 	}
 

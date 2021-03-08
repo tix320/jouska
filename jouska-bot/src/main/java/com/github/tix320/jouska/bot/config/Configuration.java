@@ -6,7 +6,7 @@ import java.nio.file.Path;
 
 import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.jouska.core.util.PropertiesFile;
-import com.github.tix320.nimble.api.SystemProperties;
+import com.github.tix320.deft.api.SystemProperties;
 
 public class Configuration {
 

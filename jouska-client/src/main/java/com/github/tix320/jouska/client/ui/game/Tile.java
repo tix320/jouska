@@ -3,12 +3,11 @@ package com.github.tix320.jouska.client.ui.game;
 import java.util.function.Supplier;
 import java.util.stream.Stream;
 
+import com.github.tix320.jouska.client.ui.helper.FXHelper;
 import com.github.tix320.jouska.client.ui.helper.transtion.Transitions;
 import com.github.tix320.jouska.core.application.game.PlayerColor;
-import com.github.tix320.skimp.api.check.Try;
 import javafx.animation.*;
 import javafx.fxml.FXML;
-import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -37,10 +36,7 @@ public class Tile extends VBox {
 	private Supplier<Color> hoverColorFactory = () -> Color.rgb(181, 167, 167);
 
 	public Tile() {
-		FXMLLoader fxmlLoader = new FXMLLoader(getClass().getResource("/ui/game/tile.fxml"));
-		fxmlLoader.setRoot(this);
-		fxmlLoader.setController(this);
-		Try.runOrRethrow(fxmlLoader::load);
+		FXHelper.loadFxmlForController("/ui/game/tile.fxml", this);
 		setBorder(new Border(new BorderStroke(DEFAULT_BORDER_COLOR, BorderStrokeStyle.SOLID, new CornerRadii(5),
 				new BorderWidths(2))));
 		setOnMouseEntered(event -> {
