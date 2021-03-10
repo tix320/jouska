@@ -1,0 +1,65 @@
+def JOUSKA_SERVER_HOST = params.JOUSKA_SERVER_HOST
+def JOUSKA_SERVER_PORT = params.JOUSKA_SERVER_PORT
+
+def CLIENT_APP_DIR = "client-app"
+
+def JDK_PATH_PREFIX = '/opt/jdk'
+def JAVAFX_PATH_PREFIX = '/opt/javafx'
+
+node('JAVAFX') {
+
+    stage('Checkout') {
+        // for display purposes
+        checkout(
+                [$class: 'GitSCM', branches: [[name: 'origin/master']], doGenerateSubmoduleConfigurations: false, extensions: [], submoduleCfg: [], userRemoteConfigs: [[credentialsId: '80614278-f55f-4f66-9787-ef033624e848', refspec: '', url: 'ssh://jenkins@gerrit.synisys.com:29418/techno-battle-jouska']]])
+    }
+
+    stage("Build") {
+        String windowsJdkJmodsPath = "$JDK_PATH_PREFIX/windows/jmods"
+        String linuxJdkJmodsPath = "$JDK_PATH_PREFIX/linux/jmods"
+        String macosJdkJmodsPath = "$JDK_PATH_PREFIX/mac/jmods"
+
+        String windowsJavaFxJmodsPath = "$JAVAFX_PATH_PREFIX/windows"
+        String linuxJavaFxJmodsPath = "$JAVAFX_PATH_PREFIX/linux"
+        String macosJavaFxJmodsPath = "$JAVAFX_PATH_PREFIX/macos"
+
+        sh """
+            mvn clean package \
+            "-Djouska.server.host=$JOUSKA_SERVER_HOST" \
+            "-Djouska.server.port=$JOUSKA_SERVER_PORT" \
+            "-Dwindows-jdk-jmods-path=$windowsJdkJmodsPath" \
+            "-Dlinux-jdk-jmods-path=$linuxJdkJmodsPath" \
+            "-Dmacos-jdk-jmods-path=$macosJdkJmodsPath" \
+            "-Dwindows-javafx-jmods-path=$windowsJavaFxJmodsPath" \
+            "-Dlinux-javafx-jmods-path=$linuxJavaFxJmodsPath" \
+            "-Dmacos-javafx-jmods-path=$macosJavaFxJmodsPath" 
+            """
+    }
+
+    stage('Archive images') {
+        ["windows", "linux", "macos"].each {osName ->
+            String clientZipPath = "jouska-client/target/jlink/${osName}.zip"
+            String botZipPath = "jouska-bot/target/jlink/${osName}.zip"
+
+            sh "cp $clientZipPath $CLIENT_APP_DIR/jouska-${osName}.zip"
+            sh "cp $botZipPath $CLIENT_APP_DIR/jouska-bot-${osName}.zip"
+
+            archiveArtifacts artifacts: clientZipPath, fingerprint: true
+
+            archiveArtifacts artifacts: botZipPath, fingerprint: true
+        }
+    }
+
+    stage('Build Server Docker Image') {
+        sh 'mvn clean install'
+
+        String VERSION = sh(script: "mvn help:evaluate -Dexpression=project.version | grep -e '^[^\\[]'",
+                returnStdout: true).trim()
+
+        String IMAGE_NAME = "regdb.synisys.com/com.synisys.fun/techno-jouska:$VERSION"
+        print("Docker Image name: $IMAGE_NAME")
+
+        sh "docker -H swarm-manager:4000 build -t $IMAGE_NAME ."
+        sh "docker -H swarm-manager:4000 push $IMAGE_NAME"
+    }
+}

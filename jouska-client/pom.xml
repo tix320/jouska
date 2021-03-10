@@ -7,11 +7,22 @@
 	<parent>
 		<groupId>com.github.tix320</groupId>
 		<artifactId>jouska</artifactId>
-		<version>2.7.1</version>
+		<version>${revision}</version>
 	</parent>
 
 	<artifactId>jouska-client</artifactId>
 	<packaging>jar</packaging>
+
+	<properties>
+		<windows-jdk-jmods-path/>
+		<linux-jdk-jmods-path/>
+		<macos-jdk-jmods-path/>
+		<windows-javafx-jmods-path/>
+		<linux-javafx-jmods-path/>
+		<macos-javafx-jmods-path/>
+		<jouska.server.host>localhost</jouska.server.host>    <!-- default value-->
+		<jouska.server.port>8888</jouska.server.port>        <!-- default value-->
+	</properties>
 
 	<dependencies>
 		<dependency>
@@ -45,4 +56,70 @@
 			<version>${deft.version}</version>
 		</dependency>
 	</dependencies>
+
+	<build>
+		<plugins>
+			<plugin>
+				<groupId>com.github.tix320</groupId>
+				<artifactId>jimage-maven-plugin</artifactId>
+				<version>0.1.0</version>
+				<executions>
+					<execution>
+						<id>jlink</id>
+						<phase>package</phase>
+						<goals>
+							<goal>jlink</goal>
+						</goals>
+						<configuration>
+							<createZip>true</createZip>
+							<jlinkOptions>
+								<verbose>true</verbose>
+								<noHeaderFiles>true</noHeaderFiles>
+								<noManPages>true</noManPages>
+								<stripDebug>true</stripDebug>
+								<compression>1</compression>
+								<modulePaths>
+									<path>${project.build.directory}/app.jar</path>
+									<path>${project.build.directory}/lib/</path>
+								</modulePaths>
+								<rootModules>
+									<module>jouska.client</module>
+								</rootModules>
+								<launcher>
+									<command>runner</command>
+									<mainModule>jouska.client</mainModule>
+									<mainClass>com.github.tix320.jouska.client.app.Main</mainClass>
+								</launcher>
+								<options>
+									<option>-Djouska.server.host=${jouska.server.host}</option>
+									<option>-Djouska.server.port=${jouska.server.port}</option>
+								</options>
+							</jlinkOptions>
+
+							<images>
+								<windows>
+									<modulePaths>
+										<path>${windows-jdk-jmods-path}</path>
+										<path>${windows-javafx-jmods-path}</path>
+									</modulePaths>
+								</windows>
+								<linux>
+									<modulePaths>
+										<path>${linux-jdk-jmods-path}</path>
+										<path>${linux-javafx-jmods-path}</path>
+									</modulePaths>
+								</linux>
+								<macos>
+									<modulePaths>
+										<path>${macos-jdk-jmods-path}</path>
+										<path>${macos-javafx-jmods-path}</path>
+									</modulePaths>
+								</macos>
+							</images>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+		</plugins>
+	</build>
 </project>

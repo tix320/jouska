@@ -1,18 +1,30 @@
+# Build Guide
+
+## Run mvn build
+```
+mvn clean package 
+"-Djouska.server.host=192.165.113.144" 
+"-Djouska.server.port=8888" 
+"-Dwindows-jdk-jmods-path=/home/dev/windows-jdk-16/jmods"
+"-Dlinux-jdk-jmods-path=/home/dev/linux-jdk-16/jmods"
+"-Dmacos-jdk-jmods-path=/home/dev/macos-jdk-16/jmods"
+```
+
 # How to run bot client
-#### Run it via "jouska-bot.bat" / "jouska-bot.sh" by passing following arguments
+#### Run it via "runner.bat" / "runner.sh" by passing following arguments
     1. Real bot process command: "My c++ application run command"
     2. Username: MyBot 
     3. Password: MyPassword
 #### Example: 
-    sh jouska-bot.sh "java -jar my-real-bot.jar" Bot1 foo
+    ./runner "java -jar my-real-bot.jar" Bot1 foo
 
 # Guide to CLI
 ## Available Commands
-    join [params]
-##### used params : --game, --tournament
+    join-game [params]
+    join-tournament [parms]
 ##### example:
-    join --game 15
-    join --tournament 32187
+    join-game --id 15
+    join-tournament --id 32187
 
 # Guide to real bot process communication via I/O 
 
