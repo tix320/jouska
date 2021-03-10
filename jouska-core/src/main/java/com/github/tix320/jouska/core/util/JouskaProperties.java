@@ -11,4 +11,7 @@ public class JouskaProperties {
 	public static final String CLIENT_APP_PATH = "jouska.client-app-path";
 	public static final String NICKNAME = "jouska.player.nickname";
 	public static final String PASSWORD = "jouska.player.password";
+
+	public static final String DEFAULT_SERVER_HOST = "localhost";
+	public static final int DEFAULT_SERVER_PORT = 8888;
 }
