@@ -35,6 +35,8 @@ public class BotApp {
 	private static SonderClient sonderClient;
 
 	public static void main(String[] args) throws InterruptedException, IOException {
+		System.out.println("Version: " + Version.CURRENT);
+
 		String processCommand = args[0];
 		String nickname = args[1];
 		String password = args[2];

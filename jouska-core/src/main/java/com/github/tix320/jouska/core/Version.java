@@ -44,7 +44,7 @@ public class Version implements Comparable<Version> {
 
 			return new Version(major, minor, patch);
 		} else {
-			throw new IllegalArgumentException(version);
+			throw new IllegalArgumentException("Invalid version string: " + version);
 		}
 	}
 
@@ -88,11 +88,15 @@ public class Version implements Comparable<Version> {
 	}
 
 	private static Version resolveCurrentVersion() {
-		String version = System.getProperty("jouska.version");
-		if (version == null) {
+		String versionString = System.getProperty("jouska.version");
+
+		Version version;
+		if (versionString == null) {
 			return new Version(0, 0, 0);
+		} else {
+			version = fromString(versionString);
 		}
 
-		return fromString(version);
+		return version;
 	}
 }
