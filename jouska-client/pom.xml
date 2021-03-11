@@ -62,7 +62,7 @@
 			<plugin>
 				<groupId>com.github.tix320</groupId>
 				<artifactId>jimage-maven-plugin</artifactId>
-				<version>0.1.0</version>
+				<version>0.1.1</version>
 				<executions>
 					<execution>
 						<id>jlink</id>
@@ -91,6 +91,7 @@
 									<mainClass>com.github.tix320.jouska.client.app.Main</mainClass>
 								</launcher>
 								<options>
+									<option>-Djouska.version=${project.version}</option>
 									<option>-Djouska.server.host=${jouska.server.host}</option>
 									<option>-Djouska.server.port=${jouska.server.port}</option>
 								</options>

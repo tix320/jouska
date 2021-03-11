@@ -72,6 +72,7 @@
 									<mainClass>com.github.tix320.jouska.bot.BotApp</mainClass>
 								</launcher>
 								<options>
+									<option>-Djouska.version=${project.version}</option>
 									<option>-Djouska.server.host=${jouska.server.host}</option>
 									<option>-Djouska.server.port=${jouska.server.port}</option>
 								</options>

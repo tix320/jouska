@@ -25,6 +25,7 @@ import static com.github.tix320.jouska.client.app.AppConfig.INJECTOR;
 public class Main extends Application {
 
 	public static void main(String[] args) {
+		System.out.println("Version: " + Version.CURRENT);
 		launch(args);
 	}
 
