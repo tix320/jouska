@@ -12,7 +12,7 @@ public class Configuration {
 
 	private final InetSocketAddress serverAddress;
 
-	private final String clientAppPAth;
+	private final String clientAppDirectoryPath;
 
 	public Configuration() {
 		int port;
@@ -26,18 +26,18 @@ public class Configuration {
 					JouskaProperties.DEFAULT_SERVER_PORT);
 		}
 
-		String clientAppPath = SystemProperties.getFromEnvOrElseJava(JouskaProperties.CLIENT_APP_PATH, "client-app");
+		String clientAppPath = SystemProperties.getFromEnvOrElseJava(JouskaProperties.CLIENT_APP_PATH, "client-applications");
 
 		this.serverAddress = serverAddress;
-		this.clientAppPAth = clientAppPath;
+		this.clientAppDirectoryPath = clientAppPath;
 	}
 
 	public int getPort() {
 		return serverAddress.getPort();
 	}
 
-	public Path getClientAppPath() {
-		Path path = Path.of(clientAppPAth);
+	public Path getClientAppDirectoryPath() {
+		Path path = Path.of(clientAppDirectoryPath);
 		if (!Files.exists(path)) {
 			try {
 				Files.createDirectories(path);

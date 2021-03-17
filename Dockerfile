@@ -1,10 +1,10 @@
 # NOTE: maven build must be executed before docker image build
-FROM maven:3.6.3-jdk-11
+FROM openjdk:16-jdk-oraclelinux7
 
 WORKDIR /usr/src/app
 
 COPY ./jouska-server/target/jouska-server.jar .
-ADD ./client-app ./client-app/
+ADD ./client-applications ./client-applications/
 
 EXPOSE 8888
 

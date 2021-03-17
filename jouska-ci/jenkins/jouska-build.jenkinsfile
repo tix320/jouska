@@ -1,7 +1,7 @@
 def JOUSKA_SERVER_HOST = params.JOUSKA_SERVER_HOST
 def JOUSKA_SERVER_PORT = params.JOUSKA_SERVER_PORT
 
-def CLIENT_APP_DIR = "client-app"
+def CLIENT_APP_DIR = "client-applications"
 
 def JDK_PATH_PREFIX = '/opt/jdk'
 def JAVAFX_PATH_PREFIX = '/opt/javafx'
