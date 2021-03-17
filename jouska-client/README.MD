@@ -3,7 +3,7 @@
 ##Example
 
 ```
-mvn clean package 
+mvn clean package -Pprod
 "-Djouska.server.host=localhost" 
 "-Djouska.server.port=8888" 
 "-Dwindows-jdk-jmods-path=/home/dev/windows-jdk-16/jmods"
