@@ -4,6 +4,6 @@ target/
 
 *pom.xml.versionsBackup
 
-client-app/
+client-applications/
 
 config.properties

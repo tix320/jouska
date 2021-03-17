@@ -42,31 +42,30 @@ public class ApplicationUpdateEndpoint {
 
 	@Endpoint
 	public Transfer downloadClient(OS os) {
-		Path clientAppPath = configuration.getClientAppPath();
+		Path clientAppDirectoryPath = configuration.getClientAppDirectoryPath();
 		return switch (os) {
-			case WINDOWS -> fileToTransfer(clientAppPath + WINDOWS_CLIENT_FILE_NAME);
-			case LINUX -> fileToTransfer(clientAppPath + LINUX_CLIENT_FILE_NAME);
-			case MAC -> fileToTransfer(clientAppPath + MAC_CLIENT_FILE_NAME);
-			default -> throw new IllegalArgumentException();
+			case WINDOWS -> fileToTransfer(clientAppDirectoryPath + WINDOWS_CLIENT_FILE_NAME);
+			case LINUX -> fileToTransfer(clientAppDirectoryPath + LINUX_CLIENT_FILE_NAME);
+			case MAC -> fileToTransfer(clientAppDirectoryPath + MAC_CLIENT_FILE_NAME);
+			default -> throw new IllegalArgumentException(os.name());
 		};
 	}
 
 	@Endpoint
 	public Transfer downloadBot(OS os) {
-		Path clientAppPath = configuration.getClientAppPath();
+		Path clientAppDirectoryPath = configuration.getClientAppDirectoryPath();
 		return switch (os) {
-			case WINDOWS -> fileToTransfer(clientAppPath + WINDOWS_BOT_FILE_NAME);
-			case LINUX -> fileToTransfer(clientAppPath + LINUX_BOT_FILE_NAME);
-			case MAC -> fileToTransfer(clientAppPath + MAC_BOT_FILE_NAME);
-			default -> throw new IllegalArgumentException();
+			case WINDOWS -> fileToTransfer(clientAppDirectoryPath + WINDOWS_BOT_FILE_NAME);
+			case LINUX -> fileToTransfer(clientAppDirectoryPath + LINUX_BOT_FILE_NAME);
+			case MAC -> fileToTransfer(clientAppDirectoryPath + MAC_BOT_FILE_NAME);
+			default -> throw new IllegalArgumentException(os.name());
 		};
 	}
 
 	private Transfer fileToTransfer(String filePath) {
-		try {
-			Path file = Path.of(filePath);
+		Path file = Path.of(filePath);
+		try (FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ)) {
 			long length = Files.size(file);
-			FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ);
 			LimitedReadableByteChannel channel = new LimitedReadableByteChannel(fileChannel, length);
 			channel.completeness().subscribe(none -> {
 				try {
