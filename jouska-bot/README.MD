@@ -2,7 +2,7 @@
 
 ## Run mvn build
 ```
-mvn clean package 
+mvn clean package -Pprod
 "-Djouska.server.host=192.165.113.144" 
 "-Djouska.server.port=8888" 
 "-Dwindows-jdk-jmods-path=/home/dev/windows-jdk-16/jmods"
