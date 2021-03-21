@@ -4,7 +4,7 @@ FROM openjdk:16-jdk-oraclelinux7
 WORKDIR /usr/src/app
 
 COPY ./jouska-server/target/jouska-server.jar .
-ADD ./client-applications ./client-applications/
+COPY ./client-applications ./client-applications/
 
 EXPOSE 8888
 
