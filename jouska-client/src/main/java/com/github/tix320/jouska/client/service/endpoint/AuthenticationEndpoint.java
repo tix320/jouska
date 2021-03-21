@@ -1,7 +1,7 @@
 package com.github.tix320.jouska.client.service.endpoint;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
+import com.github.tix320.jouska.client.ui.controller.LoginController;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import javafx.application.Platform;
 import javafx.scene.control.Alert;
@@ -19,7 +19,7 @@ public class AuthenticationEndpoint {
 			alert.setContentText("Other session logged, good bye.");
 
 			alert.showAndWait();
-			UI.switchComponent(ComponentType.LOGIN);
+			UI.switchComponent(LoginController.class);
 		});
 	}
 }

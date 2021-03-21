@@ -10,7 +10,6 @@ import java.util.stream.IntStream;
 
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.ClientGameManagementOrigin;
 import com.github.tix320.jouska.client.service.origin.ClientGameOrigin;
 import com.github.tix320.jouska.client.ui.game.PlayerMode;
@@ -605,6 +604,6 @@ public class GameController implements Controller<GameWatchDto> {
 		if (!game.isCompleted() && playerMode == PlayerMode.PLAY) {
 			gameManagementOrigin.leave(gameId);
 		}
-		UI.switchComponent(ComponentType.MENU);
+		UI.switchComponent(MenuController.class);
 	}
 }

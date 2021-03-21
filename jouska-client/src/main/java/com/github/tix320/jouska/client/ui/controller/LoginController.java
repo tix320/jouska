@@ -5,7 +5,6 @@ import java.util.Optional;
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.core.dto.Credentials;
 import javafx.animation.FadeTransition;
@@ -60,7 +59,7 @@ public class LoginController implements Controller<Credentials> {
 				case SUCCESS -> {
 					configuration.updateCredentials(nicknameInput.getText(), passwordInput.getText());
 					CurrentUserContext.setPlayer(loginAnswer.getPlayer());
-					UI.switchComponent(ComponentType.MENU);
+					UI.switchComponent(MenuController.class);
 				}
 				case ALREADY_LOGGED -> Platform.runLater(() -> {
 					Alert alert = new Alert(AlertType.CONFIRMATION);
@@ -76,14 +75,14 @@ public class LoginController implements Controller<Credentials> {
 							switch (answer.getLoginResult()) {
 								case SUCCESS -> {
 									CurrentUserContext.setPlayer(answer.getPlayer());
-									UI.switchComponent(ComponentType.MENU);
+									UI.switchComponent(MenuController.class);
 								}
 								case INVALID_CREDENTIALS -> showError("Invalid username/password");
 								default -> throw new IllegalStateException();
 							}
 						});
 					} else {
-						UI.switchComponent(ComponentType.LOGIN, credentials);
+						UI.switchComponent(LoginController.class, credentials);
 					}
 				});
 				case INVALID_CREDENTIALS -> showError("Invalid username/password");
@@ -93,7 +92,7 @@ public class LoginController implements Controller<Credentials> {
 	}
 
 	public void registerNewAccount() {
-		UI.switchComponent(ComponentType.REGISTRATION);
+		UI.switchComponent(RegistrationController.class);
 	}
 
 	public void showError(String message) {

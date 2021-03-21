@@ -7,7 +7,6 @@ import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.client.service.origin.ClientGameManagementOrigin;
 import com.github.tix320.jouska.client.service.origin.ClientTournamentOrigin;
@@ -93,8 +92,7 @@ public class LobbyController implements Controller<Object> {
 			String realText = text.substring(0, indexOfDot);
 			if (dotsCount == 3) {
 				waitingPlayersLabel.setText(realText + '.');
-			}
-			else {
+			} else {
 				waitingPlayersLabel.setText(realText + ".".repeat(dotsCount + 1));
 			}
 		}));
@@ -109,8 +107,7 @@ public class LobbyController implements Controller<Object> {
 				gameItemsPane.getChildren();
 				disable.set(false);
 				timeline.stop();
-			}
-			else {
+			} else {
 				waitingPlayersLabel.setVisible(true);
 				cancelWaitButton.setVisible(true);
 				cancelWaitButton.setDisable(false);
@@ -228,7 +225,7 @@ public class LobbyController implements Controller<Object> {
 
 		gameManagementOrigin.join(gameId).subscribe(answer -> {
 			switch (answer) {
-				case ALREADY_FULL:
+				case ALREADY_FULL -> {
 					Platform.runLater(() -> {
 						Alert alert = new Alert(AlertType.WARNING);
 						alert.setTitle("Warning");
@@ -237,8 +234,8 @@ public class LobbyController implements Controller<Object> {
 						alert.showAndWait();
 					});
 					disable.set(false);
-					break;
-				case ALREADY_STARTED:
+				}
+				case ALREADY_STARTED -> {
 					Platform.runLater(() -> {
 						Alert alert = new Alert(AlertType.WARNING);
 						alert.setTitle("Warning");
@@ -247,19 +244,16 @@ public class LobbyController implements Controller<Object> {
 						alert.showAndWait();
 					});
 					disable.set(false);
-					break;
-				case CONNECTED:
-					waitingToConnectGameId.set(gameId);
-					break;
-				default:
-					throw new IllegalStateException();
+				}
+				case CONNECTED -> waitingToConnectGameId.set(gameId);
+				default -> throw new IllegalStateException();
 			}
 		});
 	}
 
 	private void watchGame(String gameId) {
 		gameManagementOrigin.watch(gameId)
-				.subscribe(gameWatchDto -> UI.switchComponent(ComponentType.GAME, gameWatchDto));
+				.subscribe(gameWatchDto -> UI.switchComponent(GameController.class, gameWatchDto));
 	}
 
 	public void cancelWait() {

@@ -1,9 +1,7 @@
 package com.github.tix320.jouska.client.app.inject;
 
-import java.nio.file.Path;
-
+import com.github.tix320.jouska.client.app.AppProperties;
 import com.github.tix320.jouska.client.app.Configuration;
-import com.github.tix320.deft.api.SystemProperties;
 import com.github.tix320.ravel.api.scope.Singleton;
 
 /**
@@ -14,6 +12,6 @@ public class CommonModule {
 
 	@Singleton
 	public Configuration configuration() {
-		return new Configuration(Path.of(SystemProperties.getUserDirectory(), "jouska", "config.properties"));
+		return new Configuration(AppProperties.APP_CONFIG_FILE);
 	}
 }

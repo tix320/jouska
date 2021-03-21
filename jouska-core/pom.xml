@@ -19,6 +19,11 @@
 			<version>${sonder.version}</version>
 		</dependency>
 		<dependency>
+			<groupId>com.github.tix320</groupId>
+			<artifactId>deft</artifactId>
+			<version>${deft.version}</version>
+		</dependency>
+		<dependency>
 			<groupId>io.github.classgraph</groupId>
 			<artifactId>classgraph</artifactId>
 			<version>${classgraph.version}</version>

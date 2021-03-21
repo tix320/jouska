@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.client.infrastructure.notifcation;
 
-import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
+import com.github.tix320.jouska.client.ui.controller.notification.GamePlayersOfflineNotificationController;
 import com.github.tix320.jouska.core.dto.GamePlayersOfflineWarning;
 import com.github.tix320.skimp.api.object.None;
 
@@ -10,6 +10,6 @@ import com.github.tix320.skimp.api.object.None;
 public class GamePlayersOfflineNotificationEvent extends NotificationEvent<GamePlayersOfflineWarning, None> {
 
 	public GamePlayersOfflineNotificationEvent(GamePlayersOfflineWarning data) {
-		super(NotificationType.GAME_PLAYERS_OFFLINE, data);
+		super(GamePlayersOfflineNotificationController.class, data);
 	}
 }
