@@ -2,15 +2,10 @@ package com.github.tix320.jouska.bot;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
-import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
-import java.nio.file.Path;
-import java.nio.file.StandardOpenOption;
 import java.time.Duration;
 import java.util.List;
 
 import com.github.tix320.deft.api.OS;
-import com.github.tix320.deft.api.SystemProperties;
 import com.github.tix320.jouska.bot.config.Configuration;
 import com.github.tix320.jouska.bot.console.CLI;
 import com.github.tix320.jouska.bot.console.ConsoleProgressBar;
@@ -25,14 +20,15 @@ import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.update.UpdateNotReadyException;
+import com.github.tix320.jouska.core.update.UpdateRunner;
 import com.github.tix320.jouska.core.util.ClassUtils;
+import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
-import com.github.tix320.sonder.api.common.communication.channel.FiniteReadableByteChannel;
+import com.github.tix320.sonder.api.common.communication.Transfer;
 
 public class BotApp {
-
-	private static SonderClient sonderClient;
 
 	public static void main(String[] args) throws InterruptedException, IOException {
 		System.out.println("Version: " + Version.CURRENT);
@@ -40,8 +36,7 @@ public class BotApp {
 		String processCommand = args[0];
 		String nickname = args[1];
 		String password = args[2];
-		Configuration configuration = new Configuration(
-				Path.of(SystemProperties.getUserDirectory(), "jouska-bot", "config.properties"));
+		Configuration configuration = new Configuration(AppProperties.APP_CONFIG_FILE);
 		InetSocketAddress serverAddress = configuration.getServerAddress();
 		// for (int i = 1; i <= 5; i++) {
 		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
@@ -92,7 +87,7 @@ public class BotApp {
 				.registerOriginInterfaces(originInterfaces)
 				.registerEndpointClasses(endpointClasses)
 				.build();
-		sonderClient = SonderClient.forAddress(serverAddress).registerProtocol(rpcProtocol).build();
+		SonderClient sonderClient = SonderClient.forAddress(serverAddress).registerProtocol(rpcProtocol).build();
 
 		sonderClient.start();
 
@@ -119,53 +114,46 @@ public class BotApp {
 		cli.run();
 	}
 
-	private static void checkApplicationUpdate() throws InterruptedException {
+	private static void checkApplicationUpdate() {
 		ApplicationUpdateOrigin applicationUpdateOrigin = Context.getRPCProtocol()
 				.getOrigin(ApplicationUpdateOrigin.class);
 		Version lastVersion = applicationUpdateOrigin.getVersion().get(Duration.ofSeconds(30));
 		int compareResult = lastVersion.compareTo(Version.CURRENT);
 		if (compareResult < 0) {
-			System.err.printf("Server version - %s, Bot version - %s ", lastVersion, Version.CURRENT);
+			final String error = "Illegal state: Bot version higher than server version. Server - %s, Bot - %s.".formatted(
+					lastVersion, Version.CURRENT);
+			System.err.println(error);
 			System.exit(1);
 		}
 		if (compareResult > 0) { // update
 			System.out.printf("The newer version of bot is available: %s%n", lastVersion);
+
+			final Transfer transfer;
+			try {
+				transfer = applicationUpdateOrigin.downloadBot(OS.CURRENT).get(Duration.ofSeconds(30));
+			} catch (TimeoutException e) {
+				System.err.println("Timeout");
+				System.exit(1);
+				return;
+			}
+
+			ConsoleProgressBar progressBar = new ConsoleProgressBar();
+
+			UpdateRunner updateRunner = new UpdateRunner(AppProperties.APP_HOME_DIRECTORY, lastVersion,
+					progressBar::tick);
+
+
 			System.out.println("Start downloading...");
-			applicationUpdateOrigin.downloadBot(OS.CURRENT).waitAndApply(Duration.ofSeconds(30), transfer -> {
-				try (FiniteReadableByteChannel channel = transfer.contentChannel()) {
-					boolean ready = transfer.headers().getNonNullBoolean("ready");
-					if (!ready) {
-						throw new IllegalStateException("Unable to download now");
-					}
 
-					String fileName = "jouska-bot-" + lastVersion + ".zip";
-					long zipLength = channel.getContentLength();
-					int consumedBytes = 0;
-
-					try (FileChannel fileChannel = FileChannel.open(Path.of(fileName), StandardOpenOption.CREATE,
-							StandardOpenOption.WRITE)) {
-						ConsoleProgressBar progressBar = new ConsoleProgressBar();
-
-						ByteBuffer buffer = ByteBuffer.allocate(1024 * 64);
-						int read;
-						while ((read = channel.read(buffer)) != -1) {
-							buffer.flip();
-							fileChannel.write(buffer);
-							buffer.clear();
-							consumedBytes += read;
-							final double progress = (double) consumedBytes / zipLength;
-							progressBar.tick(progress);
-						}
-						System.out.println();
-
-						System.out.printf("New bot zip successfully download, use it: %s%n", fileName);
-						System.exit(0);
-					}
-				} catch (IOException e) {
-					sonderClient.stop();
-					throw new RuntimeException(e);
-				}
-			});
+			try {
+				updateRunner.update(transfer);
+			} catch (UpdateNotReadyException e) {
+				System.err.println("Update not available now");
+				System.exit(1);
+			} catch (IOException e) {
+				e.printStackTrace();
+				System.exit(1);
+			}
 		}
 	}
 }

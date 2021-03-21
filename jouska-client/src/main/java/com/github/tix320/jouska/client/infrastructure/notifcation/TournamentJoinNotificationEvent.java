@@ -1,6 +1,6 @@
 package com.github.tix320.jouska.client.infrastructure.notifcation;
 
-import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
+import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
 import com.github.tix320.jouska.core.dto.Confirmation;
 import com.github.tix320.jouska.core.dto.TournamentJoinRequest;
 
@@ -10,6 +10,6 @@ import com.github.tix320.jouska.core.dto.TournamentJoinRequest;
 public class TournamentJoinNotificationEvent extends NotificationEvent<TournamentJoinRequest, Confirmation> {
 
 	public TournamentJoinNotificationEvent(TournamentJoinRequest data) {
-		super(NotificationType.TOURNAMENT_ACCEPT, data);
+		super(TournamentAcceptPlayerNotificationController.class, data);
 	}
 }

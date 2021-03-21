@@ -3,6 +3,9 @@ package com.github.tix320.jouska.client.app.inject;
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.service.origin.*;
 import com.github.tix320.jouska.client.ui.controller.*;
+import com.github.tix320.jouska.client.ui.controller.notification.GamePlayersOfflineNotificationController;
+import com.github.tix320.jouska.client.ui.controller.notification.GameStartSoonNotificationController;
+import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
 import com.github.tix320.ravel.api.module.UseModules;
 import com.github.tix320.ravel.api.scope.Prototype;
 
@@ -20,6 +23,12 @@ public class ControllersModule {
 	@Prototype
 	public ErrorController errorController() {
 		return new ErrorController();
+	}
+
+	@Prototype
+	public UpdateAppController updateAppController(Configuration configuration,
+												   ApplicationUpdateOrigin applicationUpdateOrigin) {
+		return new UpdateAppController(configuration, applicationUpdateOrigin);
 	}
 
 	@Prototype
@@ -71,7 +80,17 @@ public class ControllersModule {
 	}
 
 	@Prototype
-	public UpdateAppController tournamentCreateController(ApplicationUpdateOrigin applicationUpdateOrigin) {
-		return new UpdateAppController(applicationUpdateOrigin);
+	public GamePlayersOfflineNotificationController gamePlayersOfflineNotificationController() {
+		return new GamePlayersOfflineNotificationController();
+	}
+
+	@Prototype
+	public TournamentAcceptPlayerNotificationController tournamentAcceptPlayerNotificationController() {
+		return new TournamentAcceptPlayerNotificationController();
+	}
+
+	@Prototype
+	public GameStartSoonNotificationController gameStartSoonNotificationController() {
+		return new GameStartSoonNotificationController();
 	}
 }

@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.client.ui.controller;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.scene.control.TextArea;
@@ -22,6 +21,6 @@ public class ErrorController implements Controller<String> {
 	}
 
 	public void returnToGame(ActionEvent event) {
-		UI.switchComponent(ComponentType.MENU);
+		UI.switchComponent(MenuController.class);
 	}
 }

@@ -32,7 +32,7 @@
 
 	<profiles>
 		<profile>
-			<id>prod</id>
+			<id>images</id>
 			<properties>
 				<windows-jdk-jmods-path/>
 				<linux-jdk-jmods-path/>
@@ -45,7 +45,7 @@
 					<plugin>
 						<groupId>com.github.tix320</groupId>
 						<artifactId>jimage-maven-plugin</artifactId>
-						<version>0.1.1</version>
+						<version>0.2.0</version>
 						<executions>
 							<execution>
 								<id>jlink</id>
@@ -54,7 +54,9 @@
 									<goal>jlink</goal>
 								</goals>
 								<configuration>
-									<createZip>true</createZip>
+									<zipOptions>
+										<enable>true</enable>
+									</zipOptions>
 									<jlinkOptions>
 										<verbose>true</verbose>
 										<noHeaderFiles>true</noHeaderFiles>
@@ -62,7 +64,7 @@
 										<stripDebug>true</stripDebug>
 										<compression>1</compression>
 										<modulePaths>
-											<path>${project.build.directory}/app.jar</path>
+											<path>${project.build.directory}/${project.artifactId}.jar</path>
 											<path>${project.build.directory}/lib/</path>
 										</modulePaths>
 										<rootModules>

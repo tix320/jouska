@@ -13,9 +13,9 @@
 		<revision>3.0.0</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>3.0.0</sonder.version>
+		<sonder.version>3.0.1</sonder.version>
 		<ravel.version>0.2.0</ravel.version>
-		<deft.version>0.2.1</deft.version>
+		<deft.version>0.3.0</deft.version>
 		<classgraph.version>4.8.102</classgraph.version>
 	</properties>
 
@@ -43,7 +43,7 @@
 				<artifactId>maven-jar-plugin</artifactId>
 				<version>3.2.0</version>
 				<configuration>
-					<finalName>app</finalName>
+					<finalName>${project.artifactId}</finalName>
 				</configuration>
 			</plugin>
 			<plugin>

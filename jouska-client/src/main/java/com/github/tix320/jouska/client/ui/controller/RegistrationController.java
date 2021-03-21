@@ -1,7 +1,6 @@
 package com.github.tix320.jouska.client.ui.controller;
 
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.client.ui.helper.component.PastePreventPasswordField;
 import com.github.tix320.jouska.core.dto.Credentials;
@@ -57,19 +56,15 @@ public class RegistrationController implements Controller<Object> {
 		authenticationOrigin.register(new RegistrationCommand(nicknameInput.getText(), passwordInput.getText()))
 				.subscribe(registrationAnswer -> {
 					switch (registrationAnswer) {
-						case SUCCESS:
-							UI.switchComponent(ComponentType.LOGIN,
-									new Credentials(nicknameInput.getText(), passwordInput.getText()));
-							break;
-						case NICKNAME_ALREADY_EXISTS:
-							showError("Nickname already exists");
-							break;
+						case SUCCESS -> UI.switchComponent(LoginController.class,
+								new Credentials(nicknameInput.getText(), passwordInput.getText()));
+						case NICKNAME_ALREADY_EXISTS -> showError("Nickname already exists");
 					}
 				});
 	}
 
 	public void login() {
-		UI.switchComponent(ComponentType.LOGIN);
+		UI.switchComponent(LoginController.class);
 	}
 
 	public void showError(String message) {

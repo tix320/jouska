@@ -1,23 +1,21 @@
 package com.github.tix320.jouska.client.infrastructure;
 
 import java.io.IOException;
-import java.lang.reflect.InvocationTargetException;
 import java.net.URL;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.github.tix320.jouska.client.app.AppConfig;
 import com.github.tix320.jouska.client.infrastructure.event.GameStartedEvent;
-import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
-import com.github.tix320.jouska.client.ui.controller.Component;
-import com.github.tix320.jouska.client.ui.controller.Controller;
+import com.github.tix320.jouska.client.ui.controller.*;
 import com.github.tix320.jouska.client.ui.controller.notification.GamePlayersOfflineNotificationController;
 import com.github.tix320.jouska.client.ui.controller.notification.GameStartSoonNotificationController;
-import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.client.ui.controller.notification.TournamentAcceptPlayerNotificationController;
 import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.event.EventDispatcher;
 import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
 import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
-import com.github.tix320.skimp.api.object.None;
 import javafx.application.Platform;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Rectangle2D;
@@ -48,32 +46,35 @@ public final class UI {
 
 		// TODO this is not place for this
 		EventDispatcher.on(GameStartedEvent.class)
-				.subscribe(event -> UI.switchComponent(ComponentType.GAME, event.getGamePlayDto()));
+				.subscribe(event -> UI.switchComponent(GameController.class, event.getGamePlayDto()));
 	}
 
-	public static MonoObservable<None> switchComponent(ComponentType componentType) {
-		return switchComponent(componentType, null);
+	@SuppressWarnings({"rawtypes", "unchecked"})
+	public static <C extends Controller<?>> MonoObservable<C> switchComponent(Class<C> controllerClass) {
+		return switchComponent((Class<? extends Controller>) controllerClass, null);
 	}
 
-	public static MonoObservable<None> switchComponent(ComponentType componentType, Object data) {
-		Component component = loadComponent(componentType, data);
+	public static <T, C extends Controller<T>> MonoObservable<C> switchComponent(Class<C> controllerClass, T data) {
+		Component component = loadComponent(controllerClass, data);
 		if (currentComponent != null) {
 			currentComponent.getController().destroy();
 		}
 		currentComponent = component;
 		Scene scene = new Scene(component.getRoot());
 
-		Publisher<None> switchCompletePublisher = Publisher.mono();
+		MonoPublisher<C> switchCompletePublisher = Publisher.mono();
 
 		Platform.runLater(() -> {
 			stage.setScene(scene);
 			scene.setCursor(new ImageCursor(new Image(UI.class.getResourceAsStream("/images/cursor.jpg"))));
 			normalize();
 			stage.centerOnScreen();
-			switchCompletePublisher.publish(None.SELF);
+			@SuppressWarnings("unchecked")
+			final C controller = (C) component.getController();
+			switchCompletePublisher.publish(controller);
 		});
 
-		return switchCompletePublisher.asObservable().toMono();
+		return switchCompletePublisher.asObservable();
 	}
 
 	public static void normalize() {
@@ -93,8 +94,8 @@ public final class UI {
 		stage.centerOnScreen();
 	}
 
-	public static Component loadComponent(ComponentType componentType, Object data) {
-		FXMLLoader loader = loadFxml(componentType, null);
+	public static <T, C extends Controller<? extends T>> Component loadComponent(Class<C> controllerClass, T data) {
+		FXMLLoader loader = loadFxml(controllerClass);
 		Parent root = loader.getRoot();
 
 		Controller<Object> controller = loader.getController();
@@ -102,81 +103,45 @@ public final class UI {
 		return new ComponentImpl(root, controller);
 	}
 
-	@SuppressWarnings("unchecked")
-	public static Component loadNotificationComponent(NotificationType notificationType, NotificationEvent<?, ?> data) {
-		ComponentType componentType = notificationType.componentType;
-
-		NotificationController<NotificationEvent<?, ?>> controller;
-		try {
-			controller = (NotificationController<NotificationEvent<?, ?>>) notificationType.controllerClass.getConstructors()[0]
-					.newInstance();
-		} catch (InstantiationException | IllegalAccessException | InvocationTargetException e) {
-			throw new RuntimeException(e);
-		}
-
-		FXMLLoader fxmlLoader = loadFxml(componentType, controller);
-
-		controller.init(data);
-		return new ComponentImpl(fxmlLoader.getRoot(), controller);
-	}
-
-	private static FXMLLoader loadFxml(ComponentType componentType, Object controller) {
-		String resourceUrl = componentType.fxmlPath;
+	private static <C extends Controller<?>> FXMLLoader loadFxml(Class<C> controllerClass) {
+		String resourceUrl = fxmlByControllers.get(controllerClass);
 		URL resource = UI.class.getResource(resourceUrl);
 		if (resource == null) {
 			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
 		}
 		FXMLLoader loader = new FXMLLoader(resource);
-		if (controller == null) {
-			loader.setControllerFactory(controllerClass -> AppConfig.INJECTOR.inject(controllerClass));
-		} else {
-			loader.setController(controller);
-		}
+		loader.setControllerFactory(clazz -> AppConfig.INJECTOR.inject(clazz));
 		try {
 			loader.load();
 		} catch (IOException e) {
-			throw new IllegalArgumentException(String.format("Scene %s not found", componentType), e);
+			throw new IllegalArgumentException("Scene for %s not found".formatted(controllerClass.getSimpleName()), e);
 		}
 
 		return loader;
 	}
 
-	public enum ComponentType {
-		SERVER_CONNECT("/ui/server-connect/server-connect.fxml"),
-		UPDATE_APP("/ui/update-app/update-app.fxml"),
-		LOGIN("/ui/auth/login.fxml"),
-		REGISTRATION("/ui/auth/registration.fxml"),
-		ERROR("/ui/error/error.fxml"),
-		MENU("/ui/menu/menu.fxml"),
-		CREATE_GAME("/ui/game-creating/game-creating.fxml"),
-		LOBBY("/ui/lobby/lobby.fxml"),
-		TOURNAMENT_LOBBY("/ui/tournament/tournament-lobby.fxml"),
-		TOURNAMENT_CREATE("/ui/tournament/tournament-create.fxml"),
-		TOURNAMENT_MANAGEMENT("/ui/tournament/tournament-view.fxml"),
-		GAME("/ui/game/game.fxml"),
-		CONFIRM_NOTIFICATION("/ui/menu/notification/confirm-notification.fxml"),
-		WARNING_NOTIFICATION("/ui/menu/notification/warning-notification.fxml");
+	@SuppressWarnings({"rawtypes"})
+	private static final Map<Class<? extends Controller>, String> fxmlByControllers = new HashMap<>();
 
-		private final String fxmlPath;
-
-		ComponentType(String fxmlPath) {
-			this.fxmlPath = fxmlPath;
-		}
-	}
-
-	public enum NotificationType {
-		TOURNAMENT_ACCEPT(ComponentType.CONFIRM_NOTIFICATION, TournamentAcceptPlayerNotificationController.class),
-		GAME_PLAYERS_OFFLINE(ComponentType.WARNING_NOTIFICATION, GamePlayersOfflineNotificationController.class),
-		GAME_START_SOON(ComponentType.CONFIRM_NOTIFICATION, GameStartSoonNotificationController.class);
-
-		private final ComponentType componentType;
-
-		private final Class<? extends NotificationController<?>> controllerClass;
-
-		NotificationType(ComponentType componentType, Class<? extends NotificationController<?>> controllerClass) {
-			this.componentType = componentType;
-			this.controllerClass = controllerClass;
-		}
+	static {
+		fxmlByControllers.put(ServerConnectController.class, "/ui/server-connect/server-connect.fxml");
+		fxmlByControllers.put(UpdateAppController.class, "/ui/update-app/update-app.fxml");
+		fxmlByControllers.put(LoginController.class, "/ui/auth/login.fxml");
+		fxmlByControllers.put(RegistrationController.class, "/ui/auth/registration.fxml");
+		fxmlByControllers.put(ErrorController.class, "/ui/error/error.fxml");
+		fxmlByControllers.put(MenuController.class, "/ui/menu/menu.fxml");
+		fxmlByControllers.put(GameCreatingController.class, "/ui/game-creating/game-creating.fxml");
+		fxmlByControllers.put(LobbyController.class, "/ui/lobby/lobby.fxml");
+		fxmlByControllers.put(TournamentLobbyController.class, "/ui/tournament/tournament-lobby.fxml");
+		fxmlByControllers.put(TournamentCreateController.class, "/ui/tournament/tournament-create.fxml");
+		fxmlByControllers.put(TournamentViewController.class, "/ui/tournament/tournament-view.fxml");
+		fxmlByControllers.put(GameController.class, "/ui/game/game.fxml");
+		fxmlByControllers.put(TournamentAcceptPlayerNotificationController.class,
+				"/ui/menu/notification/confirm-notification.fxml");
+		fxmlByControllers.put(GameStartSoonNotificationController.class,
+				"/ui/menu/notification/confirm-notification.fxml");
+		fxmlByControllers.put(GamePlayersOfflineNotificationController.class,
+				"/ui/menu/notification/warning-notification.fxml");
 	}
 
 	private static final class ComponentImpl implements Component {

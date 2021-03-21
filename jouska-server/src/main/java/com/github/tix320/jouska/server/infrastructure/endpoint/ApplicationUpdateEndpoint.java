@@ -64,7 +64,8 @@ public class ApplicationUpdateEndpoint {
 
 	private Transfer fileToTransfer(String filePath) {
 		Path file = Path.of(filePath);
-		try (FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ)) {
+		try {
+			FileChannel fileChannel = FileChannel.open(file, StandardOpenOption.READ);
 			long length = Files.size(file);
 			LimitedReadableByteChannel channel = new LimitedReadableByteChannel(fileChannel, length);
 			channel.completeness().subscribe(none -> {

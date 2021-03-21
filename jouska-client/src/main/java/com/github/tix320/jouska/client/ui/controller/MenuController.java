@@ -3,8 +3,6 @@ package com.github.tix320.jouska.client.ui.controller;
 import com.github.tix320.jouska.client.app.Configuration;
 import com.github.tix320.jouska.client.infrastructure.CurrentUserContext;
 import com.github.tix320.jouska.client.infrastructure.UI;
-import com.github.tix320.jouska.client.infrastructure.UI.ComponentType;
-import com.github.tix320.jouska.client.infrastructure.UI.NotificationType;
 import com.github.tix320.jouska.client.infrastructure.event.MenuContentChangeEvent;
 import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEvent;
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
@@ -102,7 +100,7 @@ public final class MenuController implements Controller<Object> {
 			return;
 		}
 
-		Component component = UI.loadComponent(menuContentType.getComponentType(), data);
+		Component component = UI.loadComponent(menuContentType.getControllerClass(), data);
 		if (currentContentComponent != null) {
 			currentContentComponent.getController().destroy();
 		}
@@ -127,12 +125,11 @@ public final class MenuController implements Controller<Object> {
 		CurrentUserContext.setPlayer(null);
 		authenticationOrigin.logout();
 		configuration.updateCredentials("", "");
-		UI.switchComponent(ComponentType.LOGIN);
+		UI.switchComponent(LoginController.class);
 	}
 
 	private void processNotification(NotificationEvent<?, ?> notificationEvent) {
-		NotificationType notificationType = notificationEvent.getNotificationType();
-		Component component = UI.loadNotificationComponent(notificationType, notificationEvent);
+		Component component = UI.loadComponent(notificationEvent.getControllerClass(), notificationEvent);
 
 		if (!(component.getController() instanceof NotificationController)) {
 			throw new IllegalStateException("");
@@ -164,11 +161,9 @@ public final class MenuController implements Controller<Object> {
 
 		try {
 			notificationEvent.onResolve().await(java.time.Duration.ofSeconds(30));
-		}
-		catch (TimeoutException | ThreadInterruptedException ignored) {
+		} catch (TimeoutException | ThreadInterruptedException ignored) {
 			System.out.println("Notification skipped in Menu");
-		}
-		finally {
+		} finally {
 			MonoPublisher<None> onDestroy = Publisher.mono();
 			Platform.runLater(() -> {
 				FadeTransition translateTransition = new FadeTransition(Duration.seconds(0.1), notificationPane);
@@ -190,8 +185,7 @@ public final class MenuController implements Controller<Object> {
 
 			try {
 				onDestroy.asObservable().await(java.time.Duration.ofSeconds(5));
-			}
-			catch (TimeoutException | ThreadInterruptedException e) {
+			} catch (TimeoutException | ThreadInterruptedException e) {
 				e.printStackTrace();
 			}
 		}
@@ -200,35 +194,35 @@ public final class MenuController implements Controller<Object> {
 	public enum MenuContentType {
 		CREATE_GAME {
 			@Override
-			ComponentType getComponentType() {
-				return ComponentType.CREATE_GAME;
+			Class<? extends Controller<?>> getControllerClass() {
+				return GameCreatingController.class;
 			}
 		},
 		LOBBY {
 			@Override
-			ComponentType getComponentType() {
-				return ComponentType.LOBBY;
+			Class<? extends Controller<?>> getControllerClass() {
+				return LobbyController.class;
 			}
 		},
 		TOURNAMENT_LOBBY {
 			@Override
-			ComponentType getComponentType() {
-				return ComponentType.TOURNAMENT_LOBBY;
+			Class<? extends Controller<?>> getControllerClass() {
+				return TournamentLobbyController.class;
 			}
 		},
 		TOURNAMENT_CREATE {
 			@Override
-			ComponentType getComponentType() {
-				return ComponentType.TOURNAMENT_CREATE;
+			Class<? extends Controller<?>> getControllerClass() {
+				return TournamentCreateController.class;
 			}
 		},
-		TOURNAMENT_MANAGEMENT {
+		TOURNAMENT_VIEW {
 			@Override
-			ComponentType getComponentType() {
-				return ComponentType.TOURNAMENT_MANAGEMENT;
+			Class<? extends Controller<?>> getControllerClass() {
+				return TournamentViewController.class;
 			}
 		};
 
-		abstract ComponentType getComponentType();
+		abstract Class<? extends Controller<?>> getControllerClass();
 	}
 }

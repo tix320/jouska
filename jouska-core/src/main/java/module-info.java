@@ -3,12 +3,15 @@ open module jouska.core {
 	requires com.fasterxml.jackson.annotation;
 	requires com.fasterxml.jackson.databind;
 
-	requires com.github.tix.kiwi;
+	requires com.github.tix.deft;
 	requires com.github.tix.skimp;
+	requires com.github.tix.kiwi;
+	requires com.github.tix.sonder;
 
 	requires io.github.classgraph;
 
 	exports com.github.tix320.jouska.core;
+	exports com.github.tix320.jouska.core.update;
 	exports com.github.tix320.jouska.core.model;
 	exports com.github.tix320.jouska.core.dto;
 	exports com.github.tix320.jouska.core.application.game;

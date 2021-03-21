@@ -11,9 +11,9 @@ import java.util.regex.Pattern;
  **/
 public class Version implements Comparable<Version> {
 
-	public static final Version CURRENT = resolveCurrentVersion();
-
 	private static final Pattern VERSION_PATTERN = Pattern.compile("(\\d{1,2})\\.(\\d{1,2})\\.(\\d{1,3})");
+
+	public static final Version CURRENT = resolveCurrentVersion();
 
 	private static final Comparator<Version> COMPARATOR = Comparator.comparingInt(Version::getMajor)
 			.thenComparingInt(Version::getMinor)
