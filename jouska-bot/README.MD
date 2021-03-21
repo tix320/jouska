@@ -2,7 +2,7 @@
 
 ## Run mvn build
 ```
-mvn clean package -Pprod
+mvn clean package -Pimages
 "-Djouska.server.host=192.165.113.144" 
 "-Djouska.server.port=8888" 
 "-Dwindows-jdk-jmods-path=/home/dev/windows-jdk-16/jmods"
@@ -11,7 +11,7 @@ mvn clean package -Pprod
 ```
 
 # How to run bot client
-#### Run it via "runner.bat" / "runner.sh" by passing following arguments
+#### Run it via "runner.bat" / "runner" by passing following arguments
     1. Real bot process command: "My c++ application run command"
     2. Username: MyBot 
     3. Password: MyPassword
