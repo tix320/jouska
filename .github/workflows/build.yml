@@ -16,7 +16,7 @@ jobs:
       - name: Set up Java, Maven
         uses: actions/setup-java@v1
         with:
-          java-version: 15
+          java-version: 16
           gpg-private-key: ${{ secrets.MAVEN_GPG_PRIVATE_KEY }}
           gpg-passphrase: MAVEN_GPG_PASSPHRASE
 
