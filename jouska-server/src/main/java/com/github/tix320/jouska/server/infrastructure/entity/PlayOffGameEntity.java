@@ -1,10 +1,12 @@
 package com.github.tix320.jouska.server.infrastructure.entity;
 
+import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Reference;
 
 /**
  * @author Tigran Sargsyan on 14-Apr-20.
  */
+@Entity
 public class PlayOffGameEntity {
 
 	@Reference

@@ -9,7 +9,6 @@ import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.infrastructure.application.GameManager;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
 import com.github.tix320.jouska.server.infrastructure.dao.TournamentDao;
-import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.CallerUser;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayOffGameEntity;
@@ -18,6 +17,8 @@ import com.github.tix320.jouska.server.infrastructure.entity.TournamentEntity;
 import com.github.tix320.kiwi.api.reactive.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
+import dev.morphia.query.experimental.filters.Filter;
+import dev.morphia.query.experimental.filters.Filters;
 import org.bson.types.ObjectId;
 
 @Endpoint("game")
@@ -50,9 +51,9 @@ public class ServerGameManagementEndpoint {
 							.map(ObjectId::new)
 							.collect(Collectors.toList());
 					if (gameListFilter.getStates().contains(GameState.COMPLETED)) {
-						Filter filter = ids.isEmpty() ? Filter.equal("state", GameState.COMPLETED) :
-								Filter.and(Filter.equal("state", GameState.COMPLETED), Filter.notIn("_id", ids));
-						List<GameView> completedGames = gameDao.findAll(List.of("settings", "state", "creator"), filter)
+						Filter filter = ids.isEmpty() ? Filters.eq("state", GameState.COMPLETED) :
+								Filters.and(Filters.eq("state", GameState.COMPLETED), Filters.nin("_id", ids));
+						List<GameView> completedGames = gameDao.findAll(filter, "settings", "state", "creator")
 								.stream()
 								.map(gameEntity -> {
 									PlayerEntity creator = gameEntity.getCreator();

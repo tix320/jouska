@@ -53,6 +53,10 @@ public class LoginController implements Controller<Credentials> {
 	}
 
 	public void login() {
+		if (nicknameInput.getText().isBlank() && passwordInput.getText().isBlank()) {
+			return;
+		}
+
 		Credentials credentials = new Credentials(nicknameInput.getText(), passwordInput.getText());
 		authenticationOrigin.login(credentials).subscribe(loginAnswer -> {
 			switch (loginAnswer.getLoginResult()) {

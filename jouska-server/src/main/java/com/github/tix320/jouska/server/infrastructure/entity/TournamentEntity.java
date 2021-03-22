@@ -11,6 +11,7 @@ import com.github.tix320.jouska.core.application.game.creation.RestorableTournam
 import com.github.tix320.jouska.core.application.tournament.TournamentState;
 import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Id;
+import dev.morphia.annotations.Property;
 import dev.morphia.annotations.Reference;
 import org.bson.types.ObjectId;
 
@@ -26,6 +27,7 @@ public class TournamentEntity implements Identifiable {
 	@Reference
 	private PlayerEntity creator;
 
+	@Property
 	private RestorableTournamentSettings settings;
 
 	@Reference

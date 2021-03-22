@@ -130,10 +130,12 @@ public final class TimedGame implements RestorableGame {
 			currentTurnInfo.set(new TurnInfo(remainingTurnMillis, remainingPlayerTurnMillis));
 
 			CellChange cellChange = game.turn(point);
-			double seconds = calculateApproximateAnimationTime(cellChange);
+
+			// double seconds = calculateApproximateAnimationTime(cellChange);
+			// int nextTurnSeconds = ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable. TODO if enabled, game watch is broken
+
 			Player currentPLayer = getCurrentPlayer().getRealPlayer();
-			int nextTurnSeconds = ((int) Math.ceil(seconds)) + turnDurationSeconds + 1; // non-negotiable.
-			runTurnTimer(currentPLayer, nextTurnSeconds);
+			runTurnTimer(currentPLayer, turnDurationSeconds);
 			return cellChange;
 		}
 	}

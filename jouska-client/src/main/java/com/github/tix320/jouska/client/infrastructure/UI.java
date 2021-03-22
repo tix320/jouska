@@ -95,7 +95,7 @@ public final class UI {
 	}
 
 	public static <T, C extends Controller<? extends T>> Component loadComponent(Class<C> controllerClass, T data) {
-		FXMLLoader loader = loadFxml(controllerClass);
+		FXMLLoader loader = loadFxml(controllerClass, false);
 		Parent root = loader.getRoot();
 
 		Controller<Object> controller = loader.getController();
@@ -103,14 +103,30 @@ public final class UI {
 		return new ComponentImpl(root, controller);
 	}
 
-	private static <C extends Controller<?>> FXMLLoader loadFxml(Class<C> controllerClass) {
+	public static <T, C extends Controller<? extends T>> Component loadComponentWithoutController(
+			Class<C> controllerClass, T data) {
+		FXMLLoader loader = loadFxml(controllerClass, true);
+		Parent root = loader.getRoot();
+
+		Controller<Object> controller = loader.getController();
+		controller.init(data);
+		return new ComponentImpl(root, controller);
+	}
+
+	private static <C extends Controller<?>> FXMLLoader loadFxml(Class<C> controllerClass, boolean forceSetController) {
 		String resourceUrl = fxmlByControllers.get(controllerClass);
 		URL resource = UI.class.getResource(resourceUrl);
 		if (resource == null) {
 			throw new IllegalArgumentException(String.format("Fxml %s not found", resourceUrl));
 		}
 		FXMLLoader loader = new FXMLLoader(resource);
-		loader.setControllerFactory(clazz -> AppConfig.INJECTOR.inject(clazz));
+
+		if (forceSetController) {
+			loader.setController(AppConfig.INJECTOR.inject(controllerClass));
+		} else {
+			loader.setControllerFactory(clazz -> AppConfig.INJECTOR.inject(clazz));
+		}
+
 		try {
 			loader.load();
 		} catch (IOException e) {

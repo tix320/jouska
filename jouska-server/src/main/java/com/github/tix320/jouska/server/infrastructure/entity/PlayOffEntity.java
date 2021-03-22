@@ -5,11 +5,13 @@ import java.util.List;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorablePlayOffSettings;
+import dev.morphia.annotations.Entity;
 import dev.morphia.annotations.Reference;
 
 /**
  * @author Tigran Sargsyan on 14-Apr-20.
  */
+@Entity
 public class PlayOffEntity {
 
 	private RestorablePlayOffSettings settings;
