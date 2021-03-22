@@ -22,6 +22,7 @@ public class GameEntity implements Identifiable {
 	@Reference
 	private PlayerEntity creator;
 
+	@Reference
 	private Set<PlayerEntity> accessedPlayers;
 
 	private RestorableGameSettings settings;

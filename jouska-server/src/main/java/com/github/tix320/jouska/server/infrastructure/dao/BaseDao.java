@@ -1,16 +1,22 @@
 package com.github.tix320.jouska.server.infrastructure.dao;
 
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.function.Function;
 
 import com.github.tix320.jouska.server.app.DatastoreProvider;
-import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.Identifiable;
 import dev.morphia.Datastore;
+import dev.morphia.query.FindOptions;
 import dev.morphia.query.Query;
-import dev.morphia.query.UpdateOperations;
+import dev.morphia.query.experimental.filters.Filter;
+import dev.morphia.query.experimental.filters.Filters;
+import dev.morphia.query.experimental.updates.UpdateOperator;
+import dev.morphia.query.experimental.updates.UpdateOperators;
 import org.bson.types.ObjectId;
 
 /**
@@ -26,71 +32,67 @@ public abstract class BaseDao<T extends Identifiable> {
 
 	public final Optional<T> findById(String id) {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
-		query.field("_id").equal(new ObjectId(id));
+		query.filter(Filters.eq("_id", new ObjectId(id)));
 		return Optional.ofNullable(query.first());
 	}
 
-	public final Optional<T> findById(String id, List<String> fieldsToFetch) {
+	public final Optional<T> findById(String id, String... fieldsToFetch) {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
 
-		if (fieldsToFetch.isEmpty()) {
-			query.project("_id", true);
-		}
-		else {
-			for (String field : fieldsToFetch) {
-				query.project(field, true);
-			}
+		FindOptions findOptions;
+		if (fieldsToFetch.length == 0) {
+			findOptions = new FindOptions().projection().include("_id");
+		} else {
+			findOptions = new FindOptions().projection().include(fieldsToFetch);
 		}
 
-		query.field("_id").equal(new ObjectId(id));
+		query.filter(Filters.eq("_id", new ObjectId(id)));
 
-		return Optional.ofNullable(query.first());
+		final T item = query.first(findOptions);
+
+		return Optional.ofNullable(item);
 	}
 
 	public final List<T> findAll() {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
 
-		return query.find().toList();
+		return query.iterator().toList();
 	}
 
-	public final List<T> findAll(List<String> fieldsToFetch) {
+	public final List<T> findAll(String... fieldsToFetch) {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
 
-		if (fieldsToFetch.isEmpty()) {
-			query.project("_id", true);
-		}
-		else {
-			for (String field : fieldsToFetch) {
-				query.project(field, true);
-			}
+		FindOptions findOptions;
+		if (fieldsToFetch.length == 0) {
+			findOptions = new FindOptions().projection().include("_id");
+		} else {
+			findOptions = new FindOptions().projection().include(fieldsToFetch);
 		}
 
-		return query.find().toList();
+		return query.iterator(findOptions).toList();
 	}
 
 	public final List<T> findAll(Filter filter) {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
 
-		filter.applyTo(query);
+		query.filter(filter);
 
-		return query.find().toList();
+		return query.iterator().toList();
 	}
 
-	public final List<T> findAll(List<String> fieldsToFetch, Filter filter) {
+	public final List<T> findAll(Filter filter, String... fieldsToFetch) {
 		Query<T> query = datastoreProvider.getInstance().find(getEntityClass());
 
-		if (fieldsToFetch.isEmpty()) {
-			query.project("_id", true);
-		}
-		else {
-			for (String field : fieldsToFetch) {
-				query.project(field, true);
-			}
+		FindOptions findOptions;
+		if (fieldsToFetch.length == 0) {
+			findOptions = new FindOptions().projection().include("_id");
+		} else {
+			findOptions = new FindOptions().projection().include(fieldsToFetch);
 		}
 
-		filter.applyTo(query);
+		query.filter(filter);
 
-		return query.find().toList();
+		return query.iterator(findOptions).toList();
 	}
 
 
@@ -98,8 +100,7 @@ public abstract class BaseDao<T extends Identifiable> {
 		List<T> list = findAll(filter);
 		if (list.isEmpty()) {
 			return Optional.empty();
-		}
-		else {
+		} else {
 			return Optional.of(list.get(0));
 		}
 	}
@@ -115,21 +116,36 @@ public abstract class BaseDao<T extends Identifiable> {
 	}
 
 	public final void update(T entity, Map<String, Function<T, ?>> fieldsToUpdate) {
+		if (fieldsToUpdate.isEmpty()) {
+			throw new IllegalArgumentException("Empty map");
+		}
+
 		Datastore instance = datastoreProvider.getInstance();
 
-		Query<T> findQuery = instance.createQuery(getEntityClass()).field("_id").equal(new ObjectId(entity.getId()));
-		UpdateOperations<T> updateOperations = instance.createUpdateOperations(getEntityClass());
+		final Query<T> query = instance.find(getEntityClass());
 
-		fieldsToUpdate.forEach(
-				(fieldName, fieldRetriever) -> updateOperations.set(fieldName, fieldRetriever.apply(entity)));
+		query.filter(Filters.eq("_id", new ObjectId(entity.getId())));
 
-		instance.update(findQuery, updateOperations);
+		final Iterator<Entry<String, Function<T, ?>>> iterator = fieldsToUpdate.entrySet().iterator();
+
+		final Entry<String, Function<T, ?>> firstUpdate = iterator.next();
+		final UpdateOperator firstUpdateOperator = UpdateOperators.set(firstUpdate.getKey(),
+				firstUpdate.getValue().apply(entity));
+
+
+		UpdateOperator[] remainingOperators = new UpdateOperator[fieldsToUpdate.size() - 1];
+		AtomicInteger index = new AtomicInteger(0);
+		iterator.forEachRemaining(
+				entry -> remainingOperators[index.getAndIncrement()] = UpdateOperators.set(entry.getKey(),
+						entry.getValue().apply(entity)));
+
+		query.update(firstUpdateOperator, remainingOperators).execute();
 	}
 
 	public final void deleteById(String id) {
 		Datastore instance = datastoreProvider.getInstance();
 
-		instance.delete(instance.createQuery(getEntityClass()).field("_id").equal(new ObjectId(id)));
+		instance.find(getEntityClass()).filter(Filters.eq("_id", new ObjectId(id))).delete();
 	}
 
 	protected abstract Class<T> getEntityClass();

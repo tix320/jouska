@@ -117,7 +117,7 @@ public class GameManager {
 	public GameWatchDto watchGame(String gameId) {
 		DBGame game = DBGame.all().get(gameId);
 		if (game == null) {
-			GameEntity gameEntity = gameDao.findById(gameId, List.of("settings", "players"))
+			GameEntity gameEntity = gameDao.findById(gameId, "settings", "players")
 					.orElseThrow(
 							() -> new IllegalArgumentException(String.format("Game `%s` does not exists", gameId)));
 

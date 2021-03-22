@@ -11,7 +11,6 @@ import com.github.tix320.jouska.core.application.game.creation.RestorableGameSet
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.server.app.AppConfig;
 import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
-import com.github.tix320.jouska.server.infrastructure.dao.query.filter.Filter;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.GamePlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.GameStatisticsEntity;
@@ -22,6 +21,7 @@ import com.github.tix320.kiwi.api.reactive.property.MapProperty;
 import com.github.tix320.kiwi.api.reactive.property.Property;
 import com.github.tix320.kiwi.api.reactive.property.ReadOnlyMapProperty;
 import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
+import dev.morphia.query.experimental.filters.Filters;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -35,7 +35,7 @@ public class DBGame implements Game {
 	private static final GameDao gameDao = AppConfig.INJECTOR.inject(GameDao.class);
 
 	static {
-		List<GameEntity> notCompletedGames = gameDao.findAll(Filter.notEqual("state", GameState.COMPLETED));
+		List<GameEntity> notCompletedGames = gameDao.findAll(Filters.ne("state", GameState.COMPLETED));
 
 		notCompletedGames.stream().peek(gameEntity -> {
 			if (gameEntity.getState() == GameState.RUNNING) {
@@ -302,13 +302,10 @@ public class DBGame implements Game {
 		RestorableGame game = settings.createGame();
 		gameEntity.getPlayers().stream().map(Converters::gamePlayerEntityToInGamePlayer).forEach(game::addPlayer);
 
-		switch (state) {
-			case INITIAL:
-			case COMPLETED:
-				return game;
-			default:
-				throw new IllegalStateException();
-		}
+		return switch (state) {
+			case INITIAL, COMPLETED -> game;
+			default -> throw new IllegalStateException();
+		};
 	}
 
 	@Override

@@ -129,7 +129,7 @@ public final class MenuController implements Controller<Object> {
 	}
 
 	private void processNotification(NotificationEvent<?, ?> notificationEvent) {
-		Component component = UI.loadComponent(notificationEvent.getControllerClass(), notificationEvent);
+		Component component = UI.loadComponentWithoutController(notificationEvent.getControllerClass(), notificationEvent);
 
 		if (!(component.getController() instanceof NotificationController)) {
 			throw new IllegalStateException("");
