@@ -45,60 +45,80 @@
 					<plugin>
 						<groupId>com.github.tix320</groupId>
 						<artifactId>jimage-maven-plugin</artifactId>
-						<version>0.2.0</version>
+						<version>0.3.0</version>
+						<configuration>
+							<zipOptions>
+								<enable>true</enable>
+							</zipOptions>
+							<jlinkOptions>
+								<verbose>true</verbose>
+								<noHeaderFiles>true</noHeaderFiles>
+								<noManPages>true</noManPages>
+								<stripDebug>true</stripDebug>
+								<compression>1</compression>
+								<modulePaths>
+									<jar>${project.build.directory}/${project.artifactId}.jar</jar>
+									<lib>${project.build.directory}/lib/</lib>
+								</modulePaths>
+								<rootModules>
+									<module>jouska.bot</module>
+								</rootModules>
+								<launcher>
+									<command>runner</command>
+									<mainModule>jouska.bot</mainModule>
+									<mainClass>com.github.tix320.jouska.bot.BotApp</mainClass>
+								</launcher>
+								<options>
+									<version>-Djouska.version=${project.version}</version>
+									<serverHost>-Djouska.server.host=${jouska.server.host}</serverHost>
+									<serverPort>-Djouska.server.port=${jouska.server.port}</serverPort>
+								</options>
+							</jlinkOptions>
+						</configuration>
 						<executions>
 							<execution>
-								<id>jlink</id>
+								<id>windows-jlink-image</id>
 								<phase>package</phase>
 								<goals>
 									<goal>jlink</goal>
 								</goals>
 								<configuration>
-									<zipOptions>
-										<enable>true</enable>
-									</zipOptions>
 									<jlinkOptions>
-										<verbose>true</verbose>
-										<noHeaderFiles>true</noHeaderFiles>
-										<noManPages>true</noManPages>
-										<stripDebug>true</stripDebug>
-										<compression>1</compression>
 										<modulePaths>
-											<path>${project.build.directory}/${project.artifactId}.jar</path>
-											<path>${project.build.directory}/lib/</path>
+											<jdkmodsPath>${windows-jdk-jmods-path}</jdkmodsPath>
 										</modulePaths>
-										<rootModules>
-											<module>jouska.bot</module>
-										</rootModules>
-										<launcher>
-											<command>runner</command>
-											<mainModule>jouska.bot</mainModule>
-											<mainClass>com.github.tix320.jouska.bot.BotApp</mainClass>
-										</launcher>
-										<options>
-											<option>-Djouska.version=${project.version}</option>
-											<option>-Djouska.server.host=${jouska.server.host}</option>
-											<option>-Djouska.server.port=${jouska.server.port}</option>
-										</options>
+										<outputPath>${project.build.directory}/jlink/windows</outputPath>
 									</jlinkOptions>
-
-									<images>
-										<windows>
-											<modulePaths>
-												<path>${windows-jdk-jmods-path}</path>
-											</modulePaths>
-										</windows>
-										<linux>
-											<modulePaths>
-												<path>${linux-jdk-jmods-path}</path>
-											</modulePaths>
-										</linux>
-										<macos>
-											<modulePaths>
-												<path>${macos-jdk-jmods-path}</path>
-											</modulePaths>
-										</macos>
-									</images>
+								</configuration>
+							</execution>
+							<execution>
+								<id>linux-jlink-image</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jlink</goal>
+								</goals>
+								<configuration>
+									<jlinkOptions>
+										<modulePaths>
+											<jdkmodsPath>${linux-jdk-jmods-path}</jdkmodsPath>
+										</modulePaths>
+										<outputPath>${project.build.directory}/jlink/linux</outputPath>
+									</jlinkOptions>
+								</configuration>
+							</execution>
+							<execution>
+								<id>macos-jlink-image</id>
+								<phase>package</phase>
+								<goals>
+									<goal>jlink</goal>
+								</goals>
+								<configuration>
+									<jlinkOptions>
+										<modulePaths>
+											<jdkmodsPath>${macos-jdk-jmods-path}</jdkmodsPath>
+										</modulePaths>
+										<outputPath>${project.build.directory}/jlink/macos</outputPath>
+									</jlinkOptions>
 								</configuration>
 							</execution>
 						</executions>

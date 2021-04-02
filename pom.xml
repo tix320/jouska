@@ -24,7 +24,6 @@
 		<module>jouska-client</module>
 		<module>jouska-server</module>
 		<module>jouska-bot</module>
-		<module>jouska-ci</module>
 	</modules>
 
 	<build>
