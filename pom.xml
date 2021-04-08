@@ -15,7 +15,7 @@
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
 		<sonder.version>3.0.1</sonder.version>
 		<ravel.version>0.2.0</ravel.version>
-		<deft.version>0.3.0</deft.version>
+		<deft.version>0.4.0</deft.version>
 		<classgraph.version>4.8.102</classgraph.version>
 	</properties>
 
