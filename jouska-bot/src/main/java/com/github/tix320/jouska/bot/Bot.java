@@ -1,5 +1,6 @@
 package com.github.tix320.jouska.bot;
 
+import java.io.IOException;
 import java.util.List;
 
 import com.github.tix320.jouska.bot.process.BotProcess;
@@ -73,7 +74,12 @@ public final class Bot {
 
 	private void tryTurn() {
 		if (!game.isCompleted() && game.getCurrentPlayer().getColor() == myPlayer) {
-			Point turn = botProcess.turn(game.getBoard(), myPlayer);
+			Point turn;
+			try {
+				turn = botProcess.turn(game.getBoard(), myPlayer);
+			} catch (IOException e) {
+				throw new RuntimeException(e);
+			}
 			gameService.turn(gameId, turn);
 		}
 	}
