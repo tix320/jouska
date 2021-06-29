@@ -1,12 +1,12 @@
 package com.github.tix320.jouska.bot.config;
 
-import java.io.IOException;
-import java.net.InetSocketAddress;
-import java.nio.file.Path;
-
 import com.github.tix320.deft.api.SystemProperties;
 import com.github.tix320.jouska.core.util.JouskaProperties;
 import com.github.tix320.jouska.core.util.PropertiesFile;
+
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.nio.file.Path;
 
 public class Configuration {
 
@@ -30,20 +30,22 @@ public class Configuration {
 		}
 
 		if (host == null) {
-			host = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_HOST);
+			host = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_HOST,
+														 JouskaProperties.DEFAULT_SERVER_HOST);
 		}
 
 		if (port == null) {
-			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT));
+			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT, String.valueOf(
+					JouskaProperties.DEFAULT_SERVER_PORT)));
 		}
 
 		try {
 			serverAddress = new InetSocketAddress(host, port);
 		} catch (IllegalArgumentException ignored) {
 			System.err.printf("Host and port are invalid: %s:%s . Using defaults: %s:%s%n", host, port,
-					JouskaProperties.DEFAULT_SERVER_HOST, JouskaProperties.DEFAULT_SERVER_PORT);
+							  JouskaProperties.DEFAULT_SERVER_HOST, JouskaProperties.DEFAULT_SERVER_PORT);
 			serverAddress = new InetSocketAddress(JouskaProperties.DEFAULT_SERVER_HOST,
-					JouskaProperties.DEFAULT_SERVER_PORT);
+												  JouskaProperties.DEFAULT_SERVER_PORT);
 		}
 
 		System.out.printf("Server host-port: %s%n", serverAddress);
