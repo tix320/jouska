@@ -40,11 +40,13 @@ public class Configuration {
 		}
 
 		if (host == null) {
-			host = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_HOST);
+			host = SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_HOST,
+														 JouskaProperties.DEFAULT_SERVER_HOST);
 		}
 
 		if (port == null) {
-			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT));
+			port = Integer.parseInt(SystemProperties.getFromEnvOrElseJava(JouskaProperties.SERVER_PORT, String.valueOf(
+					JouskaProperties.DEFAULT_SERVER_PORT)));
 		}
 
 		try {
