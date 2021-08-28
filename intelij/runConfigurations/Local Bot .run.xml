@@ -1,0 +1,16 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Local Bot " type="Application" factoryName="Application" singleton="false">
+    <option name="MAIN_CLASS_NAME" value="com.github.tix320.jouska.bot.BotApp" />
+    <module name="jouska-bot" />
+    <option name="PROGRAM_PARAMETERS" value="&quot;java -jar bot-example.jar&quot; Bot1 foo" />
+    <extension name="coverage">
+      <pattern>
+        <option name="PATTERN" value="com.github.tix320.jouska.bot.service.*" />
+        <option name="ENABLED" value="true" />
+      </pattern>
+    </extension>
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

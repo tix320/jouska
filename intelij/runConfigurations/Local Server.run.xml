@@ -1,0 +1,9 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Local Server" type="Application" factoryName="Application">
+    <option name="MAIN_CLASS_NAME" value="com.github.tix320.jouska.server.app.Application" />
+    <module name="jouska-server" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
