@@ -5,7 +5,7 @@ use admin;
 db.createUser(
   {
     user: "admin",
-    pwd: "foo"
+    pwd: "foo",
     roles: [ { role: "userAdminAnyDatabase", db: "admin" }, "readWriteAnyDatabase" ]
   }
 );
