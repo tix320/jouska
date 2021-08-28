@@ -1,0 +1,10 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Local Client" type="Application" factoryName="Application" singleton="false">
+    <option name="MAIN_CLASS_NAME" value="com.github.tix320.jouska.client.app.Main" />
+    <module name="jouska-client" />
+    <option name="VM_PARAMETERS" value="-Djouska.server.host=localhost -Djouska.server.port=8888" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>
