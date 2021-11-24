@@ -3,9 +3,9 @@ package com.github.tix320.jouska.server.infrastructure;
 import java.util.Map;
 import java.util.Optional;
 
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.BiMapProperty;
-import com.github.tix320.kiwi.api.reactive.property.Property;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.property.BiMapProperty;
+import com.github.tix320.kiwi.property.Property;
 import com.github.tix320.skimp.api.collection.BiConcurrentHashMap;
 import com.github.tix320.skimp.api.collection.BiMap;
 

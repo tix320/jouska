@@ -13,11 +13,10 @@ import com.github.tix320.jouska.server.app.AppConfig;
 import com.github.tix320.jouska.server.infrastructure.dao.TournamentDao;
 import com.github.tix320.jouska.server.infrastructure.entity.*;
 import com.github.tix320.jouska.server.infrastructure.helper.Converters;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.MapProperty;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyMapProperty;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.MapProperty;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.ReadOnlyMapProperty;
 
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -139,7 +138,7 @@ public class DBTournament implements Tournament {
 	}
 
 	@Override
-	public ReadOnlyProperty<RestorablePlayOff> playOff() {
+	public Property<RestorablePlayOff> playOff() {
 		return tournament.playOff();
 	}
 

@@ -13,11 +13,11 @@ import com.github.tix320.jouska.core.application.game.creation.RestorablePlayOff
 import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.MathUtils;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.StateProperty;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.StateProperty;
+import com.github.tix320.kiwi.publisher.Publisher;
 import com.github.tix320.skimp.api.object.None;
 
 public class ClassicPlayOff implements RestorablePlayOff {
@@ -80,7 +80,7 @@ public class ClassicPlayOff implements RestorablePlayOff {
 
 	@Override
 	public synchronized List<List<PlayOffGame>> getTours() {
-		return tours.stream().map(List::copyOf).collect(Collectors.toUnmodifiableList()); // return deep immutable copy
+		return tours.stream().map(List::copyOf).toList(); // return deep immutable copy
 	}
 
 	@Override

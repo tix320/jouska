@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.infrastructure.concurrent.LockOwner;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.Stock;
 
 /**
  * NOTE: Implementations must be thread-safe.
@@ -34,7 +34,6 @@ public interface Game extends LockOwner {
 	 * Remove player from game.
 	 *
 	 * @return true if removed.
-	 *
 	 * @throws GameIllegalStateException if already started
 	 */
 	boolean removePlayer(Player player);
@@ -153,5 +152,5 @@ public interface Game extends LockOwner {
 	/**
 	 * Get stock of game changes.
 	 */
-	ReadOnlyStock<GameChange> changes();
+	Stock<GameChange> changes();
 }

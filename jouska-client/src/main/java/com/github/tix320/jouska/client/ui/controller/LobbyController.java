@@ -14,12 +14,10 @@ import com.github.tix320.jouska.client.ui.lobby.ConnectedPlayerItem;
 import com.github.tix320.jouska.client.ui.lobby.GameItem;
 import com.github.tix320.jouska.core.application.game.GameState;
 import com.github.tix320.jouska.core.dto.GameListFilter;
-import com.github.tix320.jouska.core.dto.GameView;
 import com.github.tix320.jouska.core.dto.TournamentView;
-import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
-import com.github.tix320.kiwi.api.reactive.observable.Subscription;
-import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.Subscription;
+import com.github.tix320.kiwi.publisher.MonoPublisher;
+import com.github.tix320.kiwi.publisher.Publisher;
 import com.github.tix320.skimp.api.object.None;
 import javafx.animation.Animation;
 import javafx.animation.KeyFrame;
@@ -92,7 +90,8 @@ public class LobbyController implements Controller<Object> {
 			String realText = text.substring(0, indexOfDot);
 			if (dotsCount == 3) {
 				waitingPlayersLabel.setText(realText + '.');
-			} else {
+			}
+			else {
 				waitingPlayersLabel.setText(realText + ".".repeat(dotsCount + 1));
 			}
 		}));
@@ -107,7 +106,8 @@ public class LobbyController implements Controller<Object> {
 				gameItemsPane.getChildren();
 				disable.set(false);
 				timeline.stop();
-			} else {
+			}
+			else {
 				waitingPlayersLabel.setVisible(true);
 				cancelWaitButton.setVisible(true);
 				cancelWaitButton.setDisable(false);
@@ -172,29 +172,26 @@ public class LobbyController implements Controller<Object> {
 	private void subscribeToGameList(GameListFilter gameListFilter) {
 		Subscription subscription = gamesListSubscription.get();
 		if (subscription != null) {
-			subscription.unsubscribe();
+			subscription.cancel();
 		}
 
-		gameManagementOrigin.games(gameListFilter)
-				.takeUntil(destroyPublisher.asObservable())
-				.subscribe(Subscriber.<List<GameView>>builder().onSubscribe(gamesListSubscription::set)
-						.onPublish(gameViews -> {
-							List<GameItem> gameItems = gameViews.stream()
-									.map(GameItem::new)
-									.collect(Collectors.toList());
-							gameItems.forEach(gameItem -> {
-								gameItem.disableJoinButtonOn(disable);
-								gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
-								gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
-								gameItem.setOnStartClick(
-										event -> gameManagementOrigin.startGame(gameItem.getGameView().getId()));
-							});
-							Platform.runLater(() -> {
-								ObservableList<Node> gameList = gameItemsPane.getChildren();
-								gameList.clear();
-								gameList.addAll(gameItems);
-							});
-						}));
+		gameManagementOrigin.games(gameListFilter).takeUntil(destroyPublisher.asObservable()).subscribe(sub -> {
+			gamesListSubscription.set(sub);
+			sub.request(Long.MAX_VALUE);
+		}, gameViews -> {
+			List<GameItem> gameItems = gameViews.stream().map(GameItem::new).collect(Collectors.toList());
+			gameItems.forEach(gameItem -> {
+				gameItem.disableJoinButtonOn(disable);
+				gameItem.setOnJoinClick(event -> joinGame(gameItem.getGameView().getId()));
+				gameItem.setOnWatchClick(event -> watchGame(gameItem.getGameView().getId()));
+				gameItem.setOnStartClick(event -> gameManagementOrigin.startGame(gameItem.getGameView().getId()));
+			});
+			Platform.runLater(() -> {
+				ObservableList<Node> gameList = gameItemsPane.getChildren();
+				gameList.clear();
+				gameList.addAll(gameItems);
+			});
+		});
 	}
 
 	private void subscribeToTournamentList() {

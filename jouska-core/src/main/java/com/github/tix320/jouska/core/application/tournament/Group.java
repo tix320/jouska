@@ -8,7 +8,7 @@ import com.github.tix320.jouska.core.application.game.creation.GroupSettings;
 import com.github.tix320.jouska.core.application.tournament.ClassicGroup.GroupPlayer;
 import com.github.tix320.jouska.core.infrastructure.concurrent.ThreadSafe;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.MonoObservable;
 
 public interface Group extends ThreadSafe {
 

@@ -10,7 +10,7 @@ import com.github.tix320.jouska.core.dto.Confirmation;
 import com.github.tix320.jouska.core.dto.GamePlayDto;
 import com.github.tix320.jouska.core.dto.GamePlayersOfflineWarning;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.kiwi.observable.TimeoutException;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 
 @Endpoint("game")

@@ -13,7 +13,7 @@ import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.update.UpdateNotReadyException;
 import com.github.tix320.jouska.core.update.UpdateRunner;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.kiwi.observable.TimeoutException;
 import com.github.tix320.skimp.api.object.None;
 import com.github.tix320.sonder.api.common.communication.Transfer;
 import javafx.application.Platform;

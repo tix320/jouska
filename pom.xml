@@ -13,7 +13,7 @@
 		<revision>3.0.0</revision>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<sonder.version>3.0.1</sonder.version>
+		<sonder.version>4.0.0</sonder.version>
 		<ravel.version>0.2.0</ravel.version>
 		<deft.version>0.4.0</deft.version>
 		<classgraph.version>4.8.102</classgraph.version>
@@ -33,8 +33,8 @@
 				<artifactId>maven-compiler-plugin</artifactId>
 				<version>3.8.1</version>
 				<configuration>
-					<source>16</source>
-					<target>16</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
 			<plugin>
@@ -65,11 +65,11 @@
 	</build>
 
 	<dependencies>
-<!--		<dependency>-->
-<!--			<groupId>com.github.tix320</groupId>-->
-<!--			<artifactId>kiwi</artifactId>-->
-<!--			<version>0.25.0</version>-->
-<!--		</dependency>-->
+		<dependency>
+			<groupId>com.github.tix320</groupId>
+			<artifactId>kiwi</artifactId>
+			<version>3.0.4</version>
+		</dependency>
 	</dependencies>
 
 </project>

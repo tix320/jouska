@@ -14,7 +14,7 @@ import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayOffGameEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.TournamentEntity;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 import dev.morphia.query.experimental.filters.Filter;

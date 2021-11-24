@@ -17,9 +17,9 @@ import com.github.tix320.jouska.server.infrastructure.dao.GameDao;
 import com.github.tix320.jouska.server.infrastructure.entity.GameEntity;
 import com.github.tix320.jouska.server.infrastructure.helper.Converters;
 import com.github.tix320.jouska.server.infrastructure.origin.ServerGameManagementOrigin;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.publisher.SinglePublisher;
 import com.github.tix320.skimp.api.collection.Tuple;
 import com.github.tix320.skimp.api.object.None;
 

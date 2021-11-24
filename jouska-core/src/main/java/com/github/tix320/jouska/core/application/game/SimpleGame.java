@@ -10,11 +10,11 @@ import com.github.tix320.jouska.core.application.game.creation.RestorableGameSet
 import com.github.tix320.jouska.core.application.game.creation.SimpleGameSettings;
 import com.github.tix320.jouska.core.infrastructure.UnsupportedChangeException;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
-import com.github.tix320.kiwi.api.reactive.property.StateProperty;
-import com.github.tix320.kiwi.api.reactive.property.Stock;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.ObjectStock;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.StateProperty;
+import com.github.tix320.kiwi.property.Stock;
 
 import static java.util.stream.Collectors.toMap;
 
@@ -29,7 +29,7 @@ public final class SimpleGame implements RestorableGame {
 	private volatile GameBoard board; // init after start
 	private final List<GamePlayer> activePlayers;
 	private final AtomicReference<GamePlayer> currentPlayer;
-	private final Stock<GameChange> changes;
+	private final ObjectStock<GameChange> changes;
 	private final StateProperty<GameState> gameState;
 	private final AtomicReference<GamePlayer> winner;
 	private final List<GamePlayer> lostPlayers;
@@ -173,7 +173,7 @@ public final class SimpleGame implements RestorableGame {
 		return cellChange;
 	}
 
-	public ReadOnlyStock<GameChange> changes() {
+	public Stock<GameChange> changes() {
 		return changes.toReadOnly();
 	}
 

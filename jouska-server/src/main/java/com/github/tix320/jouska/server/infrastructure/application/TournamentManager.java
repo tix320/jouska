@@ -17,9 +17,9 @@ import com.github.tix320.jouska.server.infrastructure.ClientPlayerMappingResolve
 import com.github.tix320.jouska.server.infrastructure.application.dbo.DBTournament;
 import com.github.tix320.jouska.server.infrastructure.application.dbo.DBTournamentSettings;
 import com.github.tix320.jouska.server.infrastructure.origin.ServerTournamentOrigin;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
-import com.github.tix320.kiwi.api.reactive.publisher.SinglePublisher;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.observable.TimeoutException;
+import com.github.tix320.kiwi.publisher.SinglePublisher;
 import com.github.tix320.skimp.api.collection.Tuple;
 import com.github.tix320.skimp.api.exception.ThreadInterruptedException;
 import com.github.tix320.skimp.api.object.None;

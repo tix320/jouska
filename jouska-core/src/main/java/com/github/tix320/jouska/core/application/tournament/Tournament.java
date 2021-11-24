@@ -6,8 +6,8 @@ import java.util.Set;
 import com.github.tix320.jouska.core.application.game.creation.TournamentSettings;
 import com.github.tix320.jouska.core.infrastructure.concurrent.LockOwner;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.Property;
 
 /**
  * NOTE: implementations must be thread-safe.
@@ -33,7 +33,6 @@ public interface Tournament extends LockOwner {
 	 * Remove player from tournament.
 	 *
 	 * @return true if removed.
-	 *
 	 * @throws TournamentIllegalStateException if already started
 	 */
 	boolean removePlayer(Player player);
@@ -63,7 +62,7 @@ public interface Tournament extends LockOwner {
 	 *
 	 * @see PlayOff
 	 */
-	ReadOnlyProperty<? extends PlayOff> playOff();
+	Property<? extends PlayOff> playOff();
 
 	/**
 	 * Get tournament state.

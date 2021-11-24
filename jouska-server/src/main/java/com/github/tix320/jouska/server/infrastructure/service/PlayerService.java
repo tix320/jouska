@@ -16,7 +16,7 @@ import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.endpoint.auth.NotAuthenticatedException;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.origin.AuthenticationOrigin;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.observable.Observable;
 
 public class PlayerService {
 

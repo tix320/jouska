@@ -11,9 +11,9 @@ import com.github.tix320.jouska.core.infrastructure.UnsupportedChangeException;
 import com.github.tix320.jouska.core.model.Player;
 import com.github.tix320.jouska.core.util.PauseableTimer;
 import com.github.tix320.jouska.core.util.SingleTaskTimer;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
-import com.github.tix320.kiwi.api.reactive.property.Stock;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.ObjectStock;
+import com.github.tix320.kiwi.property.Stock;
 
 public final class TimedGame implements RestorableGame {
 
@@ -27,7 +27,7 @@ public final class TimedGame implements RestorableGame {
 
 	private final Map<Player, PlayerTimer> playerTimers;
 
-	private final Stock<GameChange> changes;
+	private final ObjectStock<GameChange> changes;
 
 	private final AtomicReference<TurnInfo> currentTurnInfo;
 
@@ -141,7 +141,7 @@ public final class TimedGame implements RestorableGame {
 	}
 
 	@Override
-	public ReadOnlyStock<GameChange> changes() {
+	public Stock<GameChange> changes() {
 		return changes.toReadOnly();
 	}
 

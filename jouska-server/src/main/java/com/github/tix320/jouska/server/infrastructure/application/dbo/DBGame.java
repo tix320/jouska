@@ -16,11 +16,11 @@ import com.github.tix320.jouska.server.infrastructure.entity.GamePlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.GameStatisticsEntity;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.helper.Converters;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.property.MapProperty;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyMapProperty;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyStock;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.property.MapProperty;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.ReadOnlyMapProperty;
+import com.github.tix320.kiwi.property.Stock;
 import dev.morphia.query.experimental.filters.Filters;
 
 import static java.util.stream.Collectors.toMap;
@@ -143,7 +143,7 @@ public class DBGame implements Game {
 	}
 
 	@Override
-	public ReadOnlyStock<GameChange> changes() {
+	public Stock<GameChange> changes() {
 		return game.changes();
 	}
 

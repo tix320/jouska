@@ -6,8 +6,8 @@ import java.util.Optional;
 import com.github.tix320.jouska.core.application.game.creation.PlayOffSettings;
 import com.github.tix320.jouska.core.infrastructure.concurrent.ThreadSafe;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
 import com.github.tix320.skimp.api.object.None;
 
 public interface PlayOff extends ThreadSafe {

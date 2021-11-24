@@ -9,13 +9,11 @@ import com.github.tix320.jouska.core.application.game.creation.ClassicTournament
 import com.github.tix320.jouska.core.application.game.creation.TournamentSettings;
 import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.ObjectProperty;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.Property.Committer;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
-import com.github.tix320.kiwi.api.reactive.property.StateProperty;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.property.ObjectProperty;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.StateProperty;
 
 public class ClassicTournament implements RestorableTournament {
 
@@ -84,10 +82,10 @@ public class ClassicTournament implements RestorableTournament {
 
 			classicPlayOff.start();
 
-			Committer committer = Property.updateAtomic(state, playOff);
-			this.playOff.setValue(classicPlayOff);
-			state.setValue(TournamentState.PLAY_OFF_STAGE);
-			committer.commit();
+			Property.updateAtomic(state, playOff, () -> {
+				playOff.setValue(classicPlayOff);
+				state.setValue(TournamentState.PLAY_OFF_STAGE);
+			});
 
 			classicPlayOff.completed().subscribe(none -> state.setValue(TournamentState.COMPLETED));
 		});
@@ -104,7 +102,7 @@ public class ClassicTournament implements RestorableTournament {
 	}
 
 	@Override
-	public ReadOnlyProperty<RestorablePlayOff> playOff() {
+	public Property<RestorablePlayOff> playOff() {
 		return playOff.toReadOnly();
 	}
 
@@ -153,10 +151,10 @@ public class ClassicTournament implements RestorableTournament {
 				classicPlayOff.start();
 
 
-				Committer committer = Property.updateAtomic(state, this.playOff);
-				this.playOff.setValue(classicPlayOff);
-				state.setValue(TournamentState.PLAY_OFF_STAGE);
-				committer.commit();
+				Property.updateAtomic(state, this.playOff, () -> {
+					this.playOff.setValue(classicPlayOff);
+					state.setValue(TournamentState.PLAY_OFF_STAGE);
+				});
 
 				classicPlayOff.completed().subscribe(none -> state.setValue(TournamentState.COMPLETED));
 			});

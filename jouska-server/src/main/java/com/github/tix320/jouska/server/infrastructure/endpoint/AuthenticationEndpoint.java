@@ -12,7 +12,7 @@ import com.github.tix320.jouska.core.model.Role;
 import com.github.tix320.jouska.server.infrastructure.dao.PlayerDao;
 import com.github.tix320.jouska.server.infrastructure.entity.PlayerEntity;
 import com.github.tix320.jouska.server.infrastructure.service.PlayerService;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Endpoint;
 import com.github.tix320.sonder.api.common.rpc.Subscription;
 import com.github.tix320.sonder.api.common.rpc.extra.ClientID;

@@ -20,10 +20,11 @@ import com.github.tix320.jouska.core.Version;
 import com.github.tix320.jouska.core.dto.Credentials;
 import com.github.tix320.jouska.core.dto.LoginAnswer;
 import com.github.tix320.jouska.core.dto.LoginResult;
+import com.github.tix320.jouska.core.dto.TournamentView;
 import com.github.tix320.jouska.core.update.UpdateNotReadyException;
 import com.github.tix320.jouska.core.update.UpdateRunner;
 import com.github.tix320.jouska.core.util.ClassUtils;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
+import com.github.tix320.kiwi.observable.TimeoutException;
 import com.github.tix320.sonder.api.client.SonderClient;
 import com.github.tix320.sonder.api.client.rpc.ClientRPCProtocol;
 import com.github.tix320.sonder.api.common.communication.Transfer;
@@ -38,55 +39,57 @@ public class BotApp {
 		String password = args[2];
 		Configuration configuration = new Configuration(AppProperties.APP_CONFIG_FILE);
 		InetSocketAddress serverAddress = configuration.getServerAddress();
-		// for (int i = 1; i <= 5; i++) {
-		// 	SonderClient sonderClient = SonderClient.forAddress(new InetSocketAddress(host, port))
-		// 			.withRPCProtocol(builder -> builder.scanPackages("com.github.tix320.jouska.bot"))
-		// 			.contentTimeoutDurationFactory(contentLength -> Duration.ofSeconds(10000))
-		// 			.build();
-		//
-		// 	String botNickname = "Bot" + i;
-		// 	String botPassword = "foo";
-		//
-		// 	sonderClient.connect();
-		//
-		// 	Context.setSonderClient(sonderClient);
-		//
-		// 	sonderClient.getRPCService(AuthenticationService.class)
-		// 			.forceLogin(new Credentials(botNickname, botPassword))
-		// 			.subscribe(loginAnswer -> {
-		// 				if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
-		// 					sonderClient.getRPCService(BotTournamentOrigin.class)
-		// 							.getTournaments()
-		// 							.toMono()
-		// 							.subscribe(tournamentViews -> {
-		// 								TournamentView tournamentView = tournamentViews.stream()
-		// 										.filter(tournamentView1 -> !tournamentView1.isStarted())
-		// 										.findFirst()
-		// 										.orElseThrow(() -> new IllegalStateException(
-		// 												"No any free tournament found"));
-		// 								String id = tournamentView.getId();
-		// 								sonderClient.getRPCService(BotTournamentOrigin.class).join(id);
-		// 							});
-		// 				}
-		// 				else {
-		// 					throw new IllegalStateException(loginAnswer.toString());
-		// 				}
-		// 			});
-		//
-		//
-		// }
-		//
-		// if (true) {
-		// 	return;
-		// }
 
 		Class<?>[] originInterfaces = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.origin");
 		Class<?>[] endpointClasses = ClassUtils.getPackageClasses("com.github.tix320.jouska.bot.service.endpoint");
+
+		for (int i = 1; i <= 5; i++) {
+			ClientRPCProtocol rpcProtocol = ClientRPCProtocol.builder()
+					.registerOriginInterfaces(originInterfaces)
+					.registerEndpointClasses(endpointClasses)
+					.build();
+
+			SonderClient sonderClient = SonderClient.forAddress(serverAddress).registerProtocol(rpcProtocol).build();
+
+			String botNickname = "Bot" + i;
+			String botPassword = "foo";
+
+			sonderClient.start();
+
+			rpcProtocol.getOrigin(AuthenticationService.class)
+					.forceLogin(new Credentials(botNickname, botPassword))
+					.subscribe(loginAnswer -> {
+						if (loginAnswer.getLoginResult() == LoginResult.SUCCESS) {
+							rpcProtocol.getOrigin(BotTournamentOrigin.class)
+									.getTournaments()
+									.toMono()
+									.subscribe(tournamentViews -> {
+										TournamentView tournamentView = tournamentViews.stream()
+												.filter(tournamentView1 -> !tournamentView1.isStarted())
+												.findFirst()
+												.orElseThrow(() -> new IllegalStateException(
+														"No any free tournament found"));
+										String id = tournamentView.getId();
+										rpcProtocol.getOrigin(BotTournamentOrigin.class).join(id);
+									});
+						}
+						else {
+							throw new IllegalStateException(loginAnswer.toString());
+						}
+					});
+
+
+		}
+
+		if (true) {
+			return;
+		}
 
 		ClientRPCProtocol rpcProtocol = ClientRPCProtocol.builder()
 				.registerOriginInterfaces(originInterfaces)
 				.registerEndpointClasses(endpointClasses)
 				.build();
+
 		SonderClient sonderClient = SonderClient.forAddress(serverAddress).registerProtocol(rpcProtocol).build();
 
 		sonderClient.start();
@@ -131,7 +134,8 @@ public class BotApp {
 			final Transfer transfer;
 			try {
 				transfer = applicationUpdateOrigin.downloadBot(OS.CURRENT).get(Duration.ofSeconds(30));
-			} catch (TimeoutException e) {
+			}
+			catch (TimeoutException e) {
 				System.err.println("Timeout");
 				System.exit(1);
 				return;
@@ -147,10 +151,12 @@ public class BotApp {
 
 			try {
 				updateRunner.update(transfer);
-			} catch (UpdateNotReadyException e) {
+			}
+			catch (UpdateNotReadyException e) {
 				System.err.println("Update not available now");
 				System.exit(1);
-			} catch (IOException e) {
+			}
+			catch (IOException e) {
 				e.printStackTrace();
 				System.exit(1);
 			}

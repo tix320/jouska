@@ -2,9 +2,9 @@ package com.github.tix320.jouska.client.infrastructure.notifcation;
 
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.core.event.Event;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.publisher.MonoPublisher;
+import com.github.tix320.kiwi.publisher.Publisher;
 
 /**
  * @author Tigran Sargsyan on 29-Mar-20.

@@ -8,9 +8,9 @@ import com.github.tix320.jouska.client.infrastructure.notifcation.NotificationEv
 import com.github.tix320.jouska.client.service.origin.AuthenticationOrigin;
 import com.github.tix320.jouska.client.ui.controller.notification.NotificationController;
 import com.github.tix320.jouska.core.event.EventDispatcher;
-import com.github.tix320.kiwi.api.reactive.observable.TimeoutException;
-import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.TimeoutException;
+import com.github.tix320.kiwi.publisher.MonoPublisher;
+import com.github.tix320.kiwi.publisher.Publisher;
 import com.github.tix320.skimp.api.exception.ThreadInterruptedException;
 import com.github.tix320.skimp.api.object.None;
 import javafx.animation.FadeTransition;

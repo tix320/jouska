@@ -23,10 +23,10 @@ import com.github.tix320.jouska.core.application.game.creation.SimpleGameSetting
 import com.github.tix320.jouska.core.application.game.creation.TimedGameSettings;
 import com.github.tix320.jouska.core.dto.*;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Subscriber;
-import com.github.tix320.kiwi.api.reactive.publisher.MonoPublisher;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Subscriber;
+import com.github.tix320.kiwi.publisher.MonoPublisher;
+import com.github.tix320.kiwi.publisher.Publisher;
 import com.github.tix320.skimp.api.object.None;
 import javafx.animation.*;
 import javafx.application.Platform;
@@ -179,10 +179,10 @@ public class GameController implements Controller<GameWatchDto> {
 
 		game.completed().takeUntil(destroy).subscribe(none -> onGameComplete());
 
-		destroy.subscribe(Subscriber.builder().onComplete(completionType -> Platform.runLater(() -> {
+		destroy.subscribeOnComplete(completion -> Platform.runLater(() -> {
 			turnTimeIndicator.stop();
 			turnTotalTimeIndicator.stop();
-		})));
+		}));
 
 		gameOrigin.changes(gameId).takeUntil(destroy).subscribe(this::processChange);
 	}
@@ -482,7 +482,7 @@ public class GameController implements Controller<GameWatchDto> {
 		transition.setCycleCount(Timeline.INDEFINITE);
 		transition.setAutoReverse(true);
 		transition.play();
-		destroyPublisher.asObservable().subscribe(Subscriber.builder().onComplete(completionType -> transition.stop()));
+		destroyPublisher.asObservable().subscribeOnComplete(completion -> transition.stop());
 	}
 
 	private void fillBoard(BoardCell[][] board) {

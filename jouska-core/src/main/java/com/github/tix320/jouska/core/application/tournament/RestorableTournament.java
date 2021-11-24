@@ -3,7 +3,7 @@ package com.github.tix320.jouska.core.application.tournament;
 import java.util.List;
 
 import com.github.tix320.jouska.core.infrastructure.RestoreException;
-import com.github.tix320.kiwi.api.reactive.property.ReadOnlyProperty;
+import com.github.tix320.kiwi.property.Property;
 
 /**
  * @author Tigran Sargsyan on 23-Apr-20.
@@ -14,7 +14,7 @@ public interface RestorableTournament extends Tournament {
 	List<RestorableGroup> getGroups();
 
 	@Override
-	ReadOnlyProperty<RestorablePlayOff> playOff();
+	Property<RestorablePlayOff> playOff();
 
 	/**
 	 * Restore tournament state from given groups and play-off.

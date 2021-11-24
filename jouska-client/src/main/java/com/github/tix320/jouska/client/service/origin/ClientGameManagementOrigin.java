@@ -3,8 +3,8 @@ package com.github.tix320.jouska.client.service.origin;
 import java.util.List;
 
 import com.github.tix320.jouska.core.dto.*;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
 import com.github.tix320.sonder.api.common.rpc.Origin;
 import com.github.tix320.sonder.api.common.rpc.Response;
 import com.github.tix320.sonder.api.common.rpc.Subscription;

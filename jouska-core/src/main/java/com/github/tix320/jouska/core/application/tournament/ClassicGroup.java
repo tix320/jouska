@@ -13,10 +13,10 @@ import com.github.tix320.jouska.core.application.game.creation.GameSettings;
 import com.github.tix320.jouska.core.application.game.creation.RestorableGroupSettings;
 import com.github.tix320.jouska.core.infrastructure.RestoreException;
 import com.github.tix320.jouska.core.model.Player;
-import com.github.tix320.kiwi.api.reactive.observable.MonoObservable;
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.property.Property;
-import com.github.tix320.kiwi.api.reactive.property.StateProperty;
+import com.github.tix320.kiwi.observable.MonoObservable;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.property.Property;
+import com.github.tix320.kiwi.property.StateProperty;
 
 public class ClassicGroup implements RestorableGroup {
 

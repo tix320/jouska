@@ -4,8 +4,8 @@ package com.github.tix320.jouska.core.event;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import com.github.tix320.kiwi.api.reactive.observable.Observable;
-import com.github.tix320.kiwi.api.reactive.publisher.Publisher;
+import com.github.tix320.kiwi.observable.Observable;
+import com.github.tix320.kiwi.publisher.Publisher;
 
 public class EventDispatcher {
 
